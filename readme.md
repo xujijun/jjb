@@ -15,7 +15,8 @@
   <img alt="安装 Firefox 版" class="firefox" src="https://d33wubrfki0l68.cloudfront.net/4ce5ce101cdaa4030248fab2934960ad1cc6960e/3f95c/firefox-quantum.png" width="32px">
 </a>
 
-** 重要提示：京价保并非开源软件，不许可您以任何显示进行再发行，请仔细阅读协议模块 **
+> 重要提示：京价保并非开源软件，不许可您以任何形式进行再发行，请仔细阅读协议模块。
+
 ## 主要功能
 
 * 自动监控最近订单商品的价格变化，在商品降价时自动申请价格保护
