@@ -177,7 +177,7 @@ async function getAllOrders(setting) {
   console.log('京价保开始自动检查订单')
   let orders = []
   let dealorders = []
-  $( "#datas li" ).each(function() {
+  $( "#dataList0 li" ).each(function() {
     dealorders.push(dealOrder($(this), orders, setting))
   });
   await Promise.all(dealorders)
@@ -753,18 +753,36 @@ function CheckDom() {
     }
   }
 
+  // 自营筛选 （待实现）
+
+  // if ($("#J_feature").size() > 0) {
+  //   let jd_self = `<li><a data-field="wtype" id="filterSelf" data-val="0" href="javascript:;" onclick="searchlog(0,0,0,43)"><i></i>只看自营</a></li>`
+  //   $("#J_feature ul").prepend(jd_self);
+
+  //   $("#filterSelf").on('click', () => {
+  //     $("#J_goodsList .gl-item").each(function () {
+  //       if ($(this).find('i.goods-icons').text() == '自营') {
+  //         $(this).show()
+  //       } else {
+  //         $(this).hide()
+  //       }
+  //     })
+  //   })
+  // }
+  
+
   // 自动评价 
   if ($(".mycomment-form").length > 0) {
     getSetting('auto_review', autoReview)
   };
 
   // 价格保护（1）
-  if ( $( "#productscroll ").length > 0 && $("#jb-product").text() == "价保申请") {
+  if ($(".bd-product-list ").size() > 0 && $("#jb-product").text() == "价保申请") {
     $('body').append('<div class="weui-mask weui-mask--visible"><h1>已经开始自动检查价格变化，您可以关闭窗口了</h1><span class="close">x</span></div>')
     $('span.close').on('click', () => {
       $('.weui-mask').remove()
     })
-    if ( $( "#productscroll #datas").length > 0) {
+    if ($( ".bd-product-list li").length > 0) {
       chrome.runtime.sendMessage({
         text: "isLogin",
       }, function(response) {
@@ -785,7 +803,9 @@ function CheckDom() {
 
 $( document ).ready(function() {
   console.log('京价保注入页面成功');
+  $('script').filter(function () { return this.src.length > 0 }).each(function () { this.src = this.src.replace("http://", "https://") })
   setTimeout( function(){
+    console.log('京价保开始执行任务');
     CheckDom()
   }, 2000)
 });

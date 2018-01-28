@@ -184,7 +184,7 @@ $( document ).ready(function() {
           disabled_link: disabled_link == 'checked' ? true : false
         }
       }, '*');
-    }, 200);
+    }, 500);
   }
 
   if (messages && messages.length > 0) {
@@ -196,7 +196,7 @@ $( document ).ready(function() {
           messages: messages
         }
       }, '*');
-    }, 700);
+    }, 1200);
   }
 
   function receiveMessage(event) {
