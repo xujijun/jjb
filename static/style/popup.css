@@ -319,6 +319,7 @@ img.weui-tabbar__icon {
 
 .contents-box{
     margin-top: 0;
+    padding-bottom: 30px;
 }
 
 .listenVoice{
@@ -334,6 +335,10 @@ img.weui-tabbar__icon {
     width: 54%;
     background: #fafafa;
     z-index: 10;
+}
+
+#order.weui-cells:after{
+    border-bottom: none;
 }
 
 .messages-tab {

@@ -44,7 +44,7 @@ async function fetchProductPage(sku) {
 }
 
 // 获取价格
-async function getNowPrice(sku) {
+async function getNowPrice(sku, isPlus) {
   var data = null
   try {
     data = await fetchProductPage(sku)
@@ -52,13 +52,18 @@ async function getNowPrice(sku) {
     console.log('fetchProductPage', e)
   }
   if (data) {
-    var product_name = $(data).find('.title-text').text()
-    var normal_price = $(data).find('#specJdPrice').text()
-    var spec_price = $(data).find('#spec_price').text()
+    let product_name = $(data).find('.title-text').text()
+    let normal_price = $(data).find('#specJdPrice').text()
+    let spec_price = $(data).find('#spec_price').text()
+    let plus_price = $(data).find('#specPlusPrice').text()
     if (!product_name) {
       console.log(data, $(data))
     }
-    console.log(product_name + '最新价格', Number(normal_price), 'or', Number(spec_price))
+    console.log(product_name + '最新价格', Number(normal_price), 'or', Number(spec_price), 'Plus 价格', Number(plus_price))
+
+    if (Number(plus_price) > 0 && isPlus) {
+      return Number(plus_price)
+    }
 
     if (normal_price) {
       return Number(normal_price)
@@ -70,7 +75,7 @@ async function getNowPrice(sku) {
   }
 }
 
-async function dealProduct(product, order_info) {
+async function dealProduct(product, order_info, isPlus) {
   console.log('dealProduct', product, order_info)
   var success_logs = []
   var product_name = product.find('.item-name .name').text()
@@ -92,7 +97,7 @@ async function dealProduct(product, order_info) {
     success_logs.push(order_success_logs.trim())
   }
 
-  var new_price = await getNowPrice(order_sku[2])
+  var new_price = await getNowPrice(order_sku[2], isPlus)
   console.log(product_name + '进行价格对比:', new_price, ' Vs ', order_price)
   order_info.goods.push({
     sku: order_sku[2],
@@ -148,10 +153,10 @@ async function dealOrder(order, orders, setting) {
   console.log('订单:', order_id, order_time, setting)
 
   var proTime = 15 * 24 * 3600 * 1000
-  if (setting == '7') {
+  if (setting.pro_days == '7') {
     proTime = 7 * 24 * 3600 * 1000
   }
-  if (setting == '30') {
+  if (setting.pro_days == '30') {
     proTime = 30 * 24 * 3600 * 1000
   }
 
@@ -164,7 +169,7 @@ async function dealOrder(order, orders, setting) {
     console.log(order.find('.product-item'))
 
     order.find('.product-item').each(function() {
-      dealgoods.push(dealProduct($(this), order_info))
+      dealgoods.push(dealProduct($(this), order_info, setting.is_plus))
     })
 
     await Promise.all(dealgoods)
@@ -441,6 +446,15 @@ function CheckDom() {
       console.log("Response: ", response);
     });
   };
+
+  // 是否是PLUS会员
+  if ($(".cw-user .fm-icon").size() > 0 && $(".cw-user .fm-icon").text() == '正式会员') {
+    chrome.runtime.sendMessage({
+      text: "isPlus",
+    }, function (response) {
+      console.log("Response: ", response);
+    });
+  }
 
   // 账号登录
   // 手机版登录页
@@ -778,6 +792,10 @@ function CheckDom() {
 
   // 价格保护（1）
   if ($(".bd-product-list ").size() > 0 && $("#jb-product").text() == "价保申请") {
+    // try getListData
+    var objDiv = document.getElementById("mescroll0");
+    objDiv.scrollTop = (objDiv.scrollHeight * 2);
+
     $('body').append('<div class="weui-mask weui-mask--visible"><h1>已经开始自动检查价格变化，您可以关闭窗口了</h1><span class="close">x</span></div>')
     $('span.close').on('click', () => {
       $('.weui-mask').remove()
@@ -793,7 +811,14 @@ function CheckDom() {
         text: "run_status",
         jobId: "1"
       })
-      getSetting('price_pro_days', getAllOrders)
+      chrome.runtime.sendMessage({
+        text: "getPriceProtectionSetting"
+      }, function (response) {
+        setTimeout(function () {
+          getAllOrders(response)
+        }, 5000)
+        console.log("getPriceProtectionSetting Response: ", response);
+      });
     } else {
       console.log('好尴尬，最近没有买东西..', new Date())
     }

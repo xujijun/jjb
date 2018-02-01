@@ -359,6 +359,18 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'isLogin':
       localStorage.setItem('jjb_logged-in', 'Y');
       break;
+    case 'isPlus':
+      localStorage.setItem('jjb_plus', 'Y');
+      break;
+    case 'getPriceProtectionSetting':
+      let isPlus = localStorage.getItem('jjb_plus');
+      let days = localStorage.getItem('price_pro_days')
+      let is_plus = (localStorage.getItem('is_plus') ? localStorage.getItem('is_plus') == 'checked' : false ) || (isPlus == 'Y')
+      return sendResponse({
+        pro_days: days || 15,
+        is_plus: is_plus
+      })
+      break;
     case 'saveAccount':
       var content = JSON.parse(msg.content)
       if (content.username && content.password) {

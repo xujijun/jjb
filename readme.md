@@ -59,12 +59,24 @@
 1. 将本项目的部分或全部代码和资源进行任何形式的再发行（尤其是上传到 Chrome 商店）
 2. 利用本项目的部分或全部代码和资源进行任何商业行为
 
+## 贡献代码
+
+京价保并非一个开源项目，也不是社区共同创造，京价保由作者独立完成。
+如果你愿意放弃所有权利，并将权利无条件转让给京价保作者，欢迎您贡献代码。
+
+## 提交反馈
+
+欢迎提交 issues，请写清楚遇到问题的原因，浏览器和操作系统环境，重现的流程。
+如果有开发能力，建议在本地调试出出错的代码。
+
+不接受功能请求的 issues，功能请求可能会被直接关闭，请谅解。
+
 ## 赞助商
 
 <h3>
-  <a href="https://duohui.co/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多会 - 专业的活动管理系统</a>
+  <a href="https://www.duohui.cn/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多会 - 专业的活动管理系统</a>
 </h3>
 
-<a target='_blank' href='https://duohui.co/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme'>
+<a target='_blank' href='https://www.duohui.cn/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme'>
   <img alt='多会 - 一键生成活动小程序' width='561' height='211' src='https://oi4m2ufmx.qnssl.com/jjb/duohui_minapp.png' />
 </a>
