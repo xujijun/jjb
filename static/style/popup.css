@@ -81,6 +81,10 @@ select {
     margin-bottom: -7px;
 }
 
+.reward_tips .newyear {
+    color: #f15f5f;
+}
+
 #renderFrame{
     height: 0px;
 }

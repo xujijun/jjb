@@ -1,6 +1,5 @@
 // 京价保
 
-
 var observeDOM = (function () {
   var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
     eventListenerSupported = window.addEventListener;
@@ -128,7 +127,7 @@ async function dealProduct(product, order_info, isPlus) {
       console.log("Response: ", response);
     });
     // 等待15秒后检查申请结果
-    var resultId = "applyResult_" + applyId.substr(4)
+    var resultId = "applyResult_" + applyId.substr(8)
     setTimeout(function () {
       observeDOM(document.getElementById(resultId), function () {
         let resultText = $("#" + resultId).text()
@@ -521,7 +520,7 @@ function CheckDom() {
             })
           })
         }
-      }, 1000)
+      }, 2000)
     } else {
       markCheckinStatus('vip')
     }

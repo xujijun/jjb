@@ -35,6 +35,15 @@
 
 ![](https://oi4m2ufmx.qnssl.com/jjb/jjb_phone.png)
 
+## 如何开发
+
+* 安装依赖
+> yarn 
+
+* 开始开发
+> yarn dev
+
+`主要左右就是合并压缩代码`
 
 ## 价格
 

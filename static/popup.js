@@ -60,8 +60,7 @@ $( document ).ready(function() {
   
 
   function switchWechat(target) {
-    console.log('switchWechat', target)
-    let to = target || ($("#dialogs .weixin_pay .ming").is(':visible') ? 'samedi' : 'ming')
+    let to = target || 'ming'
     if (to == 'samedi') {
       $("#dialogs .weixin_pay .ming").hide()
       $("#dialogs .weixin_pay .samedi").show()
@@ -89,7 +88,7 @@ $( document ).ready(function() {
     switchWechat(target)
     switchAlipay()
     let time = Date.now().toString()
-    if (time[time.length - 1] < 5 && !target) {
+    if (time[time.length - 1] < 3 && !target) {
       setTimeout(() => {
         $("#payMethod-alipay").trigger('click')
       }, 50);
