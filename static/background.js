@@ -29,7 +29,7 @@ let jobs = [
   },
   {
     id: '5',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fvip.m.jd.com%2Fpage%2Fhome',
+    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fvip.m.jd.com%2Fpage%2Fsignin',
     title: '京豆签到',
     mode: 'iframe',
     frequency: 'daily'
@@ -47,6 +47,13 @@ let jobs = [
     title: '店铺签到',
     mode: 'tab',
     frequency: 'never'
+  },
+  {
+    id: '8',
+    src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fhome.jdpay.com%2fmy%2fsignIndex%3ffrom%3dsinglemessage%26isappinstalled%3d0%26source%3dJDSC',
+    title: '京东支付签到',
+    mode: 'iframe',
+    frequency: 'daily'
   },
   {
     id: '9',
@@ -298,11 +305,18 @@ chrome.notifications.onClicked.addListener(function (notificationId){
         case 'rebate':
           openFXDetailPage()
           break;
+        
         default:
-          chrome.tabs.create({
-  
-            url: "https://search.jd.com/Search?coupon_batch="+batch
-          })
+          if (batch && batch != 'undefined') {
+            chrome.tabs.create({
+              url: "https://search.jd.com/Search?coupon_batch=" + batch
+            })
+          } else {
+            chrome.tabs.create({
+              url: "https://union-click.jd.com/jdc?d=259YU4"
+            })
+          }
+          
       }
     }
   }
@@ -322,6 +336,15 @@ function openFXDetailPage() {
     width: 420,
     height: 800,
     url: "https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fm.jr.jd.com%2fmjractivity%2frn%2fplatinum_members_center%2findex.html%3fpage%3dFXDetailPage",
+    type: "popup"
+  });
+}
+
+function openLoginPage() {
+  chrome.windows.create({
+    width: 1024,
+    height: 800,
+    url: "https://passport.jd.com/new/login.aspx",
     type: "popup"
   });
 }
@@ -352,8 +375,6 @@ function clearPinnedTabs() {
 }
 
 
-
-
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   switch(msg.text){
     case 'isLogin':
@@ -364,11 +385,13 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'getPriceProtectionSetting':
       let isPlus = localStorage.getItem('jjb_plus');
+      let min = localStorage.getItem('price_pro_min');
       let days = localStorage.getItem('price_pro_days')
       let is_plus = (localStorage.getItem('is_plus') ? localStorage.getItem('is_plus') == 'checked' : false ) || (isPlus == 'Y')
       return sendResponse({
         pro_days: days || 15,
-        is_plus: is_plus
+        is_plus: is_plus,
+        pro_min: min | 0.1
       })
       break;
     case 'saveAccount':
@@ -382,7 +405,12 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       return sendResponse(setting)
       break;
     case 'getAccount':
-      var account = localStorage.getItem('jjb_account')
+      let account = localStorage.getItem('jjb_account') ? JSON.parse(localStorage.getItem('jjb_account')) : null
+      let loginFailed = localStorage.getItem('jjb_login-failed') ? JSON.parse(localStorage.getItem('jjb_login-failed')) : null
+      if (account && loginFailed && moment().isBefore(moment(loginFailed.time).add(1, 'hour'))) {
+        loginFailed.displayTime = moment(loginFailed.time).locale('zh-cn').calendar()
+        account.loginFailed = loginFailed
+      }
       return sendResponse(account)
       break;
     case 'paid':
@@ -397,6 +425,19 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'openLogin':
     case 'openPricePro':
       openPriceProPhoneMenu()
+      break;
+    case 'loginFailed':
+      openLoginPage()
+      localStorage.setItem('jjb_login-failed', JSON.stringify({
+        errormsg: msg.content,
+        time: new Date()
+      }));
+      chrome.notifications.create(new Date().getTime().toString(), {
+        type: "basic",
+        title: "自动登录失败：" + msg.content,
+        message: "请手动登录一下（如果启用了科学上网，请把京东排除）",
+        iconUrl: 'static/image/128.png'
+      })
       break;
     case 'option':
       localStorage.setItem('jjb_'+msg.title, msg.content);
@@ -423,8 +464,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
           myAudio.src = "static/audio/price_protection.ogg";
           myAudio.play();
         }
-        if (hide_good && hide_good == 'checked') {
-          msg.content = "已经自动提交价保申请，正在等待申请结果。"
+        if (!hide_good || hide_good != 'checked') {
+          msg.content = (msg.product_name ? msg.product_name.substr(0, 22) : '') + msg.content
         }
       }
       if (msg.batch == 'rebate') {
@@ -514,7 +555,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'remove_tab':
       var content = JSON.parse(msg.content)
-      console.log('content', content)
       chrome.tabs.query({
         url: content.url,
         pinned: content.pinned == 'true'
@@ -523,6 +563,29 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
           return tab.id
         })
         chrome.tabs.remove(tabIds)
+      })
+      break;
+    // 高亮Tab
+    case 'highlightTab':
+      var content = JSON.parse(msg.content)
+      chrome.notifications.create(new Date().getTime().toString(), {
+        type: "basic",
+        title: "京价保未能自动完成任务",
+        message: "需要人工辅助，已将窗口切换至需要操作的标签",
+        iconUrl: 'static/image/128.png'
+      })
+      chrome.tabs.query({
+        url: content.url,
+        pinned: content.pinned == 'true'
+      }, function (tabs) {
+        var tabIds = $.map(tabs, function (tab) {
+          chrome.tabs.update(tab.id, { pinned: false }, function (newTab) {
+            chrome.tabs.highlight({
+              tabs: newTab.index
+            })
+          })
+          return tab.id
+        })
       })
       break;
     case 'coupon':

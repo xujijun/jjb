@@ -74,7 +74,7 @@ async function getNowPrice(sku, isPlus) {
   }
 }
 
-async function dealProduct(product, order_info, isPlus) {
+async function dealProduct(product, order_info, setting) {
   console.log('dealProduct', product, order_info)
   var success_logs = []
   var product_name = product.find('.item-name .name').text()
@@ -96,7 +96,7 @@ async function dealProduct(product, order_info, isPlus) {
     success_logs.push(order_success_logs.trim())
   }
 
-  var new_price = await getNowPrice(order_sku[2], isPlus)
+  var new_price = await getNowPrice(order_sku[2], setting.is_plus)
   console.log(product_name + '进行价格对比:', new_price, ' Vs ', order_price)
   order_info.goods.push({
     sku: order_sku[2],
@@ -109,7 +109,7 @@ async function dealProduct(product, order_info, isPlus) {
   var applyBtn = $(product).find('.item-opt .apply')
   var applyId = applyBtn.attr('id')
   var lastApplyPrice = localStorage.getItem('jjb_order_' + applyId)
-  if (new_price > 0 && new_price < order_price  ) {
+  if (new_price > 0 && new_price < order_price && (order_price - new_price) > setting.pro_min ) {
     if (lastApplyPrice && Number(lastApplyPrice) <= new_price) {
       console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', new_price, ' Vs ', lastApplyPrice)
       return 
@@ -122,7 +122,8 @@ async function dealProduct(product, order_info, isPlus) {
       text: "notice",
       batch: 'jiabao',
       title: '报告老板，发现价格保护机会！',
-      content: product_name.substr(0, 22) + '.. 购买价：'+ order_price + ' 现价：' + new_price + '，已经自动提交价保申请，正在等待申请结果。'
+      product_name: product_name,
+      content: '购买价：'+ order_price + ' 现价：' + new_price + '，已经自动提交价保申请，正在等待申请结果。'
     }, function(response) {
       console.log("Response: ", response);
     });
@@ -133,9 +134,11 @@ async function dealProduct(product, order_info, isPlus) {
         let resultText = $("#" + resultId).text()
         if (resultText && resultText.indexOf("预计") < 0) {
           chrome.runtime.sendMessage({
+            batch: 'jiabao',
             text: "notice",
             title: "报告老板，价保申请有结果了",
-            content: product_name.substr(0, 22) + ".. 价保结果：" + resultText
+            product_name: product_name,
+            content: "价保结果：" + resultText
           }, function (response) {
             console.log("Response: ", response);
           });
@@ -168,7 +171,7 @@ async function dealOrder(order, orders, setting) {
     console.log(order.find('.product-item'))
 
     order.find('.product-item').each(function() {
-      dealgoods.push(dealProduct($(this), order_info, setting.is_plus))
+      dealgoods.push(dealProduct($(this), order_info, setting))
     })
 
     await Promise.all(dealgoods)
@@ -261,7 +264,8 @@ function getAccount(type) {
     text: "getAccount",
   }, function (response) {
     if (response) {
-      var account = JSON.parse(response)
+      let account = response
+      console.log('getAccount', account)
       if (account && account.username && account.password) {
         autoLogin(account, type)
       } else {
@@ -287,16 +291,50 @@ function getSetting(name, cb) {
   });
 }
 
+// 登录失败
+function dealLoginFailed(errormsg) {
+  chrome.runtime.sendMessage({
+    text: "loginFailed",
+    content: errormsg
+  }, function (response) {
+    console.log("loginFailed Response: ", response);
+  });
+}
+
 
 // 自动登录
 function autoLogin(account, type) {
+  console.log('京价保正在为您自动登录', type)
   if (type == 'pc') {
     $(".login-tab-r a").trigger("click")
     $("#loginname").val(account.username)
     $("#nloginpwd").val(account.password)
-    setTimeout(function () {
-      mockClick($(".login-btn a")[0])
-    }, 500)
+    if (account.loginFailed) {
+      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginFailed.displayTime + '自动登录失败（原因：' + account.loginFailed.errormsg + '），一小时内不再自动登录').css('color', '#f73535').css('font-size', '14px')
+      $(".login-wrap .tips-wrapper").hide()
+      $("#content .tips-wrapper").css('background', '#fff97a')
+      chrome.runtime.sendMessage({
+        text: "highlightTab",
+        content: JSON.stringify({
+          url: window.location.href,
+          pinned: "true"
+        })
+      }, function (response) {
+        console.log("Response: ", response);
+      });  
+    } else {
+      setTimeout(function () {
+        mockClick($(".login-btn a")[0])
+      }, 500)
+      // 监控登录失败
+      setTimeout(function () {
+        let errormsg = $('.login-box .msg-error').text()
+        if (errormsg == '请输入验证码') {
+          dealLoginFailed(errormsg)
+        }
+      }, 1500)
+    }
+
   } else {
     $("#username").val(account.username)
     $("#password").val(account.password)
@@ -526,6 +564,21 @@ function CheckDom() {
     }
   };
 
+  if ( $(".signin-desc em").text() ) {
+    let value = $(".signin-desc em").text()
+    markCheckinStatus('vip', value + '京豆', () => {
+      chrome.runtime.sendMessage({
+        text: "checkin_notice",
+        batch: "bean",
+        value: value,
+        unit: 'bean',
+        title: "京价保自动为您签到领京豆",
+        content: "恭喜您获得了" + value + '个京豆奖励'
+      }, function (response) {
+        console.log("Response: ", response);
+      })
+    })
+  }
 
   // 京东金融慧赚钱签到 (6:金融钢镚签到)
   if ($(".assets-wrap .gangbeng").size() > 0) {
@@ -561,7 +614,7 @@ function CheckDom() {
     }
   };
 
-  // 京东支付签到（8： 已失效）
+  // 京东支付签到
   if ( $(".signIn .signInBtn").size() > 0) {
     console.log('签到领京豆（jdpay)')
     chrome.runtime.sendMessage({
@@ -573,12 +626,14 @@ function CheckDom() {
       $(".signInBtn").trigger("click")
       setTimeout(function () {
         if ($(".signInBtn").hasClass('clicked')) {
-          markCheckinStatus('jdpay', null, () => {
+          let value = $("#rewardTotal").text()
+          markCheckinStatus('jdpay', $("#rewardTotal").text() + '个钢镚', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
-              batch: "bean",
+              unit: 'coin',
+              value: value,
               title: "京价保自动为您签到京东支付",
-              content: "应该是领到了几个京豆"
+              content: "恭喜您领到了" + value + "个钢镚"
             }, function (response) {
               console.log("Response: ", response);
             })
@@ -586,7 +641,7 @@ function CheckDom() {
         }
       }, 1000)
     } else {
-      markCheckinStatus('jdpay', $("#rewardTotal").text() + '京豆')
+      markCheckinStatus('jdpay', $("#rewardTotal").text() + '个钢镚')
     }
   };
 
@@ -823,6 +878,19 @@ function CheckDom() {
     }
   };
 
+
+  // 手机验证码
+  if ($('.tip-box').size() > 0 && $(".tip-box").text().indexOf("账户存在风险") > -1) {
+    chrome.runtime.sendMessage({
+      text: "highlightTab",
+      content: JSON.stringify({
+        url: window.location.href,
+        pinned: "true"
+      })
+    }, function(response) {
+      console.log("Response: ", response);
+    });  
+  }
 }
 
 $( document ).ready(function() {

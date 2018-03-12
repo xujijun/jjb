@@ -8,7 +8,7 @@
   });
 })(jQuery);
 
-let checkinTasks = ['jr-index', 'jr-qyy', 'vip']
+let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay']
 
 $( document ).ready(function() {
   var orders = JSON.parse(localStorage.getItem('jjb_orders'))
@@ -235,6 +235,16 @@ $( document ).ready(function() {
     switchPayMethod(payMethod)
   });
 
+  $(".weui-dialog input[name='cardbank']").change(function () {
+    var bank = $(this).val()
+    $('.card-box').each(function () {
+      if ($(this).hasClass(bank)){
+        $(this).show()
+      } else {
+        $(this).hide()
+      }
+    });
+  });
 
   $(".weui-dialog__ft a").on("click", function () {
     $("#dialogs").hide()
@@ -277,6 +287,10 @@ $( document ).ready(function() {
     $("#changeLogs").show()
   })
 
+  $("#openRecommendCard").on("click", function () {
+    $("#recommendCardDialags").show()
+  })
+
   $("#openFeedback").on("click", function () {
     // 加载反馈
     if ($("#feedbackIframe").attr('src') == '') {
@@ -292,10 +306,15 @@ $( document ).ready(function() {
     $("#feedbackDialags").hide()
   })
 
+  $("#recommendCardDialags .js-close").on("click", function () {
+    $("#recommendCardDialags").hide()
+  })
+
   $(".reload").on("click", function () {
     var job_elem = $(this).parent().parent()
 
     if (job_elem) {
+      
       chrome.runtime.sendMessage({
         text: "runJob",
         content: job_elem.attr('id')
@@ -311,7 +330,7 @@ $( document ).ready(function() {
       url: "https://passport.jd.com/uc/login"
     })
   })
-  
+
 
   $("#login").on("click", function () {
     chrome.runtime.sendMessage({

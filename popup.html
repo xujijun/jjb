@@ -22,7 +22,6 @@
           <div class="weui-tab__panel">
             <form id="settings"  method="POST">
               <div class="frequency_settings settings_box" >
-                <div class="weui-cells__title">任务频率</div>
                 <div class="weui-cells weui-cells_form">
                   <div id="job1" class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd" >
@@ -119,6 +118,19 @@
                       </select>
                     </div>
                   </div>
+                  <div id="job8" class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd checkin-jdpay">
+                      <span class="tippy" title="京东支付每日签到，领钢镚">京东支付签到</span>
+                      <i class="today tippy weui-icon-success-circle reload"></i>
+                      <i class="reload-icon reload tippy" data-theme="light"></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" data-persist="garlic" class="garlic-auto-save" data-domain="true" name="job8_frequency">
+                        <option value="daily">每天</option>
+                        <option value="never">从不</option>
+                      </select>
+                    </div>
+                  </div>
                   <div id="job7" class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd">
                       <span class="tippy" title="这个功能是自动浏览店铺签到得京豆，会开一些隐藏标签。">浏览店铺签到</span>
@@ -144,9 +156,26 @@
                     </div>
                   </div>
                 </div>
+                <div class="links">
+                  <span class="el-tag el-tag--success">
+                    <a href="https://union-click.jd.com/jdc?d=259YU4" target="_blank">首页</a>
+                  </span>
+                  <span class="el-tag el-tag--danger">
+                    <a class="tippy" title="京东会员根据等级不同，每个月都有礼包赠送，过期不领就会失效，反正每个月都看看吧" href="https://vip.jd.com/" target="_blank">京东会员</a>
+                  </span>
+                  <span class="el-tag el-tag--warning">
+                    <a class="tippy" title="价格较高的商品在购物车放几天，京东有一定机会给你专享价" href="https://cart.jd.com/cart.action" target="_blank">购物车</a>
+                  </span>
+                  <span class="el-tag">
+                    <a href="https://order.jd.com/center/list.action" target="_blank">订单列表</a>
+                  </span>
+                  <span class="el-tag el-tag--warning">
+                    <a class="tippy" title="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取" href="https://plus.jd.com/coupon/index"
+                      target="_blank">PLUS券</a>
+                  </span>
+                </div>
               </div>
               <div class="notice_settings settings_box" style="display: none">
-                <div class="weui-cells__title">提醒和通知</div>
                 <div class="weui-cells weui-cells_form">
                   <div class="weui-cell weui-cell_switch">
                     <div class="weui-cell__bd">不再提示签到通知</div>
@@ -178,9 +207,13 @@
                     </div>
                   </div>
                 </div>
+                <div class="other_actions">
+                  <p>
+                    <a href="#" id="openRecommendCard" class="weui-btn weui-btn_default tippy" title="如果你最近恰巧想要办一张信用卡，使用此推荐来申请可以获得额外的优惠（并且能给京价保带来推荐收入）">信用卡推荐</a>
+                  </p>
+                </div>
               </div>
               <div class="other_settings settings_box" style="display: none">
-                <div class="weui-cells__title">其他</div>
                 <div class="weui-cells weui-cells_form">
                   <div class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd">
@@ -191,6 +224,18 @@
                         <option value="7">最近7天</option>
                         <option value="15">最近15天</option>
                         <option value="30">最近30天</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd">
+                      <span class="tippy" title="商品降价小于“最小价差”时将不会自动申请价保">最小价差</span>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" data-persist="garlic" class="garlic-auto-save" data-domain="true" name="price_pro_min">
+                        <option value="0.1">0.1元</option>
+                        <option value="0.5">0.5元</option>
+                        <option value="1">1元</option>
                       </select>
                     </div>
                   </div>
@@ -235,6 +280,7 @@
                     <a href="#" id="openFeedback" class="weui-btn weui-btn_default">建议反馈</a>
                   </p>
                 </div>
+                <p class="text-tips"> 当前版本：1.15.5 </p>
               </div>
             </form>
           </div>
@@ -301,6 +347,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>1.15.5 更新京豆签到网址;增加最小价差配置项;</p>
               <p>1.15.4 修复价保结果监控;</p>
               <p>1.15.3 增加 Plus 会员的判断和开关，在价保时使用 Plus 价格;</p>
               <p>1.15.2 修复京东页面更新导致的价保无法监控；</p>
@@ -332,11 +379,89 @@
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>
           <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">建议反馈</strong>
+            </div>
             <span class="js-close">x</span>
             <iframe id="feedbackIframe" src="" frameborder="0"></iframe>
             <div class="weui-toast iframe-loading">
               <i class="weui-loading weui-icon_toast"></i>
               <p class="weui-toast__content">数据加载中</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="recommendCardDialags">
+        <div class="js_dialog" style="opacity: 1;">
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">信用卡推荐</strong>
+            </div>
+            <span class="js-close">x</span>
+
+            <ul class="segmented-control">
+              <li class="segmented-control__item">
+                <input class="segmented-control__input" id="cardbank-spd" type="radio" value="spd" name="cardbank" checked="">
+                <label class="segmented-control__label" for="cardbank-spd">浦发</label>
+              </li>
+              <li class="segmented-control__item">
+                <input class="segmented-control__input" id="cardbank-citic" type="radio" value="citic" name="cardbank">
+                <label class="segmented-control__label" for="cardbank-citic">中信</label>
+              </li>
+              <li class="segmented-control__item">
+                <input class="segmented-control__input" id="cardbank-bankcomm" type="radio" value="bankcomm" name="cardbank">
+                <label class="segmented-control__label" for="cardbank-bankcomm">交行</label>
+              </li>
+            </ul>
+            <div class="weui-dialog__bd">
+              <div class="card-box spd">
+                <div class="card-name">
+                  <h3>浦发简约白金卡</h3>
+                  <p class="sub-title">白金卡，免年费，受邀奖励50元刷卡金</p>
+                </div>
+                <div class="bankcard">
+                  <div class="qrcode">
+                    <h4>办卡扫码</h4>
+                    <img src="static/image/spd_qrcode.png" >
+                  </div>
+                  <img src="static/image/spd.png" class="card">
+                </div>
+                <a class="weui-btn weui-btn_plain-primary" style=" width: 100%;" href="https://ecentre.spdbccc.com.cn/entry_cobber_union/pageController/myStickerLink.htm?cid=2353994" target="_blank">去申请</a>
+              </div>
+
+              <div class="card-box citic">
+                <div class="card-name">
+                  <h3>中信i白金</h3>
+                  <p class="sub-title">白金卡，刷卡免年费，网络交易双倍积分</p>
+                </div>
+                <div class="bankcard">
+                  <div class="qrcode">
+                    <h4>办卡扫码</h4>
+                    <img src="static/image/citic_qrcode.png">
+                  </div>
+                  <img src="static/image/citic.png" class="card">
+                </div>
+                <a class="weui-btn weui-btn_plain-primary" style=" width: 100%;" href="https://creditcard.ecitic.com/m/tjbk/card_list.html?uid=TJ56429635&sid=SJDKTJBK"
+                target="_blank">去申请</a>
+              </div>
+
+              <div class="card-box bankcomm">
+                <div class="card-name">
+                  <h3>交行Y-Power卡</h3>
+                  <p class="sub-title">算了，这张卡不怎么样，你还是看看其他卡吧</p>
+                </div>
+                <div class="bankcard">
+                  <div class="qrcode">
+                    <h4>办卡扫码</h4>
+                    <img src="static/image/bankcomm_qrcode.png">
+                  </div>
+                  <img src="static/image/bankcomm.png" class="card">
+                  
+                </div>
+              </div>
+              <p class="text-tips"> 注意部分卡片可能有年费，建议申卡的时候了解清楚年费政策 </p>
             </div>
           </div>
         </div>
@@ -403,9 +528,6 @@
                 </div>
               </div>
               <div class="weui-dialog__bd reward_tips">
-                <p class="newyear">
-                  新年快乐，恭喜发财！
-                </p>
                 <p>
                   因为你的支持，京价保才能一直保持更新，适配京东的页面修改，增加更多自动功能。
                 </p>
