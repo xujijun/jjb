@@ -43,7 +43,7 @@ let jobs = [
   },
   {
     id: '7',
-    src: 'https://passport.jd.com/new/login.aspx?ReturnUrl=https://bean.jd.com/myJingBean/list',
+    src: 'https://bean.jd.com/myJingBean/list',
     title: '店铺签到',
     mode: 'tab',
     frequency: 'never'
@@ -57,7 +57,7 @@ let jobs = [
   },
   {
     id: '9',
-    src: 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3a%2f%2fvip.jr.jd.com%2f',
+    src: 'https://vip.jr.jd.com',
     title: '京东金融会员签到',
     mode: 'tab',
     frequency: 'daily'

@@ -652,9 +652,9 @@ function CheckDom() {
       text: "run_status",
       jobId: "9"
     })
-    if ($("#index-qian-btn").length > 0 && $("#index-qian-btn .qian-text").text() == '签到') {
-      $("#index-qian-btn").trigger("tap")
-      $("#index-qian-btn").trigger("click")
+    if ($(".ban-center .m-qian").length > 0 && $(".ban-center .m-qian .qian-text").text() == '签到') {
+      $(".ban-center .m-qian .qian-text").trigger("tap")
+      $(".ban-center .m-qian .qian-text").trigger("click")
       // 监控结果
       setTimeout(function () {
         if ($(".ban-center .m-qian .qian-text").text() == '已签到' || $("#signFlag").text() == '签到成功' ) {
