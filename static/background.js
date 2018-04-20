@@ -370,7 +370,11 @@ function clearPinnedTabs() {
         return tab.id
       }
     })
-    chrome.tabs.remove(tabIds)
+
+    // opera doesn't remove pinned tabs, so lets first unpin
+    $.map(tabIds, function (tabId) {
+        chrome.tabs.update(tabId, {"pinned":false}, function(theTab){ chrome.tabs.remove(theTab.id); });
+    })
   })
 }
 
