@@ -82,6 +82,8 @@
 
 不接受功能请求的 issue，功能请求可能会被直接关闭，请谅解。
 
+若有功能建议或其他非技术反馈，请发送邮件或使用应用内反馈，由于京价保不设客服人员，反馈将默认不回复。
+
 ## 联系作者
 
 请发邮件至：`ming@tiny.group`
@@ -92,6 +94,6 @@
   <a href="https://www.duohui.cn/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多会 - 专业的活动管理系统</a>
 </h3>
 
-<a target='_blank' href='https://www.duohui.cn/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme'>
-  <img alt='多会 - 一键生成活动小程序' width='561' height='211' src='https://oi4m2ufmx.qnssl.com/jjb/duohui_minapp.png' />
-</a>
+<h3>
+  <a href="https://www.duotai.net/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多态</a>
+</h3>
