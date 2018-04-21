@@ -310,7 +310,7 @@ function autoLogin(account, type) {
     $("#loginname").val(account.username)
     $("#nloginpwd").val(account.password)
     if (account.loginFailed) {
-      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginFailed.displayTime + '自动登录失败（原因：' + account.loginFailed.errormsg + '），一小时内不再自动登录').css('color', '#f73535').css('font-size', '14px')
+      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginFailed.displayTime + '自动登录失败（原因：' + account.loginFailed.errormsg + '），2小时内不再自动登录').css('color', '#f73535').css('font-size', '14px')
       $(".login-wrap .tips-wrapper").hide()
       $("#content .tips-wrapper").css('background', '#fff97a')
       chrome.runtime.sendMessage({
