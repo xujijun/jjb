@@ -21,10 +21,14 @@ var observeDOM = (function () {
   };
 })();
 
-
+function escapeSpecialChars(jsonString) {
+  return jsonString.replace(/\\n/g, "\\n").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\\&/g, "\\&").replace(/\\r/g, "\\r").replace(/\\t/g, "\\t").replace(/\\b/g, "\\b").replace(/\\f/g, "\\f");
+}
 
 async function fetchProductPage(sku) {
-  var resp = await fetch('https://item.m.jd.com/product/' + sku + '.html')
+  var resp = await fetch('https://item.m.jd.com/product/' + sku + '.html', {
+    cache: 'no-cache'
+  })
   var page = await resp.text()
   if ($(page)[0] && $(page)[0].id == 'returnurl') {
     var url = $(page)[0].value.replace("http://", "https://")
@@ -50,11 +54,23 @@ async function getNowPrice(sku, isPlus) {
   } catch (e) {
     console.log('fetchProductPage', e)
   }
+  
   if (data) {
-    let product_name = $(data).find('.title-text').text()
-    let normal_price = $(data).find('#specJdPrice').text()
-    let spec_price = $(data).find('#spec_price').text()
-    let plus_price = $(data).find('#specPlusPrice').text()
+    let itemInfoRe = new RegExp(/<script>[\r\n\s]+window._itemInfo = \({(?<info>[\s\S]*)}\);[\r\n\s]+<\/script>[\r\n\s]+<script>/, "m");
+    let itemOnlyRe = new RegExp(/<script>[\r\n\s]+window._itemOnly =[\r\n\s]+\({(?<info>[\s\S]*)}\);[\r\n\s]+window\._isLogin/, "m");
+
+    let itemInfo = itemInfoRe.exec(data)
+    let itemOnlyInfo = itemOnlyRe.exec(data)
+    let itemOnlyJsonString = itemOnlyInfo ? (itemOnlyInfo.groups.info ? "{" + itemOnlyInfo.groups.info.replace(/,\s*$/, "") + "}" : null) : null
+    let skuJsonString = itemInfo ? (itemInfo.groups.info ? "{" + itemInfo.groups.info.replace(/,\s*$/, "") + "}" : null) : null
+
+    let itemOnly = itemOnlyJsonString ? JSON.parse(escapeSpecialChars(itemOnlyJsonString)) : null
+    let skuInfo = skuJsonString ? JSON.parse(escapeSpecialChars(skuJsonString)) : null
+
+    let product_name = (itemOnly ? itemOnly.item.skuName : null) || $(data).find('#itemName').text() || $(data).find('.title-text').text()
+    let normal_price = (skuInfo ? skuInfo.price.p : null) || $(data).find('#jdPrice').val() || $(data).find('#specJdPrice').text()
+    let spec_price = ($(data).find('#priceSale').text() ? $(data).find('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $(data).find('#spec_price').text()
+    let plus_price = (skuInfo ? skuInfo.price.tpp : null) || $(data).find('#specPlusPrice').text()
     if (!product_name) {
       console.log(data, $(data))
     }
@@ -78,7 +94,7 @@ async function dealProduct(product, order_info, setting) {
   console.log('dealProduct', product, order_info)
   var success_logs = []
   var product_name = product.find('.item-name .name').text()
-  var order_price = Number(product.find('.item-opt .price').text().trim().substring(1))
+  var order_price = Number(product.find('.item-opt .price').text().replace(/[^0-9\.-]+/g, ""))
   var order_sku = product.find('.item-opt .apply').attr('id').split('_')
   var order_quantity =  Number(product.find('.item-name .count').text().trim())
   var order_success_logs = product.next().find('.ajaxFecthState .jb-has-succ').text()
@@ -854,12 +870,14 @@ function CheckDom() {
     $('span.close').on('click', () => {
       $('.weui-mask').remove()
     })
+    // 如果成功进入价保页面，则代表已经登录
+    chrome.runtime.sendMessage({
+      text: "isLogin",
+    }, function (response) {
+      console.log("Response: ", response);
+    });
+
     if ($( ".bd-product-list li").length > 0) {
-      chrome.runtime.sendMessage({
-        text: "isLogin",
-      }, function(response) {
-        console.log("Response: ", response);
-      });
       console.log('成功获取价格保护商品列表', new Date())
       chrome.runtime.sendMessage({
         text: "run_status",

@@ -343,6 +343,8 @@ $( document ).ready(function() {
 
   $("#clearAccount").on("click", function () {
     localStorage.removeItem('jjb_account')
+    localStorage.removeItem('jjb_orders')
+    localStorage.removeItem('jjb_messages')
     chrome.tabs.create({
       url: "https://passport.jd.com/uc/login"
     })
