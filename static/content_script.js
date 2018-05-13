@@ -56,13 +56,14 @@ async function getNowPrice(sku, isPlus) {
   }
   
   if (data) {
-    let itemInfoRe = new RegExp(/<script>[\r\n\s]+window._itemInfo = \({(?<info>[\s\S]*)}\);[\r\n\s]+<\/script>[\r\n\s]+<script>/, "m");
-    let itemOnlyRe = new RegExp(/<script>[\r\n\s]+window._itemOnly =[\r\n\s]+\({(?<info>[\s\S]*)}\);[\r\n\s]+window\._isLogin/, "m");
+    let itemInfoRe = new RegExp(/<script>[\r\n\s]+window._itemInfo = \({([\s\S]*)}\);[\r\n\s]+<\/script>[\r\n\s]+<script>/, "m");
+    let itemOnlyRe = new RegExp(/<script>[\r\n\s]+window._itemOnly =[\r\n\s]+\({([\s\S]*)}\);[\r\n\s]+window\._isLogin/, "m");
 
     let itemInfo = itemInfoRe.exec(data)
     let itemOnlyInfo = itemOnlyRe.exec(data)
-    let itemOnlyJsonString = itemOnlyInfo ? (itemOnlyInfo.groups.info ? "{" + itemOnlyInfo.groups.info.replace(/,\s*$/, "") + "}" : null) : null
-    let skuJsonString = itemInfo ? (itemInfo.groups.info ? "{" + itemInfo.groups.info.replace(/,\s*$/, "") + "}" : null) : null
+
+    let itemOnlyJsonString = itemOnlyInfo ? (itemOnlyInfo[1] ? "{" + itemOnlyInfo[1].replace(/,\s*$/, "") + "}" : null) : null
+    let skuJsonString = itemInfo ? (itemInfo[1] ? "{" + itemInfo[1].replace(/,\s*$/, "") + "}" : null) : null
 
     let itemOnly = itemOnlyJsonString ? JSON.parse(escapeSpecialChars(itemOnlyJsonString)) : null
     let skuInfo = skuJsonString ? JSON.parse(escapeSpecialChars(skuJsonString)) : null
