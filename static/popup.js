@@ -27,18 +27,19 @@ $( document ).ready(function() {
   $("#renderFrame").attr('src', '/render.html')
   
   if (login && login == 'Y') {
+    let time = Date.now().toString()
     $("#loginNotice").hide()
     
     if (paid) {
       $("#dialogs").hide()
     } else {
-      let time = Date.now().toString()
       if (time[time.length - 1] < 4) {
         showReward()
       }
-      if (time[time.length - 1] > 5) {
-        showJEvent()
-      }
+    }
+
+    if (time[time.length - 1] > 6) {
+      showJEvent()
     }
   } else {
     $("#loginNotice").show()
@@ -292,6 +293,10 @@ $( document ).ready(function() {
 
   $("#openRecommendCard").on("click", function () {
     $("#recommendCardDialags").show()
+  })
+
+  $("#openjEventCard").on("click", function () {
+    showJEvent()
   })
 
   $("#openFeedback").on("click", function () {

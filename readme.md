@@ -29,11 +29,9 @@
 * 自动领取京东金融铂金会员支付返利
 * 自动评价获取京豆奖励（暂未完成）
 
-## 截图
+## 界面截图
 
-![](https://oi4m2ufmx.qnssl.com/jjb/jjb.1.13.png)
-
-![](https://oi4m2ufmx.qnssl.com/jjb/jjb_phone.png)
+![主界面](http://jjbcdn.zaoshu.so/screenshots/jjb.1.16.1.png)
 
 ## 如何开发
 
@@ -41,7 +39,7 @@
 > yarn 
 
 * 开始开发
-> yarn dev
+> yarn dev -version=1.16.1
 
 `主要作用就是合并压缩代码，质疑代码和市场版本不一致，请先自行打包一下再对比`
 
@@ -64,6 +62,10 @@
 据用户反应，部分 Chromium 内核的国产浏览器可能有兼容问题（例如搜狗浏览器）。
 
 Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，因此暂时无法解决。
+
+## 获取信息
+
+你可以 Telegram 上关注京价保 https://t.me/jingjiabao
 
 ## 协议
 
