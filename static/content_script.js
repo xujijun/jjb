@@ -35,10 +35,13 @@ async function fetchProductPage(sku) {
     var request = new XMLHttpRequest();
     request.open('GET', url, false);
     request.send(null);
+
     if (request.status === 200) {
       var newData = request.responseText
+      request.abort();
       return newData
     } else {
+      request.abort();
       throw new Error('GET Error')
     }
   } else {
@@ -70,22 +73,23 @@ async function getNowPrice(sku, isPlus) {
 
     let product_name = (itemOnly ? itemOnly.item.skuName : null) || $(data).find('#itemName').text() || $(data).find('.title-text').text()
     let normal_price = (skuInfo ? skuInfo.price.p : null) || $(data).find('#jdPrice').val() || $(data).find('#specJdPrice').text()
+
     let spec_price = ($(data).find('#priceSale').text() ? $(data).find('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $(data).find('#spec_price').text()
+
     let plus_price = (skuInfo ? skuInfo.price.tpp : null) || $(data).find('#specPlusPrice').text()
+
+    let price = normal_price || spec_price || plus_price
+
     if (!product_name) {
       console.log(data, $(data))
     }
-    console.log(product_name + '最新价格', Number(normal_price), 'or', Number(spec_price), 'Plus 价格', Number(plus_price))
+    console.log(product_name + '最新价格', Number(price), 'Plus 价格', Number(plus_price))
 
     if (Number(plus_price) > 0 && isPlus) {
       return Number(plus_price)
     }
 
-    if (normal_price) {
-      return Number(normal_price)
-    } else {
-      return Number(spec_price)
-    }
+    return Number(price)
   } else {
     return null
   }
@@ -185,7 +189,6 @@ async function dealOrder(order, orders, setting) {
       time: order_time,
       goods: []
     }
-    console.log(order.find('.product-item'))
 
     order.find('.product-item').each(function() {
       dealgoods.push(dealProduct($(this), order_info, setting))
@@ -282,7 +285,6 @@ function getAccount(type) {
   }, function (response) {
     if (response) {
       let account = response
-      console.log('getAccount', account)
       if (account && account.username && account.password) {
         autoLogin(account, type)
       } else {
@@ -292,8 +294,6 @@ function getAccount(type) {
           console.log("Response: ", response);
         });
       }
-    } else {
-      console.log('getAccount', response)
     }
   });
 }

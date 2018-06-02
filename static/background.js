@@ -156,6 +156,12 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       var jobId = alarm.name.split('_')[1]
       run(jobId)
       break;
+    case alarm.name  == 'clearIframe':
+      // 销毁掉 
+      $("#iframe").remove();
+      let iframe = '<iframe id="iframe" width="1000 px" height="600 px" src=""></iframe>';
+      $('body').html(iframe);
+      break;
     case alarm.name.startsWith('closeTab'):
       var tabId = alarm.name.split('_')[1]
       try {
@@ -235,6 +241,10 @@ function run(jobId, force) {
     console.log("运行", job.title)
     if (job.mode == 'iframe') {
       $("#iframe").attr('src', job.src)
+      // 2分钟后清理 iframe
+      chrome.alarms.create('clearIframe', {
+        delayInMinutes: 3
+      })
     } else {
       chrome.tabs.create({
         index: 1,

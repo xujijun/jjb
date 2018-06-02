@@ -33,8 +33,11 @@ $( document ).ready(function() {
       $("#dialogs").hide()
     } else {
       let time = Date.now().toString()
-      if (time[time.length - 1] < 3) {
+      if (time[time.length - 1] < 4) {
         showReward()
+      }
+      if (time[time.length - 1] > 5) {
+        showJEvent()
       }
     }
   } else {
@@ -302,6 +305,18 @@ $( document ).ready(function() {
     $("#feedbackDialags").show()
   })
 
+
+  function showJEvent() {
+    // 加载反馈
+    if ($("#jEventIframe").attr('src') == '') {
+      $("#jEventIframe").attr('src', "https://i.duotai.net/forms/zm5rk/i6svm4on")
+      setTimeout(function () {
+        $('.iframe-loading').hide()
+      }, 800)
+    }
+    $("#jEventDialags").show()
+  }
+
   $("#clearPinnedTabs").on("click", function () {
     chrome.tabs.query({
       pinned: true
@@ -321,6 +336,10 @@ $( document ).ready(function() {
 
   $("#feedbackDialags .js-close").on("click", function () {
     $("#feedbackDialags").hide()
+  })
+
+  $("#jEventDialags .js-close").on("click", function () {
+    $("#jEventDialags").hide()
   })
 
   $("#recommendCardDialags .js-close").on("click", function () {

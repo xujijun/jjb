@@ -274,13 +274,11 @@
                 </div>
                 <div class="other_actions">
                   <p>
-                    <a href="#" id="clearAccount" class="weui-btn weui-btn_warn tippy" title="在登录时勾选记住密码可保存新的密码">清除已保存的密码和记录</a>
-                  </p>
-                  <p>
                     <a href="#" id="openFeedback" class="weui-btn weui-btn_default">建议反馈</a>
                   </p>
-                  <p>
-                    <a href="#" id="clearPinnedTabs" class="weui-btn weui-btn_default">强制清理tab页</a>
+                  <p style="text-align: center;">
+                    <a href="#" id="clearPinnedTabs" class="weui-btn weui-btn_mini weui-btn_plain-primary tippy" title="强制清理由京价保创建的业务标签页">清理标签页</a>
+                    <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" title="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
                 <p class="text-tips"> 当前版本：{version} </p>
@@ -350,6 +348,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>1.16.0 后台运行任务后清理页面防止由于京东网页造成的 CPU 占用;</p>
               <p>1.15.8 更新获取商品价格的方法，解决部分商品无法获取价格的问题;</p>
               <p>1.15.7 通过一项黑科技（访问京东时伪装成Firefox浏览器）尝试避免登录时需要验证码;</p>
               <p>1.15.6 减少需要登录的次数;</p>
@@ -381,6 +380,28 @@
         </div>
       </div>
 
+
+
+      <!-- 活动推荐 -->
+      <div id="jEventDialags">
+        <div class="js_dialog" style="opacity: 1;">
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">活动推荐</strong>
+            </div>
+            <span class="js-close">x</span>
+            <iframe id="jEventIframe" src="" frameborder="0"></iframe>
+            <div class="weui-toast iframe-loading">
+              <i class="weui-loading weui-icon_toast"></i>
+              <p class="weui-toast__content">数据加载中</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- 建议反馈 -->
       <div id="feedbackDialags">
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>
@@ -398,6 +419,7 @@
         </div>
       </div>
 
+      <!-- 信用卡推荐 -->
       <div id="recommendCardDialags">
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>
@@ -473,6 +495,7 @@
         </div>
       </div>
 
+      <!-- 支持开发者 -->
       <div id="dialogs">
         <!--BEGIN dialog1-->
         <div class="js_dialog" style="opacity: 1;">
@@ -546,6 +569,7 @@
         </div>
       </div>
 
+      <!-- 登录提醒 -->
       <div id="loginNotice">
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>
@@ -568,7 +592,7 @@
         </div>
       </div>
 
-
+      <!-- 试听音效 -->
       <div id="listenAudio">
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>

@@ -3,7 +3,6 @@ body{
 }
 
 select {
-    -moz-appearance: none;
     text-indent: 0.01px;
     text-overflow: '';
 }
@@ -309,13 +308,16 @@ img.weui-tabbar__icon {
     height: 460px;
 }
 
-#feedbackDialags iframe{
+#jEventDialags iframe,
+#feedbackDialags iframe {
     width: 90%;
     height: 450px;
 }
 
+
 #feedbackResult,
 #feedbackDialags,
+#jEventDialags,
 #loginNotice,
 #listenAudio {
     display: none;
