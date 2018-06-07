@@ -23,6 +23,7 @@ gulp.task('pack-js', function () {
     .pipe(optimizejs({
       sourceMap: true
     }))
+    .pipe(replace('{{version}}', gutil.env.version))
     .pipe(gulp.dest('build/static/js'));
   console.log("pack-js task done @", new Date())
     
@@ -49,7 +50,7 @@ gulp.task('move-file', [], function () {
   gulp.src([
     'background.html', 'manifest.json', 'popup.html', 'start.html', '*.html'
   ])
-    .pipe(replace('{version}', gutil.env.version))
+    .pipe(replace('{{version}}', gutil.env.version))
     .pipe(gulp.dest('build'));
 });
 

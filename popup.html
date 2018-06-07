@@ -131,6 +131,32 @@
                       </select>
                     </div>
                   </div>
+                  <div id="job11" class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd checkin-bean">
+                      <span class="tippy" title="移动端京豆签到">每日京豆签到</span>
+                      <i class="today tippy weui-icon-success-circle reload"></i>
+                      <i class="reload-icon reload tippy" data-theme="light"></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" data-persist="garlic" class="garlic-auto-save" data-domain="true" name="job11_frequency">
+                        <option value="daily">每天</option>
+                        <option value="never">从不</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div id="job12" class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd checkin-double_check">
+                      <span class="tippy" title="完成京豆和京东金融签到有一个双签奖励">领取双签奖励</span>
+                      <i class="today tippy weui-icon-success-circle reload"></i>
+                      <i class="reload-icon reload tippy" data-theme="light"></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" data-persist="garlic" class="garlic-auto-save" data-domain="true" name="job12_frequency">
+                        <option value="daily">每天</option>
+                        <option value="never">从不</option>
+                      </select>
+                    </div>
+                  </div>
                   <div id="job7" class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd">
                       <span class="tippy" title="这个功能是自动浏览店铺签到得京豆，会开一些隐藏标签。">浏览店铺签到</span>
@@ -224,8 +250,10 @@
                   <p style="text-align: center;margin-top: 5px;">
                     <a href="https://zh.airbnb.com/c/mings62" class="weui-form-preview__btn weui-form-preview__btn_primary tippy" title="使用小明的邀请注册Airbnb" target="_blank">注册 Airbnb 得￥175旅行基金</a>
                   </p>
-                  <p style="text-align: center;margin-top: 5px;">
+                  <h3 style="text-align: center;color: #666;margin-top: 125px;">关注京价保</h3>
+                  <p style="text-align: center;margin-top: -10px;">
                     <a href="https://t.me/jingjiabao" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" title="通过电报群接收京价保的最新消息" target="_blank">京价保@Telegram</a>
+                    <a href="#" id="openWechatCard" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" title="关注京价保的公众号">京价保公众号</a>
                   </p>
                 </div>
               </div>
@@ -297,7 +325,7 @@
                     <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" title="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
-                <p class="text-tips"> 当前版本：{version} </p>
+                <p class="text-tips"> 当前版本：{{version}} </p>
               </div>
             </form>
           </div>
@@ -305,7 +333,7 @@
         <div class="tips page__hd">
           <p class="page__desc">
             <span id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</span>
-            <a href="#" class="weui-btn weui-btn_mini weui-btn_primary payReward" data-target="ming">打赏</a>
+            <a href="#" class="weui-btn weui-btn_mini weui-btn_primary switch-paymethod" data-to="weixin" data-target="ming">打赏</a>
           </p>
         </div>
       </div>
@@ -356,7 +384,7 @@
         </div>
       </div>
 
-      <div id="changeLogs">
+      <div id="changeLogs" data-version="{{version}}">
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>
           <div class="weui-dialog">
@@ -364,13 +392,14 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>1.16.2 <b>增加领取京豆任务</b>（还可以自动帮你幸运翻牌哦）；<b>增加领取双签奖励的任务</b>；修复精选优惠券任务；</p>
               <p>1.16.0 后台运行任务后清理页面防止由于京东网页造成的 CPU 占用;</p>
-              <p>1.15.8 更新获取商品价格的方法，解决部分商品无法获取价格的问题;</p>
+              <p>1.15.8 <b>更新获取商品价格的方法</b>，解决部分商品无法获取价格的问题;</p>
               <p>1.15.7 通过一项黑科技（访问京东时伪装成Firefox浏览器）尝试避免登录时需要验证码;</p>
               <p>1.15.6 减少需要登录的次数;</p>
-              <p>1.15.5 更新京豆签到网址;增加最小价差配置项;</p>
+              <p>1.15.5 更新京豆签到网址;<b>增加最小价差配置项</b>;</p>
               <p>1.15.4 修复价保结果监控;</p>
-              <p>1.15.3 增加 Plus 会员的判断和开关，在价保时使用 Plus 价格;</p>
+              <p>1.15.3 增加 Plus 会员的判断和开关，在价保时<b>使用 Plus 价格</b>;</p>
               <p>1.15.2 修复京东页面更新导致的价保无法监控；</p>
               <p>1.15.0 给任务完成<b>增加了结果回调</b>，现在大部分任务都能知道是否真正成功了；</p>
               <p>1.14.0 <b>增加了消息模块</b>；修复了任务未自动运行的问题；增加了音效；</p>
@@ -389,7 +418,7 @@
               <p>1.9.7 店铺签到换用tab的模式运行</p>
             </div>
             <div class="weui-dialog__ft">
-              <a class="weui-dialog__btn weui-dialog__btn_primary payReward" data-target="ming">太好了，打赏</a>
+              <a class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod" data-to="weixin" data-target="ming">太好了，打赏</a>
               <a class="weui-dialog__btn weui-dialog__btn_default" data-action="dismiss">知道了</a>
             </div>
           </div>
@@ -416,6 +445,22 @@
         </div>
       </div>
 
+      <!-- 公众号 -->
+      <div id="wechatDialags">
+        <div class="js_dialog" style="opacity: 1;">
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">关注京价保公众号</strong>
+            </div>
+            <span class="js-close">x</span>
+            <div class="weui-dialog__bd">
+              <img src="http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg" alt="" width="280">
+              <p class="tips">主要发布更新通知，亦可在公众号留言向开发者反馈。偶尔会有优惠推荐（俗称广告）</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- 建议反馈 -->
       <div id="feedbackDialags">
@@ -518,26 +563,25 @@
             <div class="weui-mask"></div>
             <div class="weui-dialog">
               <div class="weui-dialog__hd"><strong class="weui-dialog__title">支持开发者</strong></div>
+            <span class="js-close">x</span>
               <ul class="segmented-control">
-                <li class="segmented-control__item">
-                  <input class="segmented-control__input" id="payMethod-weixin" type="radio" value="weixin" name="payMethod" checked="">
-                  <label class="segmented-control__label" for="payMethod-weixin">微信</label>
+                <li class="segmented-control__item weixin">
+                  <span class="segmented-control__label switch-paymethod" data-to="weixin" data-target="ming">微信</span>
                 </li>
-                <li class="segmented-control__item">
-                  <input class="segmented-control__input" id="payMethod-alipay" type="radio" value="alipay" name="payMethod">
-                  <label class="segmented-control__label" for="payMethod-alipay">支付宝</label>
+                <li class="segmented-control__item alipay">
+                  <span class="segmented-control__label switch-paymethod" data-to="alipay" data-target="alipay">支付宝</span>
                 </li>
               </ul>
               <div class="weui-dialog__bd weixin_pay">
                 <div class="ming">
-                  <div class="reward" data-to="samedi">
+                  <div class="reward switch-paymethod" data-to="weixin" data-target="samedi">
                     <h4> 打赏插件作者：小明 </h4>
                     <img src="static/image/weixin_pay.png" class="qrcode">
                     <p class="switch-tips">切换打赏 Samedi（声优）</p>
                   </div>
                 </div>
                 <div class="samedi">
-                  <div class="reward" data-to="ming">
+                  <div class="reward switch-paymethod" data-to="weixin" data-target="ming">
                     <h4> 打赏声优：Samedi </h4>
                     <img src="static/image/samedi.png" class="qrcode">
                     <p class="switch-tips">切换打赏 小明（作者）</p>
@@ -546,20 +590,12 @@
               </div>
               <div class="weui-dialog__bd alipay_pay">
                 <div class="alipay">
-                  <div class="switch" data-to="redpack">
+                  <div class="switch-paymethod" data-to="alipay" data-target="redpack">
                     <img src="static/image/alipay_pay.png" height="200px">
-                    <p>
-                      <svg t="1514045821272" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6338"
-                        xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24">
-                        <path d="M60.220235 215.311059V90.413176A90.473412 90.473412 0 0 1 150.573176 0h722.82353a90.352941 90.352941 0 0 1 90.352941 90.413176v120.470589c-2.800941-0.301176-5.662118 0.903529-8.432941 3.915294-59.632941 66.710588-281.298824 159.864471-292.261647 165.827765-10.962824 5.963294 168.387765 24.003765 292.291765-54.814118a57.524706 57.524706 0 0 0 8.402823-6.475294v614.249412A90.473412 90.473412 0 0 1 873.396706 1024H150.573176a90.352941 90.352941 0 0 1-90.352941-90.413176v-607.472942c123.873882 78.456471 302.802824 60.476235 291.84 54.512942-10.932706-5.963294-231.574588-98.665412-291.84-165.345883zM511.984941 662.588235a150.588235 150.588235 0 1 0 0-301.17647 150.588235 150.588235 0 0 0 0 301.17647z"
-                          fill="#F54E4E" p-id="6339"></path>
-                      </svg>
-                      我先领个红包
-                    </p>
                   </div>
                 </div>
                 <div class="redpack">
-                  <div class="pay_reward switch" data-to="alipay">
+                  <div class="pay_reward switch-paymethod" data-to="alipay" data-target="alipay">
                     <img src="static/image/alipay_redpack.png" height="330px">
                     <p>
                       <svg t="1514096092051" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3558"
@@ -649,7 +685,7 @@
               </div>
             </div>
             <div class="weui-dialog__ft">
-              <a class="weui-dialog__btn weui-dialog__btn_primary payReward" data-target="samedi">
+              <a class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod" data-to="weixin" data-target="samedi">
                 <i class="weui-icon-success"></i> 打赏声优</a>
               <a class="weui-dialog__btn weui-dialog__btn_default" data-action="dismiss">下次吧</a>
             </div>

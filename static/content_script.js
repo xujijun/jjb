@@ -440,26 +440,24 @@ function pickupCoupon(setting) {
       text: "run_status",
       jobId: "2"
     })
-    $("#couponListUl a.coupon-a").each(function () {
+    $(".coupon_sec_body a.coupon_default").each(function () {
       let that = $(this)
-      let coupon_name = that.find('.pro-info').text()
+      let coupon_name = that.find('.coupon_default_name').text()
       let coupon_id = that.find("input[class=id]").val()
-      let coupon_batch = that.find("input[class=batchId]").val()
-      let coupon_price = that.find('.pro-price .big-price').text() + '元 (' + that.find('.pro-price .price-info').text() + ')'
-      if (that.find('.pro-price .big-discount-price').text()) {
-        coupon_price = that.find('.pro-price .big-discount-price').text() + '折 (' + that.find('.pro-price .price-info').text() + ')'
+      let coupon_price = that.find('.coupon_default_price').text()
+      if (that.find('.coupon_default_des').text()) {
+        coupon_price = that.find('.coupon_default_des').text()
       }
-      if ($(this).find('.coupon-btn').text() == '立即领取') {
+      if ($(this).find('.coupon_default_status_icon').text() == '立即领取') {
         setTimeout(function () {
-          $(that).find('.coupon-btn').trigger("click")
+          $(that).find('.coupon_default_status_icon').trigger("click")
           setTimeout(function () {
-            if ($(that).find('.coupon-btn-yellow').text() == '去使用' ) {
+            if ($(that).find('.coupon_default_status_icon').text() == '立即使用') {
               chrome.runtime.sendMessage({
                 text: "coupon",
                 title: "京价保自动领到一张新的优惠券",
                 content: JSON.stringify({
                   id: coupon_id,
-                  batch: coupon_batch,
                   price: coupon_price,
                   name: coupon_name
                 })
@@ -548,8 +546,13 @@ function CheckDom() {
     })
   };
 
+  // 移除遮罩
+  if ($("#pcprompt-viewpc").size() > 0) {
+    mockClick($("#pcprompt-viewpc")[0])
+  }
 
-  // 会员页签到 (5:京豆签到)
+
+  // 会员页签到 (5:京东会员签到)
   if ( $(".sign-pop").length) {
     console.log('签到领京豆（vip）')
     chrome.runtime.sendMessage({
@@ -579,6 +582,71 @@ function CheckDom() {
     } else {
       markCheckinStatus('vip')
     }
+  };
+
+  // 双签奖励 (12:双签奖励)
+  if ($("#receiveAward .link-gift").length) {
+    console.log('双签奖励（double_check）')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "12"
+    })
+    if ($("#JGiftDialog .gift-dialog-btn").text() == '立即领取') {
+      $("#JGiftDialog .gift-dialog-btn").trigger("tap")
+      $("#JGiftDialog .gift-dialog-btn").trigger("click")
+      setTimeout(function () {
+        if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
+          let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
+          markCheckinStatus('double_check', value + '京豆', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              batch: "bean",
+              value: value,
+              unit: 'bean',
+              title: "京价保自动为您领取双签",
+              content: "恭喜您获得了" + value + '个京豆奖励'
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 2000)
+    } else {
+      markCheckinStatus('double_check')
+    }
+  };
+
+
+  // 京豆签到 (11:京豆签到)
+  if (window.location.host == 'bean.m.jd.com') {
+    console.log('京豆签到（bean）')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "11"
+    })
+    var beanbtn = null
+    $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
+      let targetEle = $(this)
+      if (targetEle.text() == '签到领京豆') {
+        mockClick(targetEle[0])
+        setTimeout(() => {
+          if ($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0]) {
+            mockClick($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0])
+            markCheckinStatus('bean', null, () => {
+              chrome.runtime.sendMessage({
+                text: "checkin_notice",
+                batch: "bean",
+                unit: 'bean',
+                title: "京价保自动为您签到领京豆",
+                content: "恭喜您获得了一两个京豆奖励"
+              }, function (response) {
+                console.log("Response: ", response);
+              })
+            })
+          }
+        }, 500);
+      }
+    })
   };
 
   if ( $(".signin-desc em").text() ) {
@@ -785,12 +853,12 @@ function CheckDom() {
   }
 
   // 领取精选券
-  if ( $("#couponListUl").length > 0 ) {
+  if ($(".coupon_sec_body").length > 0) {
     getSetting('job2_frequency', pickupCoupon)
   };
 
   // 自动领取京东金融铂金会员京东支付返利（10：金融铂金会员支付返利）
-  if ($("#react-root .react-root .react-view").length > 0) {
+  if ($("#react-root .react-root .react-view").length > 0 && window.location.host == 'm.jr.jd.com') {
     console.log('京东金融铂金会员返利')
     chrome.runtime.sendMessage({
       text: "run_status",

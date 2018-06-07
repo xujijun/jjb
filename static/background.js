@@ -30,7 +30,7 @@ let jobs = [
   {
     id: '5',
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fvip.m.jd.com%2Fpage%2Fsignin',
-    title: '京豆签到',
+    title: '京东会员签到',
     mode: 'iframe',
     frequency: 'daily'
   },
@@ -69,6 +69,20 @@ let jobs = [
     mode: 'iframe',
     frequency: 'daily'
   },
+  {
+    id: '11',
+    src: 'https://bean.m.jd.com/',
+    title: '移动端京豆签到',
+    mode: 'iframe',
+    frequency: 'daily'
+  },
+  {
+    id: '12',
+    src: 'https://ljd.m.jd.com/countersign/index.action',
+    title: '双签礼包',
+    mode: 'iframe',
+    frequency: 'daily'
+  }
 ]
 
 // 会员礼包
