@@ -8,7 +8,16 @@
   });
 })(jQuery);
 
-let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check']
+let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check', 'm_welfare']
+
+function getSetting(settingKey) {
+  let setting = localStorage.getItem(settingKey)
+  try {
+    setting = JSON.parse(setting)
+  } catch (error) {}
+  return setting
+}
+
 
 $( document ).ready(function() {
   var orders = JSON.parse(localStorage.getItem('jjb_orders'))
@@ -17,12 +26,25 @@ $( document ).ready(function() {
   var paid = localStorage.getItem('jjb_paid');
   var account = localStorage.getItem('jjb_account');
   var browser = localStorage.getItem('browserName');
-  var disabled_link = localStorage.getItem('disabled_link');
-  var disabled_link = localStorage.getItem('disabled_link');
+  var disabled_link = getSetting('disabled_link');
   var unreadCount = localStorage.getItem('unreadCount') || 0
   var changelog_version = localStorage.getItem('changelog_version')
   var displayRecommend = localStorage.getItem('displayRecommend')
   var current_version = "{{version}}"
+  let windowWidth = Number(document.body.offsetWidth)
+  $('body').width(windowWidth-1)
+  // 窗口 resize
+  setTimeout(() => {
+    $('body').width(windowWidth)
+  }, 100);
+  
+
+  // 设置保存
+  $('#settings').garlic({
+    getPath: function ($elem) {
+      return $elem.attr('name');
+    }
+  });
 
   if (unreadCount > 0) {
     $("#unreadCount").text(unreadCount).fadeIn()
@@ -330,6 +352,17 @@ $( document ).ready(function() {
     $("#feedbackDialags").show()
   })
 
+  $("#openFaq").on("click", function () {
+    // 加载反馈
+    if ($("#faqIframe").attr('src') == '') {
+      $("#faqIframe").attr('src', "https://i.duotai.net/forms/oqyvk/1lpb11l2")
+      setTimeout(function () {
+        $('.iframe-loading').hide()
+      }, 800)
+    }
+    $("#faqDialags").show()
+  })
+
 
   function showJEvent() {
     // 加载反馈
@@ -361,6 +394,10 @@ $( document ).ready(function() {
 
   $("#feedbackDialags .js-close").on("click", function () {
     $("#feedbackDialags").hide()
+  })
+
+  $("#faqDialags .js-close").on("click", function () {
+    $("#faqDialags").hide()
   })
 
   $("#jEventDialags .js-close").on("click", function () {

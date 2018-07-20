@@ -71,3 +71,102 @@
 .auto_login{
     margin-bottom: 5px;
 }
+
+dialog {
+    position: fixed;
+    width: 50%;
+    max-width: 450px;
+    min-width: 400px;
+    min-height: 160px;
+    left: 0;
+    right: 0;
+    width: fit-content;
+    height: fit-content;
+    margin: auto;
+    border: solid;
+    padding: 2em;
+    background: white;
+    color: black;
+    display: block;
+}
+
+dialog:not([open]) {
+    display: none;
+}
+
+dialog h3{
+    font-size: 16px;
+}
+
+dialog .consideration{
+    margin: 10px 0;
+    font-size: 15px;
+}
+dialog .consideration p {
+    margin-bottom: 5px;
+}
+
+dialog+.backdrop {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+._dialog_overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+dialog.message{
+    max-width: none;
+    min-width: 300px;
+    min-height: auto;
+    background: #84c460;
+    border-color: rgba(78, 162, 32,0.5);
+    text-align: center;
+    border-radius: 6px;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+dialog.fixed {
+    position: fixed;
+    top: 50%;
+    transform: translate(0, -50%);
+}
+
+dialog .actions{
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+}
+
+dialog .actions .forcedbuy {
+    margin-right: 15px;
+}
+
+dialog .admonish{
+    position: absolute;
+    bottom: -20px;
+    color: #333;
+    font-size: 12px;
+    left: 50%;
+    margin-left: -60px;
+    color: #999;
+    font-style: italic;
+}
+
+dialog .close {
+    position: absolute;
+    right: 5px;
+    top: 3px;
+    padding: 5px;
+    font-size: 18px;
+    color: #555;
+    font-weight: 500;
+}

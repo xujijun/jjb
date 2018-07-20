@@ -48,13 +48,13 @@ let jobs = [
     mode: 'tab',
     frequency: 'never'
   },
-  {
-    id: '8',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fhome.jdpay.com%2fmy%2fsignIndex%3ffrom%3dsinglemessage%26isappinstalled%3d0%26source%3dJDSC',
-    title: '京东支付签到',
-    mode: 'iframe',
-    frequency: 'daily'
-  },
+  // {
+  //   id: '8',
+  //   src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fhome.jdpay.com%2fmy%2fsignIndex%3ffrom%3dsinglemessage%26isappinstalled%3d0%26source%3dJDSC',
+  //   title: '京东支付签到',
+  //   mode: 'iframe',
+  //   frequency: 'daily'
+  // },
   {
     id: '9',
     src: 'https://vip.jr.jd.com',
@@ -82,8 +82,23 @@ let jobs = [
     title: '双签礼包',
     mode: 'iframe',
     frequency: 'daily'
-  }
+  },
+  {
+    id: '13',
+    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fs.m.jd.com%2factivemcenter%2factivemsite%2fm_welfare%3fsceneval%3d2%26logintag%3d%23%2fmain',
+    title: '京东用户每日福利',
+    mode: 'iframe',
+    frequency: 'daily'
+  },
 ]
+
+function getSetting(settingKey) {
+  let setting = localStorage.getItem(settingKey)
+  try {
+    setting = JSON.parse(setting)
+  } catch (error) {}
+  return setting
+}
 
 // 会员礼包
 // https://vip.m.jd.com/page/gift/list
@@ -98,7 +113,7 @@ let mapFrequency = {
 
 // 设置默认频率
 _.forEach(jobs, (job) => {
-  let frequency = localStorage.getItem('job' + job.id + '_frequency')
+  let frequency = getSetting('job' + job.id + '_frequency')
   if (!frequency) {
     localStorage.setItem('job' + job.id + '_frequency', job.frequency)
   }
@@ -319,7 +334,7 @@ $( document ).ready(function() {
   updateUnreadCount()
 
   // 总是安全的访问京东
-  var force_https = localStorage.getItem('force_https')
+  var force_https = getSetting('force_https')
   if (force_https && force_https == 'checked') {
     chrome.tabs.onCreated.addListener(function (tab){
       forceHttps(tab)
@@ -437,10 +452,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       localStorage.setItem('jjb_plus', 'Y');
       break;
     case 'getPriceProtectionSetting':
-      let isPlus = localStorage.getItem('jjb_plus');
-      let min = localStorage.getItem('price_pro_min');
-      let days = localStorage.getItem('price_pro_days')
-      let is_plus = (localStorage.getItem('is_plus') ? localStorage.getItem('is_plus') == 'checked' : false ) || (isPlus == 'Y')
+      let isPlus = getSetting('jjb_plus');
+      let min = getSetting('price_pro_min');
+      let days = getSetting('price_pro_days')
+      let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
       return sendResponse({
         pro_days: days || 15,
         is_plus: is_plus,
@@ -454,7 +469,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       break;
     case 'getSetting':
-      var setting = localStorage.getItem(msg.content)
+      var setting = getSetting(msg.content)
       return sendResponse(setting)
       break;
     case 'getAccount':
@@ -508,9 +523,9 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       })
       break;
     case 'notice':
-      var play_audio = localStorage.getItem('play_audio')
+      var play_audio = getSetting('play_audio')
       if (msg.batch == 'jiabao') {
-        var hide_good = localStorage.getItem('hide_good')
+        var hide_good = getSetting('hide_good')
         if (play_audio && play_audio == 'checked' || msg.test) {
           var myAudio = new Audio();
           myAudio.src = "static/audio/price_protection.ogg";
@@ -542,11 +557,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       })
       break;
     case 'checkin_notice':
-      var mute_checkin = localStorage.getItem('mute_checkin')
+      var mute_checkin = getSetting('mute_checkin')
       if (mute_checkin && mute_checkin == 'checked' && !msg.test) {
         console.log('checkin', msg)
       } else {
-        var play_audio = localStorage.getItem('play_audio')
+        var play_audio = getSetting('play_audio')
         if (play_audio && play_audio == 'checked' || msg.test) {
           var myAudio = new Audio();
           myAudio.src = "static/audio/beans.ogg";
@@ -642,7 +657,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'coupon':
       var coupon = JSON.parse(msg.content)
-      var mute_coupon = localStorage.getItem('mute_coupon')
+      var mute_coupon = getSetting('mute_coupon')
       if (mute_coupon && mute_coupon == 'checked') {
         console.log('coupon', msg)
       } else {

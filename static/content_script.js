@@ -1,5 +1,4 @@
 // 京价保
-
 var observeDOM = (function () {
   var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
     eventListenerSupported = window.addEventListener;
@@ -20,6 +19,16 @@ var observeDOM = (function () {
     }
   };
 })();
+
+function injectScript(file, node) {
+  var th = document.getElementsByTagName(node)[0];
+  var s = document.createElement('script');
+  s.setAttribute('type', 'text/javascript');
+  s.setAttribute('src', file);
+  th.appendChild(s);
+}
+
+injectScript(chrome.extension.getURL('/static/page_script.js'), 'body');
 
 function escapeSpecialChars(jsonString) {
   return jsonString.replace(/\\n/g, "\\n").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\\&/g, "\\&").replace(/\\r/g, "\\r").replace(/\\t/g, "\\t").replace(/\\b/g, "\\b").replace(/\\f/g, "\\f");
@@ -379,26 +388,6 @@ function resaveAccount() {
   }
 }
 
-// 自动评论
-function autoReview(setting) {
-  if (setting == 'checked') {
-    if ($(".commstar-group").length > 0) {
-      $('.commstar .star5').trigger("tap")
-      $('.commstar .star5').trigger("click")
-    }
-    if ($(".f-goods").length > 0) {
-      $('.fop-main .star5').trigger("tap")
-      $('.fop-main .star5').trigger("click")
-      $('.f-item .f-textarea textarea').val('感觉不错，价格也很公道，值的购买！')
-    };
-    setTimeout(function () {
-      $('.btn-submit').trigger("tap")
-      $('.btn-submit').trigger("click")
-    }, 500)
-  }
-}
-
-
 // 自动浏览店铺（7：店铺签到）
 function autoVisitShop(setting) {
   if (setting != 'never') {
@@ -469,6 +458,76 @@ function pickupCoupon(setting) {
         }, time)
         time += 5000;
       }
+    })
+  }
+}
+
+
+// 剁手保护模式
+function handProtection(setting) {
+  if (setting == "checked") {
+    injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
+    let url = $("#InitCartUrl").attr("href")
+    let item = $(".ellipsis").text()
+    let price = $(".summary-price-wrap .p-price").text()
+    // 拼接提示小时
+    let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
+      `<p class="btn-special2">恭喜你省下了 ` + price + ` ！</p>` +
+      `</dialog>`
+    // 写入提示消息
+    $("body").append(dialogMsgDOM);
+
+    $("#InitCartUrl").data("url", url)
+    $("#InitCartUrl").removeAttr("clstag")
+    $("#InitCartUrl").on("click", function () {
+      let count = $('#buy-num').val()
+      // 移除此前的提示
+      if ($("#dialog").size() > 0) {
+        $("#dialog").remove()
+      }
+      // 拼接提示
+      let dialogDOM = `<dialog id="dialog">` +
+        `<span class="close">x</span>` +
+        `<form method="dialog">` +
+        `<h3>你真的需要买` + (Number(count) > 1 ? count + '个' : '') + item + `吗?</h3>` +
+        `<div class="consideration">` +
+        `<p>它是必须的吗？使用的频率足够高吗？</p>` +
+        `<p>它真的可以解决你的需求吗？现有方案完全无法接受吗？</p>` +
+        `<p>如果收到不合适，它在试用之后退款方便吗？</p>` +
+        `<p>现在购买它的价格 ` + price + ` 合适吗？</p>` +
+        (Number(count) > 1 ? `<p>有必要现在购买 ` + count + `个吗？</p>` : '') +
+        `</div>` +
+        `<div class="actions">` +
+        `<a href="` + url + `" class="volume-purchase forcedbuy" target="_blank">坚持购买</a>` +
+        `<button type="submit" value="no" class="giveUp btn-special2 btn-lg" autofocus>一键省钱</button>` +
+        `</div>` +
+        `<p class="admonish">若无必要，勿增实体</p>` +
+        `</form>` +
+        `</dialog>`
+      // 写入提示
+      $("body").append(dialogDOM);
+      var dialog = document.getElementById('dialog');
+      var dialogMsg = document.getElementById('dialogMsg');
+
+      dialog.showModal();
+      document.querySelector('#dialog .close').onclick = function () {
+        dialog.close();
+      };
+
+      document.querySelector('#dialog .giveUp').onclick = function () {
+        dialog.close();
+        setTimeout(() => {
+          dialogMsg.showModal();
+        }, 50);
+        setTimeout(() => {
+          dialogMsg.close();
+          if (confirm("京价保剁手保护模式准备帮你关闭这个标签页，确认要关闭吗?")) {
+            window.close();
+          }
+        }, 1000);
+      };
+
+      return false;
     })
   }
 }
@@ -603,7 +662,7 @@ function CheckDom() {
               batch: "bean",
               value: value,
               unit: 'bean',
-              title: "京价保自动为您领取双签",
+              title: "京价保自动为您领取双签礼包",
               content: "恭喜您获得了" + value + '个京豆奖励'
             }, function (response) {
               console.log("Response: ", response);
@@ -613,6 +672,38 @@ function CheckDom() {
       }, 2000)
     } else {
       markCheckinStatus('double_check')
+    }
+  };
+
+  // 13：京东用户每日福利
+  if ($(".signDay_day").length) {
+    console.log('13：京东用户每日福利')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "13"
+    })
+    if ($(".day_able .signDay_day_btm").text() == "签到领取") {
+      $(".day_able .signDay_day_btm").trigger("tap")
+      $(".day_able .signDay_day_btm").trigger("click")
+      setTimeout(function () {
+        if ($(".day_able .signDay_day_btm").text() == "已签到领取") {
+          let value = 1
+          markCheckinStatus('vip', value + '京豆', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              batch: "bean",
+              value: value,
+              unit: 'bean',
+              title: "京价保自动为您签到领京豆",
+              content: "恭喜您获得了" + value + '个京豆奖励'
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 2000)
+    } else {
+      markCheckinStatus('m_welfare')
     }
   };
 
@@ -672,16 +763,16 @@ function CheckDom() {
       text: "run_status",
       jobId: "6"
     })
-    if ($(".gangbeng .btn").text() == "领钢镚") {
+    if ($(".gangbeng .btn").text() == "签到") {
       $(".gangbeng .btn").trigger( "tap" )
       $(".gangbeng .btn").trigger( "click" )
       // 监控结果
       setTimeout(function () {
-        if ($(".gangbeng .btn").text() == "已领取" || ($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
+        if (($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
           let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
           let rawValue = $(".am-modal-body .title").text()
           let value = re.exec(rawValue)
-          markCheckinStatus('jr-qyy', rawValue, () => {
+          markCheckinStatus('jr-qyy', value[1] + '个钢镚', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               title: "京价保自动为您签到抢钢镚",
@@ -906,28 +997,34 @@ function CheckDom() {
     }
   }
 
-  // 自营筛选 （待实现）
 
-  // if ($("#J_feature").size() > 0) {
-  //   let jd_self = `<li><a data-field="wtype" id="filterSelf" data-val="0" href="javascript:;" onclick="searchlog(0,0,0,43)"><i></i>只看自营</a></li>`
-  //   $("#J_feature ul").prepend(jd_self);
 
-  //   $("#filterSelf").on('click', () => {
-  //     $("#J_goodsList .gl-item").each(function () {
-  //       if ($(this).find('i.goods-icons').text() == '自营') {
-  //         $(this).show()
-  //       } else {
-  //         $(this).hide()
-  //       }
-  //     })
-  //   })
+  // 剁手保护
+  if ($("#InitCartUrl").size() > 0) {
+    getSetting('hand_protection', handProtection)
+  }
+
+  // 自营筛选
+  // if ($("#search").size() > 0) {
+  //   $('#search .form').submit(function (evt) {
+  //     evt.preventDefault();
+  //   });
+  //   $("#search input").attr("onkeydown", "javascript:if(event.keyCode==13) addSelfOperated('key');");
+  //   $("#search button").attr("onclick", "addSelfOperated('key'); return false;");
+  // }
+  // if ($("#search-2014").size() > 0) {
+  //   $('#search-2014 .form').submit(function (evt) {
+  //     evt.preventDefault();
+  //   });
+  //   $("#search-2014 input").attr("onkeydown", "javascript:if(event.keyCode==13) addSelfOperated('key');");
+  //   $("#search-2014 button").attr("onclick", "addSelfOperated('key'); return false;");
   // }
   
 
-  // 自动评价 
-  if ($(".mycomment-form").length > 0) {
-    getSetting('auto_review', autoReview)
-  };
+  // 自动评价 （已移除） 
+  // if ($(".mycomment-form").length > 0) {
+  //   getSetting('auto_review', autoReview)
+  // };
 
   // 价格保护（1）
   if ($(".bd-product-list ").size() > 0 && $("#jb-product").text() == "价保申请") {

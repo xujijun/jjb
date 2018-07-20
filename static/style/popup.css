@@ -329,12 +329,14 @@ img.weui-tabbar__icon {
     color: #d23030;
 }
 
+#faqDialags .weui-dialog,
 #feedbackDialags .weui-dialog{
     background-color: #f8f8f8;
     height: 460px;
 }
 
 #jEventDialags iframe,
+#faqDialags iframe,
 #feedbackDialags iframe {
     width: 90%;
     height: 450px;
@@ -344,6 +346,7 @@ img.weui-tabbar__icon {
 #feedbackResult,
 #wechatDialags,
 #feedbackDialags,
+#faqDialags,
 #jEventDialags,
 #loginNotice,
 #listenAudio {

@@ -37,5 +37,8 @@
     "48": "static/image/48.png",
     "128": "static/image/128.png" 
   },
+  "web_accessible_resources": [
+    "static/dialog-polyfill.js"
+  ],
   "permissions": ["*://*.jd.com/*", "*://*.jd.hk/*", "*://*.jdpay.com/*", "webRequest", "webRequestBlocking", "alarms", "tabs", "notifications"]
 }

@@ -53,18 +53,19 @@ gulp.task('move-js', [], function () {
   gulp.src([
       'static/background.js', 
       'static/content_script.js',
+      'static/page_script.js',
       'static/start.js',
       'node_modules/art-template/lib/template-web.js',
       'node_modules/jquery/dist/jquery.min.js',
       'node_modules/zepto/dist/zepto.min.js',
       'node_modules/lodash/lodash.min.js',
+      'node_modules/dialog-polyfill/dialog-polyfill.js',
       'node_modules/moment/min/moment-with-locales.min.js',
     ])
     .pipe(gulp.dest('build/static'));
 });
 
 gulp.task('move-file', [], function () {
-  console.log('argv.version', argv.version)
   gulp.src([
     'manifest.json', '*.html'
   ])
