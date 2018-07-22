@@ -28,7 +28,7 @@ function injectScript(file, node) {
   th.appendChild(s);
 }
 
-injectScript(chrome.extension.getURL('/static/page_script.js'), 'body');
+// injectScript(chrome.extension.getURL('/static/page_script.js'), 'body');
 
 function escapeSpecialChars(jsonString) {
   return jsonString.replace(/\\n/g, "\\n").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\\&/g, "\\&").replace(/\\r/g, "\\r").replace(/\\t/g, "\\t").replace(/\\b/g, "\\b").replace(/\\f/g, "\\f");
@@ -462,6 +462,25 @@ function pickupCoupon(setting) {
   }
 }
 
+// 从京东热卖自动跳转到商品页面
+function autoGobuy(setting) {
+  injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
+  // 拼接提示
+  let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
+    `<p class="green-text">京价保已自动为你跳转到商品页面</p>` +
+    `<p class="tips">打开京价保进入其他设置可关闭此功能</p>` +
+    `</dialog>`
+  // 写入提示消息
+  $("body").append(dialogMsgDOM);
+
+  if (setting == "checked") {
+    setTimeout(() => {
+      let dialogMsg = document.getElementById('dialogMsg');
+      dialogMsg.showModal();
+    }, 50);
+    mockClick($(".shop_intro .gobuy a")[0])
+  }  
+}
 
 // 剁手保护模式
 function handProtection(setting) {
@@ -470,9 +489,9 @@ function handProtection(setting) {
     let url = $("#InitCartUrl").attr("href")
     let item = $(".ellipsis").text()
     let price = $(".summary-price-wrap .p-price").text()
-    // 拼接提示小时
+    // 拼接提示
     let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
-      `<p class="btn-special2">恭喜你省下了 ` + price + ` ！</p>` +
+      `<p class="green-text">恭喜你省下了 ` + price + ` ！</p>` +
       `</dialog>`
     // 写入提示消息
     $("body").append(dialogMsgDOM);
@@ -1026,16 +1045,26 @@ function CheckDom() {
   //   getSetting('auto_review', autoReview)
   // };
 
+  // 自动跳转至商品页面
+  if ($(".shop_intro .gobuy").length > 0) {
+    getSetting('auto_gobuy', autoGobuy)
+  };
+  
   // 价格保护（1）
   if ($(".bd-product-list ").size() > 0 && $("#jb-product").text() == "价保申请") {
     // try getListData
     var objDiv = document.getElementById("mescroll0");
     objDiv.scrollTop = (objDiv.scrollHeight * 2);
 
-    $('body').append('<div class="weui-mask weui-mask--visible"><h1>已经开始自动检查价格变化，您可以关闭窗口了</h1><span class="close">x</span></div>')
+    $('body').append('<div id="autoCheckNotice" class="weui-mask weui-mask--visible"><h1>京价保已经开始自动为您监测价格变化</h1><span class="close">x</span></div>')
     $('span.close').on('click', () => {
       $('.weui-mask').remove()
     })
+
+    setTimeout(() => {
+      $("#autoCheckNotice").hide()
+    }, 1500);
+
     // 如果成功进入价保页面，则代表已经登录
     chrome.runtime.sendMessage({
       text: "isLogin",
@@ -1084,7 +1113,7 @@ $( document ).ready(function() {
   setTimeout( function(){
     console.log('京价保开始执行任务');
     CheckDom()
-  }, 2000)
+  }, 1000)
 });
 
 var nodeList = document.querySelectorAll('script');

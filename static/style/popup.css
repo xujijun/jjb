@@ -149,8 +149,27 @@ select {
     display: block;
 }
 
-#dialogs, #changeLogs{
+#dialogs,
+#changeLogs,
+#admissionTest {
     display: none;
+}
+
+
+#admissionTest .testbox{
+    display: none;
+}
+
+#admissionTest .weui-dialog__bd{
+    line-height: 1.6;
+}
+
+#admissionTest .weui-dialog__bd p{
+    margin-bottom: 1em;
+}
+
+.testbox p {
+    text-align: left;
 }
 
 .new_price{
@@ -326,7 +345,7 @@ img.weui-tabbar__icon {
 }
 
 .loginNotice b{
-    color: #d23030;
+   color: #2b902f;
 }
 
 #faqDialags .weui-dialog,

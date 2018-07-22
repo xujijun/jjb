@@ -48,13 +48,6 @@ let jobs = [
     mode: 'tab',
     frequency: 'never'
   },
-  // {
-  //   id: '8',
-  //   src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fhome.jdpay.com%2fmy%2fsignIndex%3ffrom%3dsinglemessage%26isappinstalled%3d0%26source%3dJDSC',
-  //   title: '京东支付签到',
-  //   mode: 'iframe',
-  //   frequency: 'daily'
-  // },
   {
     id: '9',
     src: 'https://vip.jr.jd.com',
@@ -145,6 +138,7 @@ chrome.runtime.onInstalled.addListener(function (object) {
     console.log("已经安装")
   } else {
     localStorage.setItem('jjb_installed', 'Y');
+    localStorage.setItem('jjb_admission-test', 'N');
     chrome.tabs.create({url: "/start.html"}, function (tab) {
       console.log("京价保安装成功！");
     });
@@ -157,20 +151,6 @@ try {
     localStorage.setItem('browserName', browserInfo.name);
   })
 } catch (error) {}
-
-
-// 将UA改为 Firfox 试图让京东不要求登录时输入验证码
-var Firfox_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:58.0) Gecko/20100101 Firefox/58.0';
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  function (details) {
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
-      if (details.requestHeaders[i].name === 'User-Agent') {
-        details.requestHeaders[i].value = Firfox_USER_AGENT;
-        break;
-      }
-    }
-    return { requestHeaders: details.requestHeaders };
-  }, { urls: ["*://*.jd.com/*"] }, ['blocking', 'requestHeaders']);
 
 
 // 阻止打开京东金融App的代码
@@ -225,7 +205,7 @@ function getJobs() {
   return _.map(jobs, (job) => {
     var job_run_last_time = localStorage.getItem('job' + job.id + '_lasttime')
     job.last_run_at = job_run_last_time ? parseInt(job_run_last_time) : null
-    job.frequency = localStorage.getItem('job' + job.id + '_frequency') || job.frequency
+    job.frequency = getSetting('job' + job.id + '_frequency') || job.frequency
     return job
   })
 }

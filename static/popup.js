@@ -19,12 +19,14 @@ function getSetting(settingKey) {
 }
 
 
+
 $( document ).ready(function() {
   var orders = JSON.parse(localStorage.getItem('jjb_orders'))
   var messages = JSON.parse(localStorage.getItem('jjb_messages'))
   var login = localStorage.getItem('jjb_logged-in');
   var paid = localStorage.getItem('jjb_paid');
   var account = localStorage.getItem('jjb_account');
+  var admission_test = localStorage.getItem('jjb_admission-test')
   var browser = localStorage.getItem('browserName');
   var disabled_link = getSetting('disabled_link');
   var unreadCount = localStorage.getItem('unreadCount') || 0
@@ -32,6 +34,9 @@ $( document ).ready(function() {
   var displayRecommend = localStorage.getItem('displayRecommend')
   var current_version = "{{version}}"
   let windowWidth = Number(document.body.offsetWidth)
+  let time = Date.now().toString()
+  let dialog = false
+
   $('body').width(windowWidth-1)
   // 窗口 resize
   setTimeout(() => {
@@ -59,16 +64,42 @@ $( document ).ready(function() {
       localStorage.setItem('displayRecommend', json.display)
     }
   });
+
+  // 入学考试
+  function showTest(target) {
+    let testNo = target || '1'
+    $("#admissionTest .testbox").hide()
+    setTimeout(() => {
+      $("#admissionTest .test-" + testNo).show()
+    }, 50);
+  }
+
+  if (admission_test && admission_test == 'N') {
+    dialog = true
+    $("#admissionTest").show()
+    $("#admissionTest .answer").on("click", function () {
+      let next = $(this).data('next')
+      if (next) {
+        showTest(next)
+      } else {
+        $("#admissionTest").hide()
+        localStorage.setItem('jjb_admission-test', 'Y');
+      }
+    })
+    $("#admissionTest .dismiss").on("click", function () {
+      $("#admissionTest").hide()
+      window.close();
+    })
+    showTest()
+  }
   
+  // 登录提醒
   if (login && login == 'Y') {
-    let time = Date.now().toString()
-    let dialog = false
     $("#loginNotice").hide()
-    
     if (paid) {
       $("#dialogs").hide()
     } else {
-      if (time[time.length - 1] < 4) {
+      if (!dialog && time[time.length - 1] < 4) {
         showReward()
         dialog = true
       }
@@ -81,7 +112,6 @@ $( document ).ready(function() {
     }
     // 如果当前没有弹框 且 需要展示changelog
     if (!dialog && changelog_version != current_version) {
-      console.log('current_version', current_version, changelog_version)
       localStorage.setItem('changelog_version', $("#changeLogs").data('version'))
       $("#changeLogs").show()
     }
