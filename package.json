@@ -20,7 +20,7 @@
     "gulp-replace": "^0.6.1",
     "gulp-util": "^3.0.8",
     "gulp-watch": "^4.3.11",
-    "jquery": "^1.8.2",
+    "jquery": "^3.3.1",
     "lodash": "^4.17.10",
     "minimist": "^1.2.0",
     "moment": "^2.22.2",

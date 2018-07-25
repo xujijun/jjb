@@ -18,6 +18,13 @@ function getSetting(settingKey) {
   return setting
 }
 
+// 设置保存
+$('#settings').garlic({
+  getPath: function ($elem) {
+    console.log('settings getPath', $elem.attr('name'))
+    return $elem.attr('name');
+  }
+});
 
 
 $( document ).ready(function() {
@@ -42,14 +49,6 @@ $( document ).ready(function() {
   setTimeout(() => {
     $('body').width(windowWidth)
   }, 100);
-  
-
-  // 设置保存
-  $('#settings').garlic({
-    getPath: function ($elem) {
-      return $elem.attr('name');
-    }
-  });
 
   if (unreadCount > 0) {
     $("#unreadCount").text(unreadCount).fadeIn()
