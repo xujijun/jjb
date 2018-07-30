@@ -420,6 +420,28 @@ function autoVisitShop(setting) {
   }
 }
 
+// 店铺签到（7：店铺签到）
+function doShopSign(setting) {
+  if (setting != 'never') {
+    console.log('店铺自动签到')
+    chrome.runtime.sendMessage({ text: "myTab" }, function (result) {
+      console.log('tab', result.tab)
+      if (result.tab.pinned) {
+        if ($(".j-unsigned.j-sign").length > 0 && $(".j-unsigned.j-sign").attr("status") == 'true') {
+          $('.j-unsigned.j-sign').trigger("click")
+        } else {
+          setTimeout(function () {
+            $('.jSign .unsigned').trigger("click")
+            $('.jSign .unsigned').trigger("tap")
+          }, 3000)
+        }
+      } else {
+        console.log('正常访问不执行店铺自动签到')
+      }
+    });
+  }
+}
+
 // 移动页领取优惠券（2：领精选券）
 function pickupCoupon(setting) {
   if (setting != 'never') {
@@ -943,11 +965,8 @@ function CheckDom() {
 
 
   if ($(".jShopHeaderArea").length > 0 && $(".jShopHeaderArea .jSign .unsigned").length > 0) {
-    setTimeout( function(){
-      console.log('店铺自动签到')
-      $('.jSign .unsigned').trigger( "click" )
-      $('.jSign .unsigned').trigger( "tap" )
-    }, 5000)
+    getSetting('job7_frequency', doShopSign)
+    
   }
 
   if ($(".jShopHeaderArea").length > 0 && $(".jShopHeaderArea .jSign .signed").length > 0) {

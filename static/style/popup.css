@@ -693,3 +693,7 @@ button.Button.messages-tab.Button--plain:focus {
     margin-top: .8em;
 }
     
+.help_btns .el-tag a{
+    font-size: 14px;
+    padding: 12px;
+}

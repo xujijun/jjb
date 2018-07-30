@@ -657,6 +657,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'clearUnread':
       updateUnreadCount(-999)
       break;
+    case 'myTab':
+      sendResponse({
+        tab: sender.tab
+      });
+      break;
     default:
       console.log("Received %o from %o, frame", msg, sender.tab, sender.frameId);
   }
