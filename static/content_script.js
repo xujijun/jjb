@@ -332,9 +332,13 @@ function dealLoginFailed(errormsg) {
 function autoLogin(account, type) {
   console.log('京价保正在为您自动登录', type)
   if (type == 'pc') {
-    $(".login-tab-r a").trigger("click")
+    // 切换到账号登录
+    mockClick($(".login-tab-r a")[0])
+
     $("#loginname").val(account.username)
     $("#nloginpwd").val(account.password)
+
+    // 如果此前已经登录失败
     if (account.loginFailed) {
       $(".tips-inner .cont-wrapper p").text('由于在' + account.loginFailed.displayTime + '自动登录失败（原因：' + account.loginFailed.errormsg + '），2小时内不再自动登录').css('color', '#f73535').css('font-size', '14px')
       $(".login-wrap .tips-wrapper").hide()
@@ -348,19 +352,31 @@ function autoLogin(account, type) {
       }, function (response) {
         console.log("Response: ", response);
       });  
+      
     } else {
-      setTimeout(function () {
-        mockClick($(".login-btn a")[0])
-      }, 500)
-      // 监控登录失败
-      setTimeout(function () {
-        let errormsg = $('.login-box .msg-error').text()
-        if (errormsg == '请输入验证码') {
-          dealLoginFailed(errormsg)
-        }
-      }, 1500)
+      if ($("#s-authcode").height() > 0) {
+        dealLoginFailed("需要完成登录验证")
+        // 监控验证结果
+        observeDOM(document.getElementById("s-authcode"), function () {
+          let resultText = $("#s-authcode .authcode-btn").text()
+          if (resultText && resultText == "验证成功") {
+            mockClick($(".login-btn a")[0])
+          }
+        });
+      } else {
+        setTimeout(function () {
+          mockClick($(".login-btn a")[0])
+        }, 500)
+        // 监控登录失败
+        setTimeout(function () {
+          let errormsg = $('.login-box .msg-error').text()
+          if (errormsg == '请输入验证码') {
+            dealLoginFailed(errormsg)
+          }
+        }, 1500)
+      }
     }
-
+  // 手机登录
   } else {
     $("#username").val(account.username)
     $("#password").val(account.password)

@@ -320,7 +320,9 @@ $( document ).ready(function() {
       forceHttps(tab)
     })
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-      forceHttps(tab)
+      if (changeInfo.url) {
+        forceHttps(tab)
+      }
     })
   }
 })
@@ -395,7 +397,7 @@ function openLoginPage() {
 
 // force ssl
 function forceHttps(tab) {
-  if (tab && _.startsWith(tab.url, 'http://') && tab.url.indexOf('jd.com') !== -1) {
+  if (tab && tab.url && _.startsWith(tab.url, 'http://') && tab.url.indexOf('jd.com') !== -1) {
     chrome.tabs.update(tab.id, {
       url: tab.url.replace(/^http:\/\//i, 'https://')
     }, function () {
