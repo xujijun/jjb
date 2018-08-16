@@ -476,7 +476,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       let min = getSetting('price_pro_min');
       let days = getSetting('price_pro_days')
       let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
-      let prompt_only = (getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false ) || (prompt_only == 'N')
+      let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
       return sendResponse({
         pro_days: days || 15,
         is_plus: is_plus,

@@ -144,7 +144,8 @@ async function dealProduct(product, order_info, setting) {
       console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', new_price, ' Vs ', lastApplyPrice)
       return 
     }
-    if(setting.prompt_only){
+    // 如果禁止了自动申请
+    if (setting.prompt_only) {
       localStorage.setItem('jjb_order_' + applyId, new_price)
       chrome.runtime.sendMessage({
         text: "notice",
@@ -155,8 +156,7 @@ async function dealProduct(product, order_info, setting) {
       }, function(response) {
         console.log("Response: ", response);
       });
-    }
-    else{
+    } else {
     // 申请
       applyBtn.trigger( "click" )
 
