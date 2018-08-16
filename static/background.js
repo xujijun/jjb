@@ -7,13 +7,6 @@ let jobs = [
     frequency: '5h'
   },
   {
-    id: '2',
-    src: 'https://coupon.m.jd.com/center/getCouponCenter.action',
-    title: '领精选券',
-    mode: 'iframe',
-    frequency: '5h'
-  },
-  {
     id: '3',
     src: 'https://plus.m.jd.com/index',
     title: 'PLUS券',
@@ -112,24 +105,23 @@ _.forEach(jobs, (job) => {
   }
 })
 
-
 // This is to remove X-Frame-Options header, if present
 chrome.webRequest.onHeadersReceived.addListener(
-    function(info) {
-      var headers = info.responseHeaders;
-      for (var i=headers.length-1; i>=0; --i) {
-          var header = headers[i].name.toLowerCase();
-          if (header == 'x-frame-options' || header == 'frame-options') {
-              headers.splice(i, 1); // Remove header
-          }
+  function(info) {
+    var headers = info.responseHeaders;
+    for (var i=headers.length-1; i>=0; --i) {
+      var header = headers[i].name.toLowerCase();
+      if (header == 'x-frame-options' || header == 'frame-options') {
+          headers.splice(i, 1); // Remove header
       }
-      return {responseHeaders: headers};
-    },
-    {
-        urls: ['*://*.jd.com/*', '*://*.jd.hk/*', "*://*.jdpay.com/*"], //
-        types: ['sub_frame']
-    },
-    ['blocking', 'responseHeaders']
+    }
+    return {responseHeaders: headers};
+  },
+  {
+      urls: ['*://*.jd.com/*', '*://*.jd.hk/*', "*://*.jdpay.com/*"], //
+      types: ['sub_frame']
+  },
+  ['blocking', 'responseHeaders']
 );
 
 chrome.runtime.onInstalled.addListener(function (object) {
@@ -406,7 +398,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
         case 'rebate':
           openFXDetailPage()
           break;
-        case 'login':
+        case 'login-failed':
           if (type == 'pc') {
             chrome.tabs.create({
               url: "https://passport.jd.com/uc/login"
@@ -521,6 +513,13 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         errormsg: msg.content,
         time: new Date()
       }));
+      localStorage.setItem('jjb_logged-in', 'N');
+      chrome.browserAction.setBadgeBackgroundColor({
+        color: [190, 190, 190, 230]
+      });
+      chrome.browserAction.setBadgeText({
+        text: "X"
+      });
       let loginFailedType = new Date().getTime().toString() + "_login-failed_" + msg.type
       chrome.notifications.create(loginFailedType, {
         type: "basic",
@@ -700,6 +699,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'orders':
       localStorage.setItem('jjb_orders', msg.content);
       localStorage.setItem('jjb_last_check', new Date().getTime());
+
+      chrome.runtime.sendMessage({
+        action: "orders_updated",
+        data: msg.content
+      });
       break;
     case 'clearUnread':
       updateUnreadCount(-999)

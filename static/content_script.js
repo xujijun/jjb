@@ -157,9 +157,8 @@ async function dealProduct(product, order_info, setting) {
         console.log("Response: ", response);
       });
     } else {
-    // 申请
+      // 申请
       applyBtn.trigger( "click" )
-
       localStorage.setItem('jjb_order_' + applyId, new_price)
       chrome.runtime.sendMessage({
         text: "notice",
@@ -261,17 +260,17 @@ function mockClick(element) {
 
 function CheckBaitiaoCouponDom() {
   var time = 0;
-  $(".coupon-list .js_coupon").each(function() {
-    console.log('开始领券')
-    var that = $(this)
-    if ($(this).find('.js_getCoupon').text() == '点击领取' ) {
-      var coupon_name = that.find('.coupon_lineclamp').text()
-      var coupon_price = that.find('.sc-money').text().trim() + ' (' + that.find('.sc-message').text().trim() + ')'
-      setTimeout( function(){
-        $(that).find('.js_getCoupon').trigger( "tap" )
-        $(that).find('.js_getCoupon').trigger( "click" )
+  $("#react-root .react-root .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
+    let targetEle = $(this)
+    if (targetEle.text() == '立即领取') {
+      let couponDetails = targetEle.parent().prev().find('span').toArray()
+      console.log(couponDetails)
+      var coupon_name = couponDetails[2] ? $(couponDetails[2]).text().trim() : '未知白条券'
+      var coupon_price = couponDetails[0] ? $(couponDetails[0]).text().trim(): '？' + (couponDetails[1] ? (' (' + $(couponDetails[1]).text() + ')') : '')
+      setTimeout(function () {
+        mockClick(targetEle[0])
         setTimeout(function () {
-          if ($(that).find('.coupon_receive').size() > 0) {
+          if (targetEle.text() == '去查看') {
             chrome.runtime.sendMessage({
               text: "coupon",
               title: "京价保自动领到一张白条优惠券",
@@ -975,22 +974,13 @@ function CheckDom() {
   }
 
   // 领取白条券（4：领白条券）
-  if ( $(".coupon-list .js_coupon") && $(".coupon-list .js_coupon").length > 0 ) {
+  if ($("#react-root .react-root .react-view").length > 0 && window.location.host == 'm.jr.jd.com' && document.title == "领券中心") {
     console.log('开始领取白条券')
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "4"
     })
-    var time = 0;
-    $("#js_categories li").each(function() {
-      var that = $(this)
-      setTimeout( function(){
-        $(that).trigger( "tap" )
-        console.log('开始领取', $(that).text())
-        setTimeout( CheckBaitiaoCouponDom(), 1000)
-      }, time)
-      time += 30000;
-    })
+    CheckBaitiaoCouponDom()
   };
 
 
@@ -1023,7 +1013,7 @@ function CheckDom() {
   };
 
   // 自动领取京东金融铂金会员京东支付返利（10：金融铂金会员支付返利）
-  if ($("#react-root .react-root .react-view").length > 0 && window.location.host == 'm.jr.jd.com') {
+  if ($("#react-root .react-root .react-view").length > 0 && window.location.host == 'm.jr.jd.com' && document.title == "返现明细") {
     console.log('京东金融铂金会员返利')
     chrome.runtime.sendMessage({
       text: "run_status",

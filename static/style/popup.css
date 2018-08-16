@@ -70,6 +70,7 @@ select {
 
 .other_actions{
     padding: 10px;
+    padding-bottom: 0;
 }
 
 .other_actions p{
@@ -162,6 +163,8 @@ select {
 
 #admissionTest .weui-dialog__bd{
     line-height: 1.6;
+    max-height: 300px;
+    overflow-x: hidden;
 }
 
 #admissionTest .weui-dialog__bd p{
@@ -330,7 +333,7 @@ img.weui-tabbar__icon {
     padding: 10px;
     text-align: left;
     line-height: 2.2;
-    max-height: 320px;
+    max-height: 300px;
     overflow-y: auto;
 }
 
@@ -339,7 +342,7 @@ img.weui-tabbar__icon {
     padding: 10px 15px;
     text-align: left;
     line-height: 2.2;
-    max-height: 320px;
+    max-height: 300px;
     color: #5a5a5a;
     overflow-y: auto;
 }
@@ -696,4 +699,8 @@ button.Button.messages-tab.Button--plain:focus {
 .help_btns .el-tag a{
     font-size: 14px;
     padding: 12px;
+}
+
+.text-tips.version{
+    padding-bottom: 0;
 }

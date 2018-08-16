@@ -16,7 +16,7 @@
               通知设置
             </div>
             <div class="weui-navbar__item" data-type="other_settings">
-              其他设置
+              高级设置
             </div>
           </div>
           <div class="weui-tab__panel">
@@ -30,20 +30,6 @@
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job1_frequency">
-                        <option value="2h">每2小时</option>
-                        <option value="5h">每5小时</option>
-                        <option value="daily">每天</option>
-                        <option value="never">从不</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div id="job2" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd">
-                      <span>精选优惠券</span>
-                      <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
-                    </div>
-                    <div class="weui-cell__bd">
-                      <select class="weui-select" name="job2_frequency">
                         <option value="2h">每2小时</option>
                         <option value="5h">每5小时</option>
                         <option value="daily">每天</option>
@@ -314,7 +300,7 @@
 
                   <div class="weui-cell weui-cell_switch">
                     <div class="weui-cell__bd">
-                      <span data-tippy-placement="top-start" data-tippy class="tippy" title="开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请">有价保机会时不自动申请</span>
+                      <span data-tippy-placement="top-start" data-tippy class="tippy" title="开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请">有价保机会时只提醒不自动申请</span>
                     </div>
                     <div class="weui-cell__ft">
                       <input class="weui-switch" type="checkbox" name="prompt_only">
@@ -339,7 +325,6 @@
                   </div>
                 </div>
                 <div class="other_actions">
-                  <h3 style="text-align: center;color: #666;">反馈和帮助</h3>
                   <p class="help_btns" style="text-align: center;">
                     <span class="el-tag el-tag--success">
                       <a href="#" id="openFeedback" data-tippy-placement="top-start" data-tippy class="tippy" title="向作者提供功能建议或京东活动的地址，帮助京价保及时更新">建议反馈</a>
@@ -360,7 +345,7 @@
                     <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy title="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
-                <p class="text-tips"> 当前版本：{{version}} </p>
+                <p class="text-tips version"> 当前版本：{{version}} </p>
               </div>
             </form>
           </div>

@@ -10,6 +10,88 @@
 
 let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check', 'm_welfare']
 
+let rewards = [
+  '给开发者加个鸡腿',
+  '请开发者喝杯咖啡',
+  '京价保就是好',
+  '保价成功，感谢开发者',
+  '返利到手，打赏开发者',
+  '赞赏支持',
+  '打赏声优'
+]
+
+let notices = [{
+    text: '成功申请到价保、领取到返利或者有功能建议欢迎打赏附言。',
+    button: rewards[3],
+    target: 'ming'
+  },
+  {
+    text: '理想情况下京价保每月仅各种签到任务即可带来5元以上的等同现金收益。',
+    button: rewards[2],
+    target: 'ming'
+  },
+  {
+    text: '京东页面经常修改，唯有你的支持才能让京价保保持更新持续运作。',
+    button: rewards[5],
+    target: 'ming'
+  },
+  {
+    text: '京价保所有的功能均在本地完成，不会上传任何信息给任何人。',
+    button: rewards[5],
+    target: 'ming'
+  },
+  {
+    text: '京价保部分功能会开启一个固定的标签页，过一会儿它会自动关掉，不必紧张。',
+    button: rewards[1],
+    target: 'ming'
+  },
+  {
+    text: '京东的登录有效期很短，请在登录时勾选保存密码自动登录以便京价保自动完成工作。',
+    button: rewards[0],
+    target: 'ming'
+  },
+  {
+    text: '京价保全部代码已上传到GitHub，欢迎审查代码，了解京价保如何工作。',
+    button: rewards[0],
+    target: 'ming'
+  },
+  {
+    text: '软件开发需要开发者付出劳动和智慧，每一行代码都要付出相应的工作，并非唾手可得。',
+    button: rewards[5],
+    target: 'ming'
+  },
+  {
+    text: '京价保并不强制付费，但如果它确实帮到你，希望你也能帮助它保持更新。',
+    button: rewards[5],
+    target: 'ming'
+  },
+  {
+    text: '许多开源项目因为缺乏支持而停止更新，如果你希望京价保保持更新，请赞赏支持。',
+    button: rewards[5],
+    target: 'ming'
+  },
+  {
+    text: '如果每个京价保的用户都能每个月赞赏5元，开发者就能投入更多时间维护京价保，增加更多实用功能。',
+    button: rewards[5],
+    target: 'ming'
+  },
+  {
+    text: '把京价保推荐给你的朋友同样能帮助京价保保持更新，如果缺乏使用者，开发者可能会放弃维护项目。',
+    button: rewards[2],
+    target: 'ming'
+  },
+  {
+    text: '如果价保成功的话，打赏声优小姐姐几块钱她会很开心哦',
+    button: rewards[6],
+    target: 'samedi'
+  },
+  {
+    text: '持续的打赏不仅能为开发者带来收入，还提供了巨大的精神鼓励支持开发者继续开发京价保',
+    button: rewards[5],
+    target: 'ming'
+  },
+]
+
 function getSetting(settingKey) {
   let setting = localStorage.getItem(settingKey)
   try {
@@ -26,6 +108,138 @@ $('#settings').garlic({
   }
 });
 
+// 接收消息
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (message.action == 'orders_updated') {
+    renderOrders(JSON.parse(message.data))
+  }
+});
+
+function switchWechat(target) {
+  let to = target || 'ming'
+  if (to == 'samedi') {
+    $("#dialogs .weixin_pay .ming").hide()
+    $("#dialogs .weixin_pay .samedi").show()
+  } else {
+    $("#dialogs .weixin_pay .ming").show()
+    $("#dialogs .weixin_pay .samedi").hide()
+  }
+}
+
+function switchAlipay(target) {
+  let to = target || ($("#dialogs .alipay_pay .alipay").is(':visible') ? 'redpack' : 'alipay')
+  if (to == 'redpack') {
+    console.log('show redpack')
+    $("#dialogs .alipay_pay .alipay").hide()
+    $("#dialogs .alipay_pay .redpack").show()
+  } else {
+    console.log('show alipay')
+    $("#dialogs .alipay_pay .redpack").hide()
+    $("#dialogs .alipay_pay .alipay").show()
+  }
+}
+
+function showReward() {
+  switchPayMethod('weixin')
+  let time = Date.now().toString()
+  if (time[time.length - 1] < 3) {
+    setTimeout(() => {
+      switchPayMethod('alipay')
+    }, 50);
+  }
+}
+
+
+
+function renderOrders(orders) {
+  let disabled_link = getSetting('disabled_link');
+  let renderFrame = document.getElementById('renderFrame');
+  setTimeout(() => {
+    renderFrame.contentWindow.postMessage({
+      command: 'render',
+      context: {
+        name: 'orders',
+        orders: orders,
+        disabled_link: disabled_link == 'checked' ? true : false
+      }
+    }, '*');
+  }, 500);
+}
+
+function switchPayMethod(payMethod, target) {
+  $("#dialogs").show()
+  if (payMethod == 'weixin') {
+    $('.segmented-control .weixin').addClass('checked')
+    $('.segmented-control .alipay').removeClass('checked')
+    $('.weixin_pay').show()
+    $('.alipay_pay').hide()
+    switchWechat(target)
+  } else {
+    $('.segmented-control .weixin').removeClass('checked')
+    $('.segmented-control .alipay').addClass('checked')
+    $('.weixin_pay').hide()
+    $('.alipay_pay').show()
+    switchAlipay('alipay')
+  }
+}
+
+// 试听通知
+function listenVoice(type, batch) {
+  chrome.runtime.sendMessage({
+    text: type,
+    batch: batch,
+    test: true,
+    title: "【试听】京价保通知试听",
+    content: "并没有钱，这只是假象，你不要太当真"
+  }, function (response) {
+    console.log("Response: ", response);
+  });
+}
+
+function changeNotice() {
+  let notice = notices[Math.floor(Math.random() * notices.length)]
+  $("#notice").text(notice.text)
+  $(".tips .switch-paymethod").text(notice.button)
+  $(".tips .switch-paymethod").data('target', notice.target)
+}
+
+function showJEvent() {
+  // 加载反馈
+  if ($("#jEventIframe").attr('src') == '') {
+    $("#jEventIframe").attr('src', "https://i.duotai.net/forms/zm5rk/i6svm4on")
+    setTimeout(function () {
+      $('.iframe-loading').hide()
+    }, 800)
+  }
+  $("#jEventDialags").show()
+}
+
+
+function bindMessageAction() {
+  $('.messages-header .Button').on('click', function () {
+    let type = $(this).data('type')
+    $('.messages-header .Button').removeClass('selectedTab')
+    $(this).addClass('selectedTab')
+    $('.message-items .message-item').hide()
+    $('.message-items').find('.type-' + type).show()
+  });
+}
+
+function receiveMessage(event) {
+  if (event.data.html) {
+    switch (event.data.name) {
+      case 'orders':
+        $('#orders').html(event.data.html)
+        break;
+      case 'messages':
+        $('#messages').html(event.data.html)
+        bindMessageAction()
+        break;
+      default:
+        break;
+    }
+  }
+}
 
 $( document ).ready(function() {
   var orders = JSON.parse(localStorage.getItem('jjb_orders'))
@@ -34,8 +248,6 @@ $( document ).ready(function() {
   var paid = localStorage.getItem('jjb_paid');
   var account = localStorage.getItem('jjb_account');
   var admission_test = localStorage.getItem('jjb_admission-test')
-  var browser = localStorage.getItem('browserName');
-  var disabled_link = getSetting('disabled_link');
   var unreadCount = localStorage.getItem('unreadCount') || 0
   var changelog_version = localStorage.getItem('changelog_version')
   var displayRecommend = localStorage.getItem('displayRecommend')
@@ -136,57 +348,6 @@ $( document ).ready(function() {
   });
   
 
-  function switchWechat(target) {
-    let to = target || 'ming'
-    if (to == 'samedi') {
-      $("#dialogs .weixin_pay .ming").hide()
-      $("#dialogs .weixin_pay .samedi").show()
-    } else {
-      $("#dialogs .weixin_pay .ming").show()
-      $("#dialogs .weixin_pay .samedi").hide()
-    }
-  }
-
-  function switchAlipay(target) {
-    let to = target || ($("#dialogs .alipay_pay .alipay").is(':visible') ? 'redpack' : 'alipay')
-    if (to == 'redpack') {
-      console.log('show redpack')
-      $("#dialogs .alipay_pay .alipay").hide()
-      $("#dialogs .alipay_pay .redpack").show()
-    } else {
-      console.log('show alipay')
-      $("#dialogs .alipay_pay .redpack").hide()
-      $("#dialogs .alipay_pay .alipay").show()
-    }
-  }
-
-  function showReward(){
-    switchPayMethod('weixin')
-    let time = Date.now().toString()
-    if (time[time.length - 1] < 3) {
-      setTimeout(() => {
-        switchPayMethod('alipay')
-      }, 50);
-    }
-  }
-
-  function switchPayMethod(payMethod, target) {
-    $("#dialogs").show()
-    if (payMethod == 'weixin') {
-      $('.segmented-control .weixin').addClass('checked')
-      $('.segmented-control .alipay').removeClass('checked')
-      $('.weixin_pay').show()
-      $('.alipay_pay').hide()
-      switchWechat(target)
-    } else {
-      $('.segmented-control .weixin').removeClass('checked')
-      $('.segmented-control .alipay').addClass('checked')
-      $('.weixin_pay').hide()
-      $('.alipay_pay').show()
-      switchAlipay('alipay')
-    }
-  }
-
   // tippy
   setTimeout(function () {
     tippy('.tippy', {
@@ -220,15 +381,6 @@ $( document ).ready(function() {
     $('.contents-box.' + type).show()
   });
 
-  if (orders) {
-    orders = orders.map(function (order) {
-      order.time = moment(order.time).locale('zh-cn').calendar()
-      return order
-    })
-  } else {
-    orders = []
-  }
-
   if (messages) {
     messages = messages.reverse().map(function (message) {
       if (message.type == 'coupon') {
@@ -241,33 +393,23 @@ $( document ).ready(function() {
     messages = []
   }
 
-  var bindAction = function () {
-    $('.messages-header .Button').on('click', function () {
-      let type = $(this).data('type')
-      $('.messages-header .Button').removeClass('selectedTab')
-      $(this).addClass('selectedTab')
-      $('.message-items .message-item').hide()
-      $('.message-items').find('.type-' + type).show()
-    });
-  }
 
-  var renderFrame = document.getElementById('renderFrame');
+  if (orders) {
+    orders = orders.map(function (order) {
+      order.time = moment(order.time).locale('zh-cn').calendar()
+      return order
+    })
+  } else {
+    orders = []
+  }
  
   if (orders && orders.length > 0) {
-    setTimeout(() => {
-      renderFrame.contentWindow.postMessage({
-        command: 'render',
-        context: {
-          name: 'orders',
-          orders: orders,
-          disabled_link: disabled_link == 'checked' ? true : false
-        }
-      }, '*');
-    }, 500);
+    renderOrders(orders)
   }
 
   if (messages && messages.length > 0) {
     setTimeout(() => {
+      let renderFrame = document.getElementById('renderFrame');
       renderFrame.contentWindow.postMessage({
         command: 'render',
         context: {
@@ -278,21 +420,6 @@ $( document ).ready(function() {
     }, 1200);
   }
 
-  function receiveMessage(event) {
-    if (event.data.html) {
-      switch (event.data.name) {
-        case 'orders':
-          $('#orders').html(event.data.html)
-          break;
-        case 'messages':
-          $('#messages').html(event.data.html)
-          bindAction()
-          break;
-        default:
-          break;
-      }
-    }
-  }
   window.addEventListener('message', receiveMessage, false)
 
   $(".weui-cell_select").each(function () {
@@ -373,7 +500,7 @@ $( document ).ready(function() {
   $("#openFeedback").on("click", function () {
     // 加载反馈
     if ($("#feedbackIframe").attr('src') == '') {
-      $("#feedbackIframe").attr('src', "https://i.duotai.net/forms/yovwz")
+      $("#feedbackIframe").attr('src', "https://i.duotai.net/forms/yovwz?version={{version}}")
       setTimeout(function () {
         $('.iframe-loading').hide()
       }, 800)
@@ -391,18 +518,6 @@ $( document ).ready(function() {
     }
     $("#faqDialags").show()
   })
-
-
-  function showJEvent() {
-    // 加载反馈
-    if ($("#jEventIframe").attr('src') == '') {
-      $("#jEventIframe").attr('src', "https://i.duotai.net/forms/zm5rk/i6svm4on")
-      setTimeout(function () {
-        $('.iframe-loading').hide()
-      }, 800)
-    }
-    $("#jEventDialags").show()
-  }
 
   $("#clearPinnedTabs").on("click", function () {
     chrome.tabs.query({
@@ -450,7 +565,6 @@ $( document ).ready(function() {
     var job_elem = $(this).parent().parent()
 
     if (job_elem) {
-      
       chrome.runtime.sendMessage({
         text: "runJob",
         content: job_elem.attr('id')
@@ -477,96 +591,6 @@ $( document ).ready(function() {
       console.log("Response: ", response);
     });
   })
-
-  var rewards = [
-    '给开发者加个鸡腿',
-    '请开发者喝杯咖啡',
-    '京价保就是好',
-    '保价成功，感谢开发者',
-    '返利到手，打赏开发者',
-    '赞赏支持',
-    '打赏声优'
-  ]
-
-  var notices = [
-    {
-      text: '成功申请到价保、领取到返利或者有功能建议欢迎打赏附言。',
-      button: rewards[3],
-      target: 'ming'
-    },
-    {
-      text: '理想情况下京价保每月仅各种签到任务即可带来5元以上的等同现金收益。',
-      button: rewards[2],
-      target: 'ming'
-    },
-    {
-      text: '京东页面经常修改，唯有你的支持才能让京价保保持更新持续运作。',
-      button: rewards[5],
-      target: 'ming'
-    },
-    {
-      text: '京价保所有的功能均在本地完成，不会上传任何信息给任何人。',
-      button: rewards[5],
-      target: 'ming'
-    },
-    {
-      text: '京价保部分功能会开启一个固定的标签页，过一会儿它会自动关掉，不必紧张。',
-      button: rewards[1],
-      target: 'ming'
-    },
-    {
-      text: '京东的登录有效期很短，请在登录时勾选保存密码自动登录以便京价保自动完成工作。',
-      button: rewards[0],
-      target: 'ming'
-    },
-    {
-      text: '京价保全部代码已上传到GitHub，欢迎审查代码，了解京价保如何工作。',
-      button: rewards[0],
-      target: 'ming'
-    },
-    {
-      text: '软件开发需要开发者付出劳动和智慧，每一行代码都要付出相应的工作，并非唾手可得。',
-      button: rewards[5],
-      target: 'ming'
-    },
-    {
-      text: '京价保并不强制付费，但如果它确实帮到你，希望你也能帮助它保持更新。',
-      button: rewards[5],
-      target: 'ming'
-    },
-    {
-      text: '许多开源项目因为缺乏支持而停止更新，如果你希望京价保保持更新，请赞赏支持。',
-      button: rewards[5],
-      target: 'ming'
-    },
-    {
-      text: '如果每个京价保的用户都能每个月赞赏5元，开发者就能投入更多时间维护京价保，增加更多实用功能。',
-      button: rewards[5],
-      target: 'ming'
-    },
-    {
-      text: '把京价保推荐给你的朋友同样能帮助京价保保持更新，如果缺乏使用者，开发者可能会放弃维护项目。',
-      button: rewards[2],
-      target: 'ming'
-    },
-    {
-      text: '如果价保成功的话，打赏声优小姐姐几块钱她会很开心哦',
-      button: rewards[6],
-      target: 'samedi'
-    },
-    {
-      text: '持续的打赏不仅能为开发者带来收入，还提供了巨大的精神鼓励支持开发者继续开发京价保',
-      button: rewards[5],
-      target: 'ming'
-    },
-  ]
-
-  function changeNotice() {
-    let notice = notices[Math.floor(Math.random() * notices.length)]
-    $("#notice").text(notice.text)
-    $(".tips .switch-paymethod").text(notice.button)
-    $(".tips .switch-paymethod").data('target', notice.target)
-  }
   
   $("#notice").on("dblclick", function () {
     changeNotice()
@@ -583,17 +607,4 @@ $( document ).ready(function() {
   $(".listenVoice").on("click", function () {
     listenVoice($(this).data('type'), $(this).data('batch'))
   })
-
-  // 试听通知
-  function listenVoice(type, batch) {
-    chrome.runtime.sendMessage({
-      text: type,
-      batch: batch,
-      test: true,
-      title: "【试听】京价保通知试听",
-      content: "并没有钱，这只是假象，你不要太当真"
-    }, function (response) {
-      console.log("Response: ", response);
-    });
-  }
 })
