@@ -1,35 +1,35 @@
 let jobs = [
   {
     id: '1',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fsitepp-fm.jd.com%2frest%2fpriceprophone%2fpriceProPhoneMenu',
+    src: 'https://sitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu',
     title: '价格保护',
     mode: 'iframe',
     frequency: '5h'
   },
   {
     id: '2',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fcoupon.m.jd.com%2Fcenter%2FgetCouponCenter.action',
+    src: 'https://coupon.m.jd.com/center/getCouponCenter.action',
     title: '领精选券',
     mode: 'iframe',
     frequency: '5h'
   },
   {
     id: '3',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fplus.m.jd.com%2Findex',
+    src: 'https://plus.m.jd.com/index',
     title: 'PLUS券',
     mode: 'iframe',
     frequency: '5h'
   },
   {
     id: '4',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fm.jr.jd.com%2fjdbt%2fnewcoupons%2fcoupon-list.html%3fcategory%3d0%26coupony%3d0',
+    src: 'https://m.jr.jd.com/mjractivity/rn/couponCenter/index.html?RN=couponCenter&tab=20',
     title: '领白条券',
     mode: 'iframe',
     frequency: '5h'
   },
   {
     id: '5',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fvip.m.jd.com%2Fpage%2Fsignin',
+    src: 'https://vip.m.jd.com/page/signin',
     title: '京东会员签到',
     mode: 'iframe',
     frequency: 'daily'
@@ -57,7 +57,7 @@ let jobs = [
   },
   {
     id: '10',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fm.jr.jd.com%2fmjractivity%2frn%2fplatinum_members_center%2findex.html%3fpage%3dFXDetailPage',
+    src: 'https://m.jr.jd.com/mjractivity/rn/platinum_members_center/index.html?page=FXDetailPage',
     title: '金融铂金会员支付返利',
     mode: 'iframe',
     frequency: 'daily'
@@ -78,7 +78,7 @@ let jobs = [
   },
   {
     id: '13',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fs.m.jd.com%2factivemcenter%2factivemsite%2fm_welfare%3fsceneval%3d2%26logintag%3d%23%2fmain',
+    src: 'https://s.m.jd.com/activemcenter/activemsite/m_welfare?sceneval=2&logintag=#/main',
     title: '京东用户每日福利',
     mode: 'iframe',
     frequency: 'daily'
@@ -327,47 +327,6 @@ $( document ).ready(function() {
   }
 })
 
-// 点击通知
-chrome.notifications.onClicked.addListener(function (notificationId){
-  if (notificationId.split('_').length > 0) {
-    var batch = notificationId.split('_')[1]
-    if (batch && batch.length > 1) {
-      switch(batch){
-        case 'baitiao':
-          chrome.tabs.create({
-  
-            url: "https://vip.jr.jd.com/coupon/myCoupons?default=IOU"
-          })
-          break;
-        case 'bean':
-          chrome.tabs.create({
-  
-            url: "http://bean.jd.com/myJingBean/list"
-          })
-          break;
-        case 'jiabao':
-          openPriceProPhoneMenu()
-          break;
-        case 'rebate':
-          openFXDetailPage()
-          break;
-        
-        default:
-          if (batch && batch != 'undefined') {
-            chrome.tabs.create({
-              url: "https://search.jd.com/Search?coupon_batch=" + batch
-            })
-          } else {
-            chrome.tabs.create({
-              url: "https://union-click.jd.com/jdc?d=259YU4"
-            })
-          }
-          
-      }
-    }
-  }
-})
-
 function openPriceProPhoneMenu() {
   chrome.windows.create({
     width: 420,
@@ -424,7 +383,86 @@ function clearPinnedTabs() {
   })
 }
 
+// 点击通知
+chrome.notifications.onClicked.addListener(function (notificationId) {
+  if (notificationId.split('_').length > 0) {
+    let type = notificationId.split('_')[2]
+    let batch = notificationId.split('_')[1]
+    if (batch && batch.length > 1) {
+      switch (batch) {
+        case 'baitiao':
+          chrome.tabs.create({
+            url: "https://vip.jr.jd.com/coupon/myCoupons?default=IOU"
+          })
+          break;
+        case 'bean':
+          chrome.tabs.create({
+            url: "http://bean.jd.com/myJingBean/list"
+          })
+          break;
+        case 'jiabao':
+          openPriceProPhoneMenu()
+          break;
+        case 'rebate':
+          openFXDetailPage()
+          break;
+        case 'login':
+          if (type == 'pc') {
+            chrome.tabs.create({
+              url: "https://passport.jd.com/uc/login"
+            })
+          } else {
+            chrome.tabs.create({
+              url: "https://plogin.m.jd.com/user/login.action"
+            })
+          }
+        default:
+          if (batch && batch != 'undefined' && type == 'coupon') {
+            chrome.tabs.create({
+              url: "https://search.jd.com/Search?coupon_batch=" + batch
+            })
+          } else {
+            chrome.tabs.create({
+              url: "https://union-click.jd.com/jdc?d=259YU4"
+            })
+          }
+      }
+    }
+  }
+})
 
+// 按钮点击
+chrome.notifications.onButtonClicked.addListener(function (notificationId, buttonIndex) {
+  if (notificationId.split('_').length > 0) {
+    let batch = notificationId.split('_')[1]
+    let type = notificationId.split('_')[2]
+    if (batch != 'login-failed') {
+      return
+    }
+    switch (type) {
+      case 'pc':
+        if (buttonIndex == 0) {
+          chrome.tabs.create({
+            url: "https://passport.jd.com/uc/login"
+          })
+        }
+        break;
+      case 'm':
+        if (buttonIndex == 0) {
+          chrome.tabs.create({
+            url: "https://plogin.m.jd.com/user/login.action"
+          })
+        }
+        break;
+      default:
+        chrome.tabs.create({
+          url: "https://union-click.jd.com/jdc?d=259YU4"
+        })
+    }
+  }
+})
+
+// 消息
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   switch(msg.text){
     case 'isLogin':
@@ -483,16 +521,21 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         errormsg: msg.content,
         time: new Date()
       }));
-      chrome.notifications.create(new Date().getTime().toString(), {
+      let loginFailedType = new Date().getTime().toString() + "_login-failed_" + msg.type
+      chrome.notifications.create(loginFailedType, {
         type: "basic",
         title: "自动登录失败：" + msg.content,
         message: "请手动登录一下（如果启用了科学上网，请把京东排除）",
-        iconUrl: 'static/image/128.png'
+        iconUrl: 'static/image/128.png',
+        buttons: [
+          {
+            "title": "现在登录"
+          }
+        ]
       })
       break;
     case 'option':
       localStorage.setItem('jjb_'+msg.title, msg.content);
-      console.log('option', msg)
       break;
     case 'runJob':
       var jobId = msg.content.split('job')[1]

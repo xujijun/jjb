@@ -332,8 +332,9 @@ function getSetting(name, cb) {
 }
 
 // 登录失败
-function dealLoginFailed(errormsg) {
+function dealLoginFailed(type, errormsg) {
   chrome.runtime.sendMessage({
+    type: type,
     text: "loginFailed",
     content: errormsg
   }, function (response) {
@@ -369,7 +370,7 @@ function autoLogin(account, type) {
       
     } else {
       if ($("#s-authcode").height() > 0) {
-        dealLoginFailed("需要完成登录验证")
+        dealLoginFailed("pc", "需要完成登录验证")
         // 监控验证结果
         observeDOM(document.getElementById("s-authcode"), function () {
           let resultText = $("#s-authcode .authcode-btn").text()
@@ -385,7 +386,7 @@ function autoLogin(account, type) {
         setTimeout(function () {
           let errormsg = $('.login-box .msg-error').text()
           if (errormsg == '请输入验证码') {
-            dealLoginFailed(errormsg)
+            dealLoginFailed("pc", errormsg)
           }
         }, 1500)
       }
@@ -395,11 +396,16 @@ function autoLogin(account, type) {
     $("#username").val(account.username)
     $("#password").val(account.password)
     $("#loginBtn").addClass("btn-active")
-    setTimeout(function () {
-      if ($("#username").val() && $("#password").val()) {
-        mockClick($("#loginBtn")[0])
-      }
-    }, 500)
+    if ($("#input-code").height() > 0) {
+      console.log("需要完成登录验证")
+      dealLoginFailed("m", "需要完成登录验证")
+    } else {
+      setTimeout(function () {
+        if ($("#username").val() && $("#password").val()) {
+          mockClick($("#loginBtn")[0])
+        }
+      }, 500)
+    }
   }
 }
 
@@ -491,7 +497,7 @@ function pickupCoupon(setting) {
       }
       if ($(this).find('.coupon_default_status_icon').text() == '立即领取') {
         setTimeout(function () {
-          $(that).find('.coupon_default_status_icon').trigger("click")
+          mockClick($(that).find('.coupon_default_status_icon')[0])
           setTimeout(function () {
             if ($(that).find('.coupon_default_status_icon').text() == '立即使用') {
               chrome.runtime.sendMessage({
