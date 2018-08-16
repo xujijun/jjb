@@ -144,37 +144,51 @@ async function dealProduct(product, order_info, setting) {
       console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', new_price, ' Vs ', lastApplyPrice)
       return 
     }
-    // 申请
-    applyBtn.trigger( "click" )
-
-    localStorage.setItem('jjb_order_' + applyId, new_price)
-    chrome.runtime.sendMessage({
-      text: "notice",
-      batch: 'jiabao',
-      title: '报告老板，发现价格保护机会！',
-      product_name: product_name,
-      content: '购买价：'+ order_price + ' 现价：' + new_price + '，已经自动提交价保申请，正在等待申请结果。'
-    }, function(response) {
-      console.log("Response: ", response);
-    });
-    // 等待15秒后检查申请结果
-    var resultId = "applyResult_" + applyId.substr(8)
-    setTimeout(function () {
-      observeDOM(document.getElementById(resultId), function () {
-        let resultText = $("#" + resultId).text()
-        if (resultText && resultText.indexOf("预计") < 0) {
-          chrome.runtime.sendMessage({
-            batch: 'jiabao',
-            text: "notice",
-            title: "报告老板，价保申请有结果了",
-            product_name: product_name,
-            content: "价保结果：" + resultText
-          }, function (response) {
-            console.log("Response: ", response);
-          });
-        }
+    if(setting.prompt_only){
+      localStorage.setItem('jjb_order_' + applyId, new_price)
+      chrome.runtime.sendMessage({
+        text: "notice",
+        batch: 'jiabao',
+        title: '报告老板，发现价格保护机会！',
+        product_name: product_name,
+        content: '购买价：'+ order_price + ' 现价：' + new_price + '，请手动提交价保申请。'
+      }, function(response) {
+        console.log("Response: ", response);
       });
-    }, 5000)
+    }
+    else{
+    // 申请
+      applyBtn.trigger( "click" )
+
+      localStorage.setItem('jjb_order_' + applyId, new_price)
+      chrome.runtime.sendMessage({
+        text: "notice",
+        batch: 'jiabao',
+        title: '报告老板，发现价格保护机会！',
+        product_name: product_name,
+        content: '购买价：'+ order_price + ' 现价：' + new_price + '，已经自动提交价保申请，正在等待申请结果。'
+      }, function(response) {
+        console.log("Response: ", response);
+      });
+      // 等待15秒后检查申请结果
+      var resultId = "applyResult_" + applyId.substr(8)
+      setTimeout(function () {
+        observeDOM(document.getElementById(resultId), function () {
+          let resultText = $("#" + resultId).text()
+          if (resultText && resultText.indexOf("预计") < 0) {
+            chrome.runtime.sendMessage({
+              batch: 'jiabao',
+              text: "notice",
+              title: "报告老板，价保申请有结果了",
+              product_name: product_name,
+              content: "价保结果：" + resultText
+            }, function (response) {
+              console.log("Response: ", response);
+            });
+          }
+        });
+      }, 5000)
+    }
   }
 }
 
