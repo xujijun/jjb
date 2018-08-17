@@ -677,6 +677,9 @@ button.Button.messages-tab.Button--plain:focus {
 .links {
     margin: 0 15px;
     margin-top: 10px;
+    position: absolute;
+    bottom: 5px;
+    left: -2px;
 }
 
 .links .text-tips{

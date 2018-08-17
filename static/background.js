@@ -482,8 +482,18 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         localStorage.setItem('jjb_account', msg.content);
       }
       break;
+    // 获取设置
     case 'getSetting':
-      var setting = getSetting(msg.content)
+      let setting = getSetting(msg.content)
+      let temporarySetting = localStorage.getItem('temporary_' + msg.content)
+      // 如果存在临时设置
+      if (temporarySetting) {
+        // 临时设置2分钟失效
+        setTimeout(() => {
+          localStorage.removeItem('temporary_' + msg.content)
+        }, 60*2*1000);
+        return sendResponse(temporarySetting)
+      }
       return sendResponse(setting)
       break;
     case 'getAccount':
@@ -536,10 +546,13 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'option':
       localStorage.setItem('jjb_'+msg.title, msg.content);
       break;
+    // 手动运行任务
     case 'runJob':
       var jobId = msg.content.split('job')[1]
       var jobList = getJobs()
       var job = _.find(jobList, {id: jobId})
+      // set 临时运行
+      localStorage.setItem('temporary_job' + jobId + '_frequency', 'onetime');
       run(jobId, true)
       chrome.notifications.create( new Date().getTime().toString(), {
         type: "basic",

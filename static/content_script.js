@@ -1085,11 +1085,6 @@ function CheckDom() {
   // }
   
 
-  // 自动评价 （已移除） 
-  // if ($(".mycomment-form").length > 0) {
-  //   getSetting('auto_review', autoReview)
-  // };
-
   // 自动跳转至商品页面
   if ($(".shop_intro .gobuy").length > 0) {
     getSetting('auto_gobuy', autoGobuy)
