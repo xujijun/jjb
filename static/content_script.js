@@ -257,6 +257,30 @@ function mockClick(element) {
   dispatchMouseEvent(element, 'mouseup', true, true);
 }
 
+/* eventType is 'touchstart', 'touchmove', 'touchend'... */
+function sendTouchEvent(x, y, element, eventType) {
+  const touchObj = new Touch({
+    identifier: Date.now(),
+    target: element,
+    clientX: x,
+    clientY: y,
+    radiusX: 2.5,
+    radiusY: 2.5,
+    rotationAngle: 10,
+    force: 0.5,
+  });
+
+  const touchEvent = new TouchEvent(eventType, {
+    cancelable: true,
+    bubbles: true,
+    touches: [touchObj],
+    targetTouches: [],
+    changedTouches: [touchObj],
+    shiftKey: true,
+  });
+
+  element.dispatchEvent(touchEvent);
+}
 
 function CheckBaitiaoCouponDom() {
   var time = 0;
@@ -304,11 +328,14 @@ function saveAccount(account) {
 function getAccount(type) {
   chrome.runtime.sendMessage({
     text: "getAccount",
+    type: type
   }, function (response) {
     if (response) {
       let account = response
       if (account && account.username && account.password) {
-        autoLogin(account, type)
+        setTimeout(() => {
+          autoLogin(account, type)
+        }, 50);
       } else {
         chrome.runtime.sendMessage({
           text: "notLogin",
@@ -332,15 +359,21 @@ function getSetting(name, cb) {
 
 // 登录失败
 function dealLoginFailed(type, errormsg) {
-  chrome.runtime.sendMessage({
-    type: type,
+  let loginFailedDetail = {
     text: "loginFailed",
+    type: type,
+    notice: true,
     content: errormsg
-  }, function (response) {
+  }
+  // 如果是单纯的登录页面，则不发送浏览器提醒
+  if (window.location.href == "https://plogin.m.jd.com/user/login.action" || window.location.href == "https://passport.jd.com/uc/login") {
+    loginFailedDetail.notice = false
+    console.log("主动登录页面不发送浏览器消息提醒")
+  }
+  chrome.runtime.sendMessage(loginFailedDetail, function (response) {
     console.log("loginFailed Response: ", response);
   });
 }
-
 
 // 自动登录
 function autoLogin(account, type) {
@@ -348,13 +381,19 @@ function autoLogin(account, type) {
   if (type == 'pc') {
     // 切换到账号登录
     mockClick($(".login-tab-r a")[0])
-
+    // 自动补全填入
     $("#loginname").val(account.username)
     $("#nloginpwd").val(account.password)
-
+    // 监控验证结果
+    observeDOM(document.getElementById("s-authcode"), function () {
+      let resultText = $("#s-authcode .authcode-btn").text()
+      if (resultText && resultText == "验证成功") {
+        mockClick($(".login-btn a")[0])
+      }
+    });
     // 如果此前已经登录失败
-    if (account.loginFailed) {
-      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginFailed.displayTime + '自动登录失败（原因：' + account.loginFailed.errormsg + '），2小时内不再自动登录').css('color', '#f73535').css('font-size', '14px')
+    if (account.loginState && account.loginState.state == 'failed') {
+      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginState.displayTime + '自动登录失败（原因：' + account.loginState.message + '），京价保暂停自动登录').css('color', '#f73535').css('font-size', '14px')
       $(".login-wrap .tips-wrapper").hide()
       $("#content .tips-wrapper").css('background', '#fff97a')
       chrome.runtime.sendMessage({
@@ -366,17 +405,10 @@ function autoLogin(account, type) {
       }, function (response) {
         console.log("Response: ", response);
       });  
-      
     } else {
+      // 如果显示需要验证
       if ($("#s-authcode").height() > 0) {
         dealLoginFailed("pc", "需要完成登录验证")
-        // 监控验证结果
-        observeDOM(document.getElementById("s-authcode"), function () {
-          let resultText = $("#s-authcode .authcode-btn").text()
-          if (resultText && resultText == "验证成功") {
-            mockClick($(".login-btn a")[0])
-          }
-        });
       } else {
         setTimeout(function () {
           mockClick($(".login-btn a")[0])
@@ -384,9 +416,7 @@ function autoLogin(account, type) {
         // 监控登录失败
         setTimeout(function () {
           let errormsg = $('.login-box .msg-error').text()
-          if (errormsg == '请输入验证码') {
-            dealLoginFailed("pc", errormsg)
-          }
+          dealLoginFailed("pc", errormsg)
         }, 1500)
       }
     }
@@ -396,7 +426,6 @@ function autoLogin(account, type) {
     $("#password").val(account.password)
     $("#loginBtn").addClass("btn-active")
     if ($("#input-code").height() > 0) {
-      console.log("需要完成登录验证")
       dealLoginFailed("m", "需要完成登录验证")
     } else {
       setTimeout(function () {
@@ -620,18 +649,29 @@ function markCheckinStatus(type, value, cb) {
 }
 
 
+
+
+// 主体任务
 function CheckDom() {
   // 转存账号
   resaveAccount()
   
-  // 是否登录
-  if ( $(".us-line .us-name") && $(".us-line .us-name").length > 0 ) {
-    console.log('已经登录')
+  // PC 是否登录
+  if ($("#ttbar-login .nickname") && $("#ttbar-login .nickname").length > 0) {
+    console.log('PC 已经登录')
     chrome.runtime.sendMessage({
-      text: "isLogin",
+      text: "loginState",
+      state: "alive",
+      message: "PC网页检测到用户名",
+      type: "pc"
     }, function(response) {
       console.log("Response: ", response);
     });
+  };
+
+  // M 是否登录
+  if ($(".us-line .us-name") && $(".us-line .us-name").length > 0) {
+
   };
 
   // 是否是PLUS会员
@@ -832,7 +872,7 @@ function CheckDom() {
     })
   }
 
-  // 京东金融慧赚钱签到 (6:金融钢镚签到)
+  // 京东金融慧赚钱签到 (6:金融慧赚钱签到)
   if ($(".assets-wrap .gangbeng").size() > 0) {
     console.log('签到领京豆（jr-qyy）')
     chrome.runtime.sendMessage({
@@ -863,6 +903,42 @@ function CheckDom() {
       }, 1000)
     } else {
       markCheckinStatus('jr-qyy')
+    }
+  };
+
+  // 钢镚签到 (14:钢镚签到)
+  if (window.location.origin == "https://coin.jd.com" && window.location.pathname == "/m/gb/index.html") {
+    console.log('钢镚签到')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "14"
+    })
+    if ($("#myCanvas").length > 0) {
+      var rect = $("#myCanvas")[0].getBoundingClientRect()
+      sendTouchEvent(rect.x + 10, rect.y + 10, $("#myCanvas")[0], 'touchstart');
+      sendTouchEvent(rect.x + 70, rect.y + 70, $("#myCanvas")[0], 'touchmove');
+      sendTouchEvent(rect.x + 70, rect.y + 70, $("#myCanvas")[0], 'touchend');
+      // 监控结果
+      setTimeout(function () {
+        if (($('.popup_reward_container .popup_gb_line').text() && $(".popup_reward_container .popup_gb_line").text().indexOf("获得") > -1)) {
+          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
+          let rawValue = $(".popup_reward_container .popup_gb_line").text()
+          let value = re.exec(rawValue)
+          markCheckinStatus('coin', value[1] + '个钢镚', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              title: "京价保自动为您签到抢钢镚",
+              value: value[1],
+              unit: 'coin',
+              content: "恭喜您领到了" + value[1] + "个钢镚"
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 1000)
+    } else {
+      markCheckinStatus('coin')
     }
   };
 
@@ -1105,13 +1181,6 @@ function CheckDom() {
       $("#autoCheckNotice").hide()
     }, 1500);
 
-    // 如果成功进入价保页面，则代表已经登录
-    chrome.runtime.sendMessage({
-      text: "isLogin",
-    }, function (response) {
-      console.log("Response: ", response);
-    });
-
     if ($( ".bd-product-list li").length > 0) {
       console.log('成功获取价格保护商品列表', new Date())
       chrome.runtime.sendMessage({
@@ -1153,7 +1222,7 @@ $( document ).ready(function() {
   setTimeout( function(){
     console.log('京价保开始执行任务');
     CheckDom()
-  }, 1000)
+  }, 1200)
 });
 
 var nodeList = document.querySelectorAll('script');

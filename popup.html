@@ -24,7 +24,7 @@
               <div class="frequency_settings settings_box" >
                 <div class="weui-cells weui-cells_form">
                   <div id="job1" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd" >
+                    <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="价格保护默认只申请15天内下单的商品">价格保护</span>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
                     </div>
@@ -38,9 +38,10 @@
                     </div>
                   </div>
                   <div id="job3" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd">
+                    <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="当然啦，你得先是PLUS会员才能领到">PLUS券</span>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job3_frequency">
@@ -52,9 +53,10 @@
                     </div>
                   </div>
                   <div id="job4" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd">
+                    <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="白条券是个好东西啊">白条券</span>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job4_frequency">
@@ -66,13 +68,28 @@
                     </div>
                   </div>
                   <div id="job5" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd checkin-vip">
+                    <div class="weui-cell__bd job-m checkin-vip">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="京东会员移动页每日签到">京东会员签到</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job5_frequency">
+                        <option value="daily">每天</option>
+                        <option value="never">从不</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div id="job14" class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd job-m checkin-coin">
+                      <span data-tippy-placement="top-start" data-tippy class="tippy" title="京东金融钢镚签到">钢镚每日签到</span>
+                      <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="today tippy weui-icon-success-circle reload"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" name="job14_frequency">
                         <option value="daily">每天</option>
                         <option value="never">从不</option>
                       </select>
@@ -83,6 +100,7 @@
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="京东金融惠赚钱每日签到有钢镚奖励">金融钢镚签到</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job6_frequency">
@@ -92,8 +110,9 @@
                     </div>
                   </div>
                   <div id="job9" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd checkin-jr-index">
+                    <div class="weui-cell__bd job-pc checkin-jr-index">
                       <span data-tippy-placement="top-start" data-tippy class="tippy"  title="金融会员每日签到，也会开标签页">金融会员签到</span>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
                     </div>
@@ -105,10 +124,11 @@
                     </div>
                   </div>
                   <div id="job11" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd checkin-bean">
+                    <div class="weui-cell__bd job-m checkin-bean">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="移动端京豆签到">每日京豆签到</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job11_frequency">
@@ -118,10 +138,11 @@
                     </div>
                   </div>
                   <div id="job12" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd checkin-double_check">
+                    <div class="weui-cell__bd job-m checkin-double_check">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="完成京豆和京东金融签到有一个双签奖励">领取双签奖励</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job12_frequency">
@@ -131,7 +152,7 @@
                     </div>
                   </div>
                   <div id="job13" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd checkin-m_welfare">
+                    <div class="weui-cell__bd job-m checkin-m_welfare">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="京东每日福利签到领京豆">京东每日福利</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
@@ -144,9 +165,10 @@
                     </div>
                   </div>
                   <div id="job7" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd">
+                    <div class="weui-cell__bd job-pc">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="这个功能是自动浏览店铺签到得京豆，会开一些隐藏标签。">浏览店铺签到</span>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job7_frequency">
@@ -156,9 +178,10 @@
                     </div>
                   </div>
                   <div id="job10" class="weui-cell weui-cell_select weui-cell_select-after">
-                    <div class="weui-cell__bd">
+                    <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" data-tippy class="tippy"  title="金融铂金会员京东支付返利1%，需要在7天内领取">铂金会员返利</span>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job10_frequency">
@@ -168,23 +191,11 @@
                     </div>
                   </div>
                 </div>
-                <div class="links">
-                  <span class="el-tag el-tag--success">
-                    <a href="https://union-click.jd.com/jdc?d=259YU4" target="_blank">首页</a>
-                  </span>
-                  <span class="el-tag el-tag--danger">
-                    <a data-tippy-placement="top-start" data-tippy class="tippy" title="京东会员根据等级不同，每个月都有礼包赠送，过期不领就会失效，反正每个月都看看吧" href="https://vip.jd.com/" target="_blank">会员</a>
-                  </span>
-                  <span class="el-tag el-tag--warning">
-                    <a href="#" id="openjEventCard" data-tippy-placement="top-start" data-tippy class="tippy" title="京东最近热门的促销活动">活动推荐</a>
-                  </span>
-                  <span class="el-tag">
-                    <a href="https://order.jd.com/center/list.action" target="_blank">订单列表</a>
-                  </span>
-                  <span class="el-tag el-tag--warning">
-                    <a data-tippy-placement="top-start" data-tippy class="tippy" title="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取" href="https://plus.jd.com/coupon/index"
-                      target="_blank">PLUS券</a>
-                  </span>
+                <div class="tips bottom-tips">
+                  <p class="page__desc">
+                    <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
+                    <a href="#" class="weui-btn weui-btn_mini weui-btn_primary" data-to="weixin" data-target="ming">打赏</a>
+                  </p>
                 </div>
               </div>
               <div class="notice_settings settings_box" style="display: none">
@@ -220,23 +231,36 @@
                   </div>
                 </div>
                 <div class="other_actions">
-                  <h3 style="text-align: center;color: #666;">服务推荐</h3>
-                  <p style="text-align: center;">
-                    <span class="el-tag el-tag--success">
-                      <a href="#" id="openRecommendCard" data-tippy-placement="top-start" data-tippy class="tippy" title="如果你最近恰巧想要办一张信用卡，使用此推荐来申请可以获得额外的优惠（并且能给京价保带来推荐收入）">推荐信用卡</a>
-                    </span>
-                    <span class="el-tag el-tag--warning">
-                      <a href="https://www.boslife.co/aff.php?aff=435" data-tippy-placement="top-start" data-tippy class="tippy" title="小明正在使用的科学上网服务" target="_blank">科学上网服务</a>
-                    </span>
-                    <span class="el-tag">
-                      <a target="_blank" data-tippy-placement="top-start" data-tippy class="tippy" title="虽然我是京价保，但亚马逊海外购确实比京东海外购靠谱多了" href="https://amazon.cn/%E4%BA%9A%E9%A9%AC%E9%80%8A%E6%B5%B7%E5%A4%96%E8%B4%AD/b/ref=sa_menu_top_ags_l1?ie=UTF8&amp;node=1403206071&_encoding=UTF8&tag=zaoshu-23&linkCode=ur2&linkId=9ab69334b125fbabd8452894820cad91&camp=536&creative=3200">亚马逊海外购</a>
-                    </span>
+                  <div class="recommendation">
+                    <h3 style="text-align: center;color: #666;">服务推荐</h3>
+                    <p style="text-align: center;">
+                      <span class="el-tag el-tag--success">
+                        <a href="https://www.agoda.com/partners/partnersearch.aspx?cid=1809967&pcs=8" target="_blank" data-tippy-placement="top-start" data-tippy class="tippy" title="使用 Agoda 预计全球酒店">全球特价酒店</a>
+                      </span>
+
+                      <span class="el-tag el-tag--warning">
+                        <a href="https://www.boslife.co/aff.php?aff=435" data-tippy-placement="top-start" data-tippy class="tippy" title="小明正在使用的科学上网服务" target="_blank">科学上网服务</a>
+                      </span>
+                      <span class="el-tag">
+                        <a target="_blank" data-tippy-placement="top-start" data-tippy class="tippy" title="虽然我是京价保，但亚马逊海外购确实比京东海外购靠谱多了" href="https://amazon.cn/%E4%BA%9A%E9%A9%AC%E9%80%8A%E6%B5%B7%E5%A4%96%E8%B4%AD/b/ref=sa_menu_top_ags_l1?ie=UTF8&amp;node=1403206071&_encoding=UTF8&tag=zaoshu-23&linkCode=ur2&linkId=9ab69334b125fbabd8452894820cad91&camp=536&creative=3200">亚马逊海外购</a>
+                      </span>
+                    </p>
                     
-                  </p>
-                  <p style="text-align: center;margin-top: 5px;">
-                    <a href="https://zh.airbnb.com/c/mings62" class="weui-form-preview__btn weui-form-preview__btn_primary tippy" data-tippy-placement="top-start" data-tippy title="使用小明的邀请注册Airbnb" target="_blank">注册 Airbnb 得￥175旅行基金</a>
-                  </p>
-                  <h3 style="text-align: center;color: #666;margin-top: 125px;">关注京价保</h3>
+                     
+                    <p style="text-align: center;margin-top: 5px;">
+                      <a class="openMobliePage" data-url="http://t.cn/RkVbeY0">新用户领100元曹操专车大礼包，专车品质快车价</a>
+                    </p>
+
+                    <p style="text-align: center;margin-top: 5px;">
+                      <a href="#" id="openRecommendCard">中信白金卡，刷卡免年费，网络交易双倍积分</a>
+                    </p>
+                     
+                    <p style="text-align: center;margin-top: 5px;">
+                      <a href="https://zh.airbnb.com/c/mings62" class="weui-form-preview__btn weui-form-preview__btn_primary" target="_blank">注册 Airbnb 得￥186旅行基金</a>
+                    </p>
+                  </div>
+                   
+                  <h3 style="text-align: center;color: #666;">关注京价保</h3>
                   <p style="text-align: center;margin-top: -10px;">
                     <a href="https://t.me/jingjiabao" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy title="通过电报群接收京价保的最新消息" target="_blank">京价保@Telegram</a>
                     <a href="#" id="openWechatCard" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy title="关注京价保的公众号">京价保公众号</a>
@@ -350,12 +374,31 @@
             </form>
           </div>
         </div>
-        <div class="tips page__hd">
-          <p class="page__desc">
-            <span id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</span>
-            <a href="#" class="weui-btn weui-btn_mini weui-btn_primary switch-paymethod" data-to="weixin" data-target="ming">打赏</a>
-          </p>
+        <div class="bottom-box">
+          <div class="avatar">
+            <a id="loginState" class="tippy login-state" data-tippy-placement="top-start" data-tippy title="未能获取登录状态"></a>
+          </div>
+          <div class="links">
+            <span class="el-tag el-tag--success">
+              <a href="https://union-click.jd.com/jdc?d=259YU4" target="_blank">首页</a>
+            </span>
+            <span class="el-tag el-tag--danger">
+              <a data-tippy-placement="top-start" data-tippy class="tippy" title="京东会员根据等级不同，每个月都有礼包赠送，过期不领就会失效，反正每个月都看看吧" href="https://vip.jd.com/"
+                target="_blank">会员</a>
+            </span>
+            <span class="el-tag el-tag--warning">
+              <a href="#" id="openjEventCard" data-tippy-placement="top-start" data-tippy class="tippy" title="京东最近热门的促销活动">活动推荐</a>
+            </span>
+            <span class="el-tag">
+              <a href="https://order.jd.com/center/list.action" target="_blank">订单列表</a>
+            </span>
+            <span class="el-tag el-tag--warning">
+              <a data-tippy-placement="top-start" data-tippy class="tippy" title="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取" href="https://plus.jd.com/coupon/index"
+                target="_blank">PLUS券</a>
+            </span>
+          </div>
         </div>
+        
       </div>
 
       <div class="contents">
@@ -535,11 +578,12 @@
 
             <ul class="segmented-control">
               <li class="segmented-control__item checked">
-                <span class="segmented-control__label switch-cardbank" data-bank="spd">浦发</span>
-              </li>
-              <li class="segmented-control__item">
                 <span class="segmented-control__label switch-cardbank" data-bank="citic">中信</span>
               </li>
+              <li class="segmented-control__item">
+                <span class="segmented-control__label switch-cardbank" data-bank="spd">浦发</span>
+              </li>
+              
               <li class="segmented-control__item">
                 <span class="segmented-control__label switch-cardbank" data-bank="bankcomm">交行</span>
               </li>
@@ -557,7 +601,7 @@
                   </div>
                   <img src="static/image/spd.png" class="card">
                 </div>
-                <a class="weui-btn weui-btn_plain-primary" style=" width: 80%;" href="https://ecentre.spdbccc.com.cn/entry_cobber_union/pageController/myStickerLink.htm?cid=2353994" target="_blank">去申请</a>
+                <a class="weui-btn weui-btn_plain-primary openMobliePage" style=" width: 80%;" data-url="https://ecentre.spdbccc.com.cn/entry_cobber_union/pageController/myStickerLink.htm?cid=2353994">去申请</a>
               </div>
 
               <div class="card-box citic">
@@ -572,8 +616,7 @@
                   </div>
                   <img src="static/image/citic.png" class="card">
                 </div>
-                <a class="weui-btn weui-btn_plain-primary" style=" width: 80%;" href="https://creditcard.ecitic.com/m/tjbk/card_list.html?uid=TJ56429635&sid=SJDKTJBK"
-                target="_blank">去申请</a>
+                <a class="weui-btn weui-btn_plain-primary openMobliePage" style=" width: 80%;" data-url="https://creditcard.ecitic.com/m/tjbk/card_list.html?uid=TJ56429635&sid=SJDKTJBK">去申请</a>
               </div>
 
               <div class="card-box bankcomm">
@@ -666,18 +709,63 @@
         <div class="js_dialog" style="opacity: 1;">
           <div class="weui-mask"></div>
           <div class="weui-dialog">
-            <div class="weui-dialog__hd">
-              <strong class="weui-dialog__title">京价保因未能获取登录状态已停止工作</strong>
+            <div class="weui-dialog__hd title">
+              <span class="online-icon"></span>
+              <span class="offline-icon"></span>
+              <strong class="weui-dialog__title">
+                糟糕，京东账号不在登录状态
+              </strong>
             </div>
             <div class="weui-dialog__bd loginNotice">
-              <p>请您务必了解：<b>京价保需要您登录京东才能完成你指定的工作</b>。而京东的登录有效期很短，如果您使用扫码登录等方式登录京东，京价保只能在短时间内保持有效。</p>
-              <p>强烈建议您在登录时选择<b>“让京价保记住密码并自动登录”</b>，以便京价保自动完成工作。</p>
-              <p>京价保确保<b>绝不会将您的密码上传和分享给任何人</b>，您可以通过<a href="https://github.com/sunoj/jjb" target="_blank">审查代码</a>来确认这一点，同时建议您<b>为京东配置一个唯一的登录密码，开启所有的安全措施</b>。</p>
+              <div class="page__bd">
+              <div class="weui-cells__title">当前账号状态</div>
+                <div class="weui-cells">
+                  <a data-href="https://passport.jd.com/uc/login" data-tippy class="login-type_pc tippy" title="未知状态">
+                    <div class="weui-cell">
+                      <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+                        <img src="static/image/pc.svg" style="width: 30px;display: block">
+                      </div>
+                      <div class="weui-cell__bd">
+                        <p>PC 网页</p>
+                        <p style="font-size: 13px;color: #888888;">部分任务如金融会员签到、浏览店铺签到使用</p>
+                      </div>
+                      <div class="weui-cell__ft login-status" style="font-size: 0">
+                        <span style="vertical-align:middle; font-size: 17px;" class="status-text">未知</span>
+                        <span class="weui-badge weui-badge_dot status-icon" style="margin-left: 5px;margin-right: 5px;"></span>
+                      </div>
+                    </div>
+                  </a>
+                  <a data-url="https://plogin.m.jd.com/user/login.action" data-tippy class="tippy login-type_m" title="未知状态">
+                    <div class="weui-cell">
+                      <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
+                        <img src="static/image/m.png" style="width: 30px;display: block">
+                      </div>
+                      <div class="weui-cell__bd">
+                        <p>移动网页</p>
+                        <p style="font-size: 13px;color: #888888;">绝大部分任务如价格保护使用</p>
+                      </div>
+                      <div class="weui-cell__ft login-status" style="font-size: 0">
+                        <span style="vertical-align:middle; font-size: 17px;" class="status-text">未知</span>
+                        <span class="weui-badge weui-badge_dot status-icon" style="margin-left: 5px;margin-right: 5px;"></span>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              <p id="know_more">了解更多关于京价保如何使用账号</p>
+              <div class="detail">
+                <h3>京价保如何使用你的账号来完成任务</h3>
+                <p>如你所知，京价保是一个浏览器插件。在你的授权下，京价保代替你自动访问京东的网页来执行一系列操作。京价保的<b>所有功能均为京东官方网页所提供</b>的功能。它所做的一切就是免于你逐一打开页面点击按钮，只不过它不知疲倦，日复一日的执行这些行为。</p>
+                <p>很显然，<b>京价保需要您登录京东才能完成你指定的工作</b>。而京东的登录有效期很短，如果您使用扫码登录等方式登录京东，京价保只能在短时间内保持有效。</p>
+                <p>强烈建议您在登录时选择<b>“让京价保记住密码并自动登录”</b>，以便京价保自动完成工作。</p>
+                <p>京价保确保<b>绝不会将您的密码上传和分享给任何人</b>，您可以通过<a href="https://github.com/sunoj/jjb" target="_blank">审查代码</a>来确认这一点，同时建议您<b>为京东配置一个唯一的登录密码，开启所有的安全措施</b>。</p>
+                <p>当登录失效或者需要验证码时，京价保将会提醒你。除非你重新登录，否则京价保将无法继续完成任何工作。</p>
+              </div>
             </div>
             <div class="weui-dialog__ft">
               <a id="login" class="weui-dialog__btn weui-dialog__btn_primary">
-                <i class="weui-icon-success"></i> 登录京东</a>
-              <a class="weui-dialog__btn weui-dialog__btn_default" data-action="dismiss">先不管</a>
+                <i class="weui-icon-success"></i> 现在登录</a>
+              <a class="weui-dialog__btn weui-dialog__btn_default" data-action="dismiss">知道了</a>
             </div>
           </div>
         </div>

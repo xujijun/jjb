@@ -184,3 +184,14 @@ dialog .close {
     color: #555;
     font-weight: 500;
 }
+
+@media screen and (min-width: 600px) {
+    #username_login .code-box img{
+        width: 150px;
+        height: 60px;
+        margin-left: -70px;
+    }
+    #input-code .icon-clear {
+        right: 150px;
+    }
+}
