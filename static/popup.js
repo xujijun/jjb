@@ -312,13 +312,17 @@ function dealWithLoginState() {
   function dealWithLoginNotice(loginState, type) {
     let loginTypeNoticeDom = $('.login-type_' + type)
     let loginUrl = loginTypeNoticeDom.data("url")
+    let stateDescription = "当前登录状态未知，可点击登录"
+    if (loginState[type].state != "unknown") {
+      stateDescription = "当前登录状态" + getStateDescription(loginState, type)
+    }
     loginTypeNoticeDom.addClass(loginState[type].state)
-    loginTypeNoticeDom.attr("title", "当前登录状态" + getStateDescription(loginState, type))
+    loginTypeNoticeDom.attr("title", stateDescription)
     $('.login-type_' + type + ' .status-text').text(stateText[loginState[type].state])
-
-    if (loginState[type].state != "alive" ) {
+    if (!loginState[type] || loginState[type].state != "alive") {
       $('.frequency_settings .job-' + type + ' .reload').hide()
       $('.frequency_settings .job-' + type + ' .job-state').show()
+
       if (loginUrl) {
         loginTypeNoticeDom.attr("href", loginUrl)
         loginTypeNoticeDom.attr("target", "_blank")
@@ -573,7 +577,7 @@ $( document ).ready(function() {
     switchPayMethod(to, target)
   })
 
-  $("#showChangeLog").on("click", function () {
+  $(".showChangeLog").on("click", function () {
     localStorage.setItem('changelog_version', $("#changeLogs").data('version'))
     $("#changeLogs").show()
   })

@@ -170,7 +170,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       requestHeaders: details.requestHeaders
     };
   }, {
-    urls: ["*://*.jd.com/*"]
+    urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com"]
   }, ['blocking', 'requestHeaders']);
 
 

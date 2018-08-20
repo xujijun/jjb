@@ -756,6 +756,10 @@ button.Button.messages-tab.Button--plain:focus {
     display: none;
 }
 
+.showChangeLog{
+    cursor: pointer;
+}
+
 .recommendation{
     height: 240px;
 }
@@ -824,6 +828,10 @@ button.Button.messages-tab.Button--plain:focus {
 
 .loginNotice .detail h3 {
     text-align: center;
+}
+
+.unknown .status-icon {
+    background-color: #ccc;
 }
 
 .alive .status-icon {

@@ -369,7 +369,7 @@
                     <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy title="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
-                <p class="text-tips version"> 当前版本：{{version}} </p>
+                <p class="text-tips version showChangeLog"> 当前版本：{{version}} </p>
               </div>
             </form>
           </div>
@@ -434,7 +434,7 @@
               <img src="static/image/money.png" alt="" class="weui-tabbar__icon">
               <p class="weui-tabbar__label">价保页面</p>
             </a>
-            <a id="showChangeLog" href="javascript:;" class="weui-tabbar__item tippy" data-tippy-placement="top-start" data-tippy title="查看京价保最近更新记录">
+            <a href="javascript:;" class="showChangeLog weui-tabbar__item tippy" data-tippy-placement="top-start" data-tippy title="查看京价保最近更新记录">
               <img src="static/image/update.png" alt="" class="weui-tabbar__icon">
               <p class="weui-tabbar__label">最近更新</p>
             </a>
@@ -721,7 +721,7 @@
               <div class="page__bd">
               <div class="weui-cells__title">当前账号状态</div>
                 <div class="weui-cells">
-                  <a data-href="https://passport.jd.com/uc/login" data-tippy class="login-type_pc tippy" title="未知状态">
+                  <a data-url="https://passport.jd.com/uc/login" data-tippy class="login-type_pc tippy" title="未知状态">
                     <div class="weui-cell">
                       <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
                         <img src="static/image/pc.svg" style="width: 30px;display: block">
