@@ -334,7 +334,7 @@ function dealWithLoginState() {
     dealWithLoginNotice(loginState, 'm')
     $("#loginState").attr("title", "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))
     $("#loginState").addClass(loginState.class)
-    $("#loginNotice").addClass(loginState.class)
+    $("#loginNotice").addClass('state-' + loginState.class)
     // 登录提醒
     switch (loginState.class) {
       case "alive":

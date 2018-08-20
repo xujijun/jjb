@@ -25,9 +25,10 @@ select {
     padding: 5px 10px;
 }
 .settings{
-    width: 46%;
+    width: 45.5%;
     float: left;
     background: #fbfbfb;
+    border-right: 1px solid #eee;
 }
 
 .settings .weui-navbar__item.weui-bar__item_on {
@@ -361,7 +362,7 @@ img.weui-tabbar__icon {
     padding-top: 0.8em;
 }
 
-#loginNotice.alive .title {
+#loginNotice.state-alive .title {
     background: #b9e684ad;
     color: #2b902f;
     padding-top: 0.8em;

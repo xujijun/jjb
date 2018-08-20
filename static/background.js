@@ -429,7 +429,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
             })
           } else {
             chrome.tabs.create({
-              url: "https://plogin.m.jd.com/user/login.action"
+              url: "https://plogin.m.jd.com/user/login.action?appid=100"
             })
           }
           break;
@@ -467,7 +467,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
       case 'm':
         if (buttonIndex == 0) {
           chrome.tabs.create({
-            url: "https://plogin.m.jd.com/user/login.action"
+            url: "https://plogin.m.jd.com/user/login.action?appid=100"
           })
         }
         break;
@@ -591,7 +591,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       loginState = getLoginState()
       if (loginState.class == 'failed') {
         chrome.tabs.create({
-          url: "https://plogin.m.jd.com/user/login.action"
+          url: "https://plogin.m.jd.com/user/login.action?appid=100"
         })
       } else {
         chrome.tabs.create({

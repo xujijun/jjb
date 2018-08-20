@@ -366,7 +366,7 @@ function dealLoginFailed(type, errormsg) {
     content: errormsg
   }
   // 如果是单纯的登录页面，则不发送浏览器提醒
-  if (window.location.href == "https://plogin.m.jd.com/user/login.action" || window.location.href == "https://passport.jd.com/uc/login") {
+  if (window.location.href == "https://plogin.m.jd.com/user/login.action?appid=100" || window.location.href == "https://passport.jd.com/uc/login") {
     loginFailedDetail.notice = false
     console.log("主动登录页面不发送浏览器消息提醒")
   }
@@ -670,8 +670,16 @@ function CheckDom() {
   };
 
   // M 是否登录
-  if ($(".us-line .us-name") && $(".us-line .us-name").length > 0) {
-
+  if ($("#mCommonMy") && $("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") {
+    console.log('M 已经登录')
+    chrome.runtime.sendMessage({
+      text: "loginState",
+      state: "alive",
+      message: "移动网页检测到登录",
+      type: "m"
+    }, function(response) {
+      console.log("Response: ", response);
+    });
   };
 
   // 是否是PLUS会员

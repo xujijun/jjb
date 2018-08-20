@@ -27,6 +27,7 @@
                     <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="价格保护默认只申请15天内下单的商品">价格保护</span>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job1_frequency">
@@ -156,6 +157,7 @@
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="京东每日福利签到领京豆">京东每日福利</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job13_frequency">
@@ -455,6 +457,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>1.18.2 修复了京东商品页被跳转到手机版的问题；修复移动网页首次登录显示服务出错的问题；改善登录提醒的样式；</p>
               <p>1.18.0 <b>增加登录状态显示</b>；改善手动运行任务；<b>增加一种钢镚签到</b>；修复白条券；<b>增加有价保机会时只提醒的设置</b>；</p>
               <p>1.17.3 修复 Firefox 62 打开“总是使用 HTTPS 访问京东”后，非 HTTPS 的京东网页循环跳转的问题；优化需要登录验证时的自动登录处理；</p>
               <p>1.17.2 优化浏览店铺签到领京豆逻辑，在正常访问店铺时不自动签到；</p>
@@ -736,7 +739,7 @@
                       </div>
                     </div>
                   </a>
-                  <a data-url="https://plogin.m.jd.com/user/login.action" data-tippy class="tippy login-type_m" title="未知状态">
+                  <a data-url="https://plogin.m.jd.com/user/login.action?appid=100" data-tippy class="tippy login-type_m" title="未知状态">
                     <div class="weui-cell">
                       <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
                         <img src="static/image/m.png" style="width: 30px;display: block">
