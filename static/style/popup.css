@@ -90,7 +90,7 @@ select {
     padding: 5px;
 }
 
-.tips .switch-paymethod {
+.tips .weui-btn_mini {
     padding: 0.1em .5em;
     line-height: 1.4;
     margin-bottom: -7px;
@@ -791,11 +791,17 @@ button.Button.messages-tab.Button--plain:focus {
     display: none;
 }
 
-.alive .online-icon {
+.request-permissions-icon.weui-icon-warn {
+    color: #FFC107;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.state-alive .online-icon {
     display: inline-block;
 }
 
-.alive .offline-icon {
+.state-alive .offline-icon {
     display: none;
 }
 

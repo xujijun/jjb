@@ -217,6 +217,7 @@ function changeTips() {
   }
   if (tip.type == "link") {
     if (tip.button) {
+      $(".tips .weui-btn").removeClass("switch-paymethod")
       $(".tips .weui-btn").css("display", "inline-block")
       $(".tips .weui-btn").text(tip.button)
       $(".tips .weui-btn").attr("href", tip.url)
@@ -226,6 +227,17 @@ function changeTips() {
     }
     $("#notice").attr("href", tip.url)
     $("#notice").attr("target", "_blank")
+  }
+  if (tip.type == "link" && tip.mode == "mobliepage") {
+    if (tip.button) {
+      $(".tips .weui-btn").addClass("openMobliePage")
+      $(".tips .weui-btn").attr("data-url", tip.url)
+      $(".tips .weui-btn").removeAttr("href")
+      $(".tips .weui-btn").removeAttr("target")
+    }
+    $("#notice").removeAttr("href")
+    $("#notice").attr("data-url", tip.url)
+    $("#notice").addClass("openMobliePage")
   }
 }
 
@@ -298,6 +310,30 @@ function markJobStatus() {
     }
   });
 }
+
+
+// 处理需要授权的任务
+function dealRequestPermissionsJob() {
+  $(".request-permissions").each((index, element) => {
+    let job = $(element)
+    let permissions = job.data('permissions')
+    chrome.runtime.sendMessage({
+      text: "checkPermissions",
+      permissions: permissions
+    },
+    function (result) {
+      if (result.granted) {
+        job.find('.request-permissions-icon').hide()
+      } else {
+        job.find('.request-permissions-icon').show()
+        job.find('select').val("never");
+        localStorage.setItem(job.find('select').attr("name"), JSON.stringify("never"))
+        job.find('select').prop("disabled", true)
+      }
+    });
+  });
+}
+
 
 // 处理登录状态
 function dealWithLoginState() {
@@ -375,6 +411,9 @@ $( document ).ready(function() {
   
   // 处理登录状态
   dealWithLoginState()
+
+  // 处理需要授权的任务
+  dealRequestPermissionsJob()
 
   // 标记任务状态
   setTimeout(() => {
@@ -474,7 +513,21 @@ $( document ).ready(function() {
     $('.settings_box.' + type).show()
   });
 
-
+  // 授权
+  $('.settings .request-permissions-icon').on('click', function () {
+    let permissions = $(this).data('permissions')
+    chrome.runtime.sendMessage({
+      text: "requestPermissions",
+      permissions: permissions
+    }, function (response) {
+      if (response.granted) {
+        weui.toast('授权成功', 3000);
+      } else {
+        weui.alert('授权失败');
+      }
+    });
+  });
+  
   $('.contents .weui-navbar__item').on('click', function () {
     $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
     var type = $(this).data('type')
@@ -594,7 +647,7 @@ $( document ).ready(function() {
     showJEvent()
   })
 
-  $(".openMobliePage").on("click", function () {
+  $(document).on("click", ".openMobliePage", function () {
     chrome.runtime.sendMessage({
       text: "openUrlAsMoblie",
       url: $(this).data('url')
@@ -673,12 +726,15 @@ $( document ).ready(function() {
 
   $(".reload").on("click", function () {
     var job_elem = $(this).parent().parent()
-
     if (job_elem) {
       chrome.runtime.sendMessage({
         text: "runJob",
         content: job_elem.attr('id')
       }, function(response) {
+        weui.toast('正在运行成功', 3000);
+        setTimeout(() => {
+          location.reload()
+        }, 6000);
         console.log("Response: ", response);
       });
     }

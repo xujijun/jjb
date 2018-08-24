@@ -40,5 +40,17 @@
   "web_accessible_resources": [
     "static/dialog-polyfill.js"
   ],
-  "permissions": ["*://*.jd.com/*", "*://*.jd.hk/*", "*://*.jdpay.com/*", "webRequest", "webRequestBlocking", "alarms", "tabs", "notifications"]
+  "permissions": [
+    "*://*.jd.com/*",
+    "*://*.jd.hk/*",
+    "webRequest", 
+    "webRequestBlocking", 
+    "alarms", 
+    "tabs",
+    "notifications"
+  ],
+  "optional_permissions": [
+    "*://*.jdpay.com/*",
+    "bookmarks"
+  ]
 }

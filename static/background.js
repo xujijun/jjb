@@ -137,7 +137,7 @@ chrome.webRequest.onHeadersReceived.addListener(
     return {responseHeaders: headers};
   },
   {
-      urls: ['*://*.jd.com/*', '*://*.jd.hk/*', "*://*.jdpay.com/*"], //
+      urls: ['*://*.jd.com/*', '*://*.jd.hk/*'], //
       types: ['sub_frame']
   },
   ['blocking', 'responseHeaders']
@@ -170,7 +170,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       requestHeaders: details.requestHeaders
     };
   }, {
-    urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com"]
+    urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com/*", "*://coin.jd.com/*"]
   }, ['blocking', 'requestHeaders']);
 
 
@@ -247,7 +247,7 @@ function findJobs() {
   let loginState = getLoginState()
   jobList.forEach(function(job) {
     if (loginState[job.type].state != 'alive') {
-      console.log(job.title, '由于账号未登录已暂停运行')
+      return console.log(job.title, '由于账号未登录已暂停运行')
     }
     switch(job.frequency){
       case '2h':
@@ -285,7 +285,7 @@ function run(jobId, force) {
       var jobId = jobStack.shift();
       saveJobStack(jobStack)
     } else {
-      console.log('好像没有什么事需要我做...')
+      return console.log('好像没有什么事需要我做...')
     }
   }
   var jobList = getJobs()
@@ -305,6 +305,9 @@ function run(jobId, force) {
         active: false,
         pinned: true
       }, function (tab) {
+        if (job.touch) {
+          attachDebugger(tab)
+        }
         chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
       })
     }
@@ -360,6 +363,85 @@ $( document ).ready(function() {
   }
 })
 
+
+
+// 调试模式
+var phonesArray = [
+  {
+    title: "Apple iPhone",
+    width: 320,
+    height: 568,
+    deviceScaleFactor: 2,
+    userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0",
+    touch: true,
+    mobile: true
+  },
+  {
+    title: "Android Tablet",
+    width: 472,
+    height: 732,
+    deviceScaleFactor: 1.5,
+    userAgent: "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 5X Build/OPR4.170623.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Mobile Safari/537.36 JDAPP/7.0",
+    touch: true,
+    mobile: true
+  }
+];
+
+var phones = {};
+phonesArray.forEach(function (phone) {
+  phones[phone.title.replace(/\s+/gi, '')] = phone;
+});
+
+
+// the good stuff.
+function turnItOn(tab) {
+  chrome.debugger.sendCommand({
+    tabId: tab.id
+  }, "Page.setTouchEmulationEnabled", {
+    enabled: true,
+  }, function () {
+    chrome.debugger.sendCommand({
+      tabId: tab.id
+    }, "Network.setUserAgentOverride", {
+      userAgent: phones.AndroidTablet.userAgent
+    }, function () {
+      // set up device metrics
+      chrome.debugger.sendCommand({
+        tabId: tab.id
+      }, "Page.setDeviceMetricsOverride", {
+        width: phones.AndroidTablet.width,
+        height: phones.AndroidTablet.height,
+        deviceScaleFactor: phones.AndroidTablet.deviceScaleFactor,
+        mobile: phones.AndroidTablet.mobile
+      }, function () {
+        // reload page
+        chrome.debugger.sendCommand({
+          tabId: tab.id
+        }, "Page.reload", {
+          ignoreCache: false
+        }, function () {
+          setTimeout(() => {
+            chrome.debugger.detach({
+              tabId: tab.id
+            });
+          }, 10*1000);
+        });
+      });
+    });
+  });
+}
+
+// this sets up the debugger. attached to all the things.
+function attachDebugger(tab) {
+  var protocolVersion = '1.2';
+  chrome.debugger.attach({
+    tabId: tab.id
+  }, protocolVersion, function () {
+    turnItOn(tab);
+  });
+}
+
+
 function openWebPageAsMoblie(url) {
   chrome.windows.create({
     width: 420,
@@ -368,7 +450,6 @@ function openWebPageAsMoblie(url) {
     type: "popup"
   });
 }
-
 
 // force ssl
 function forceHttps(tab) {
@@ -535,6 +616,24 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'isPlus':
       localStorage.setItem('jjb_plus', 'Y');
       break;
+    case 'checkPermissions':
+      chrome.permissions.contains({
+        permissions: [msg.permissions],
+      }, function (result) {
+        return sendResponse({
+          granted: result
+        });
+      });
+      break;
+    case 'requestPermissions':
+      chrome.permissions.request({
+        permissions: [msg.permissions],
+      },  function (granted) {
+        return sendResponse({
+          granted: granted
+        })
+      });
+      break;
     case 'getPriceProtectionSetting':
       let isPlus = getSetting('jjb_plus');
       let min = getSetting('price_pro_min');
@@ -650,8 +749,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       chrome.notifications.create( new Date().getTime().toString(), {
         type: "basic",
         title: "正在重新运行" + job.title,
-        message: "如果有情况我再叫你",
+        message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
         iconUrl: 'static/image/128.png'
+      })
+      sendResponse({
+        result: true
       })
       break;
     case 'notice':
@@ -851,6 +953,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       localStorage.setItem('jjb_messages', JSON.stringify(messages));
       break;
   }
-
-  sendResponse(msg, "Gotcha!");
+  // 如果消息 300ms 未被回复
+  return true
 });

@@ -217,6 +217,10 @@ aws4@^1.2.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.6.0.tgz#83ef5ca860b2b32e4a0deedee8c771b9db57471e"
 
+balajs@^0.1.9:
+  version "0.1.9"
+  resolved "https://registry.yarnpkg.com/balajs/-/balajs-0.1.9.tgz#e03d1e6fb88d53cc1a2591a7bfec70d1e52d8f00"
+
 balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
@@ -845,6 +849,10 @@ ecc-jsbn@~0.1.1:
   resolved "https://registry.yarnpkg.com/ecc-jsbn/-/ecc-jsbn-0.1.1.tgz#0fc73a9ed5f0d53c38193398523ef7e543777505"
   dependencies:
     jsbn "~0.1.0"
+
+element-closest@^2.0.1:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/element-closest/-/element-closest-2.0.2.tgz#72a740a107453382e28df9ce5dbb5a8df0f966ec"
 
 elliptic@^6.0.0:
   version "6.4.0"
@@ -4070,6 +4078,14 @@ webpack@^3.10.0:
     watchpack "^1.4.0"
     webpack-sources "^1.0.1"
     yargs "^8.0.2"
+
+weui.js@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/weui.js/-/weui.js-1.1.4.tgz#56f8a7ae66d20fb7b5a514e87a9e5aae30134af3"
+  dependencies:
+    balajs "^0.1.9"
+    element-closest "^2.0.1"
+    object-assign "^4.1.0"
 
 which-module@^1.0.0:
   version "1.0.0"
