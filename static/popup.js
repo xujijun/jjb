@@ -731,7 +731,7 @@ $( document ).ready(function() {
         text: "runJob",
         content: job_elem.attr('id')
       }, function(response) {
-        weui.toast('正在运行成功', 3000);
+        weui.toast('手动运行成功', 3000);
         setTimeout(() => {
           location.reload()
         }, 6000);

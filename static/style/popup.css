@@ -90,6 +90,15 @@ select {
     padding: 5px;
 }
 
+.other_actions h3{
+    font-size: 16px;
+}
+
+.recommendation{
+    height: 230px;
+    font-size: 12px;
+}
+
 .tips .weui-btn_mini {
     padding: 0.1em .5em;
     line-height: 1.4;
@@ -759,10 +768,6 @@ button.Button.messages-tab.Button--plain:focus {
 
 .showChangeLog{
     cursor: pointer;
-}
-
-.recommendation{
-    height: 240px;
 }
 
 .offline-icon{
