@@ -11,7 +11,8 @@ select {
 
 .weui-cell_select{
     height: 35px;
-    font-size: 14px;
+    font-size: 15px;
+    padding: 1px 15px;
 }
 
 .page__hd {

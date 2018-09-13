@@ -959,15 +959,17 @@ function CheckDom() {
 
 
   // 会员页签到 (5:京东会员签到)
-  if ( $(".sign-pop").length) {
+  if ($(".sign-pop").length || $(".signin .signin-days").length) {
     console.log('签到领京豆（vip）')
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "5"
     })
-    if (!$(".sign-pop").hasClass('signed')) {
-      $(".sign-pop").trigger( "tap" )
-      $(".sign-pop").trigger( "click" )
+    if ($(".sign-pop").hasClass('signed') || $(".signin-desc").text() == '今日已签到 请明日再来') {
+      markCheckinStatus('vip')
+    } else {
+      $(".sign-pop").trigger("tap")
+      $(".sign-pop").trigger("click")
       setTimeout(function () {
         if ($(".sign-pop").hasClass('signed')) {
           let value = $(".modal-sign-in .jdnum span").text()
@@ -979,14 +981,12 @@ function CheckDom() {
               unit: 'bean',
               title: "京价保自动为您签到领京豆",
               content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function(response) {
+            }, function (response) {
               console.log("Response: ", response);
             })
           })
         }
       }, 2000)
-    } else {
-      markCheckinStatus('vip')
     }
   };
 

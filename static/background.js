@@ -95,16 +95,6 @@ let jobs = [
     frequency: 'daily'
   },
   {
-    id: '13',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fs.m.jd.com%2factivemcenter%2factivemsite%2fm_welfare%3fsceneval%3d2%26logintag%3d%23%2fmain',
-    title: '京东用户每日福利',
-    checkin: true,
-    key: "m_welfare",
-    mode: 'iframe',
-    type: 'm',
-    frequency: 'daily'
-  },
-  {
     id: '14',
     src: 'https://coin.jd.com/m/gb/index.html',
     title: '钢镚签到',
@@ -118,7 +108,7 @@ let jobs = [
     id: '15',
     src: 'https://jjb.zaoshu.so/event/jdc?e=0&p=AyIHVCtaJQMiQwpDBUoyS0IQWhkeHAxXSkAOClBMW0srARZ%2BRkEteFxwYQhgKkEDdmkVdAVLKxkOfARUG1IJAxobVRtKFQEZA10QXxcyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1ccXBACGg9XHlgdMhIHUysZUV1MXGUrayUyIgZlG2tKRk9a&t=W1dCFFlQCxxCGA5OREdcThk%3D',
     title: '全品类券',
-    schedule: [10,11,12,13],
+    schedule: [10,11,12,13,14,15,16,17],
     mode: 'tab',
     type: 'pc',
     frequency: '2h'
@@ -242,9 +232,13 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       $('body').html(iframe);
       break;
     case alarm.name.startsWith('closeTab'):
-      var tabId = alarm.name.split('_')[1]
+      var tabId = alarm.name.split('_')[1] ? parseInt(alarm.name.split('_')[1]) : null
       try {
-        chrome.tabs.remove(parseInt(tabId))
+        chrome.tabs.get(tabId, (tab) => {
+          if (tab) {
+            chrome.tabs.remove(tab.id)
+          }
+        })
       } catch (e) {}
       break;
     case alarm.name == 'reload':
@@ -313,11 +307,12 @@ function findJobs() {
   saveJobStack(jobStack)
 }
 
-
-
 // 执行组织交给我的任务
-function runJob(jobId, force) {
-  backgroundLog.info("run job" + jobId)
+function runJob(jobId, force = false) {
+  backgroundLog.info("run job", {
+    jobId: jobId,
+    force: force
+  })
   // 如果没有指定任务ID 就从任务栈里面找一个
   if (!jobId) {
     var jobStack = localStorage.getItem('jobStack') ? JSON.parse(localStorage.getItem('jobStack')) : []
@@ -350,6 +345,10 @@ function runJob(jobId, force) {
           })
         }
       }
+      // 如果当前已经过了最晚的运行时段，则放弃运行
+      return backgroundLog.info("pass schedule job", {
+        job: job
+      })
     }
     backgroundLog.info("run", job)
     if (job.mode == 'iframe') {
