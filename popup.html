@@ -38,6 +38,21 @@
                       </select>
                     </div>
                   </div>
+                  <div id="job15" class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd job-pc">
+                      <span data-tippy-placement="top-start" data-tippy class="tippy" title="只领取全平台的券">全品类券</span>
+                      <i class="reload-icon reload tippy" data-tippy-placement="top-start" data-tippy data-theme="light"></i>
+                      <i class="job-state tippy weui-icon-waiting-circle reload" title="因账号未登录任务已暂停运行"></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" name="job15_frequency">
+                        <option value="2h">每2小时</option>
+                        <option value="5h">每5小时</option>
+                        <option value="daily">每天</option>
+                        <option value="never">从不</option>
+                      </select>
+                    </div>
+                  </div>
                   <div id="job3" class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" data-tippy class="tippy" title="当然啦，你得先是PLUS会员才能领到">PLUS券</span>
@@ -367,8 +382,6 @@
                   </p>
                  
                   <p style="text-align: center;">
-                    <a href="#" id="clearPinnedTabs" class="weui-btn weui-btn_mini weui-btn_plain-primary tippy" data-tippy-placement="top-start" data-tippy title="强制清理由京价保创建的业务标签页">清理标签页</a>
-                    <em></em>
                     <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy title="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
@@ -383,21 +396,18 @@
           </div>
           <div class="links">
             <span class="el-tag el-tag--success">
-              <a href="https://union-click.jd.com/jdc?d=259YU4" target="_blank">首页</a>
+              <a href="#" class="switch-paymethod tippy" data-tippy-placement="top-start" data-tippy title="打赏开发者"  data-to="
+              wechat" data-target="ming">打赏开发者</a>
             </span>
             <span class="el-tag el-tag--danger">
-              <a data-tippy-placement="top-start" data-tippy class="tippy" title="京东会员根据等级不同，每个月都有礼包赠送，过期不领就会失效，反正每个月都看看吧" href="https://vip.jd.com/"
-                target="_blank">会员</a>
+              <a href="#" class="switch-paymethod tippy" data-tippy-placement="top-start" data-tippy title="天天领支付宝红包""  data-to="alipay" data-target="redpack">支付宝红包</a>
             </span>
             <span class="el-tag el-tag--warning">
               <a href="#" id="openjEventCard" data-tippy-placement="top-start" data-tippy class="tippy" title="京东最近热门的促销活动">活动推荐</a>
             </span>
             <span class="el-tag">
-              <a href="https://order.jd.com/center/list.action" target="_blank">订单列表</a>
-            </span>
-            <span class="el-tag el-tag--warning">
               <a data-tippy-placement="top-start" data-tippy class="tippy" title="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取" href="https://plus.jd.com/coupon/index"
-                target="_blank">PLUS券</a>
+                target="_blank">领PLUS券</a>
             </span>
           </div>
         </div>
@@ -622,7 +632,7 @@
                   </div>
                   <img src="static/image/citic.png" class="card">
                 </div>
-                <a class="weui-btn weui-btn_plain-primary openMobliePage" style=" width: 80%;" data-url="https://creditcard.ecitic.com/m/tjbk/card_list.html?uid=TJ56429635&sid=SJDKTJBK">去申请</a>
+                <a class="weui-btn weui-btn_plain-primary openMobliePage" style=" width: 80%;" data-url="https://creditcard.ecitic.com/m/tjbk/card_list.html?uid=TJ56429635&sid=SJTJBK">去申请</a>
               </div>
 
               <div class="card-box bankcomm">
@@ -678,15 +688,23 @@
                 </div>
               </div>
               <div class="weui-dialog__bd alipay_pay">
-                <div class="alipay">
+                <div class="alipay switch-paymethod" data-to="alipay" data-target="redpack" >
                   <div class="switch-paymethod" data-to="alipay" data-target="redpack">
                     <img src="static/image/alipay_pay.png" height="200px">
                   </div>
+                  <p class="alipay_action">
+                    <svg t="1514045821272" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6338"
+                      xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20">
+                      <path d="M60.220235 215.311059V90.413176A90.473412 90.473412 0 0 1 150.573176 0h722.82353a90.352941 90.352941 0 0 1 90.352941 90.413176v120.470589c-2.800941-0.301176-5.662118 0.903529-8.432941 3.915294-59.632941 66.710588-281.298824 159.864471-292.261647 165.827765-10.962824 5.963294 168.387765 24.003765 292.291765-54.814118a57.524706 57.524706 0 0 0 8.402823-6.475294v614.249412A90.473412 90.473412 0 0 1 873.396706 1024H150.573176a90.352941 90.352941 0 0 1-90.352941-90.413176v-607.472942c123.873882 78.456471 302.802824 60.476235 291.84 54.512942-10.932706-5.963294-231.574588-98.665412-291.84-165.345883zM511.984941 662.588235a150.588235 150.588235 0 1 0 0-301.17647 150.588235 150.588235 0 0 0 0 301.17647z"
+                        fill="#F54E4E" p-id="6339"></path>
+                    </svg>
+                    我先领个红包
+                  </p>
                 </div>
                 <div class="redpack">
                   <div class="pay_reward switch-paymethod" data-to="alipay" data-target="alipay">
-                    <img src="static/image/alipay_redpack.png" height="330px">
-                    <p>
+                    <img src="static/image/alipay_redpack.jpg" height="330px">
+                    <p class="alipay_action">
                       <svg t="1514096092051" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3558"
                       xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24">
                       <path d="M248.384 527.36h-34.56c-29.696 0-53.824 18.176-53.824 40.512v223.36c0 22.336 24.128 40.512 53.888 40.512h34.56c29.76 0 53.888-18.112 53.888-40.512v-223.36c-0.064-22.336-24.192-40.512-53.952-40.512z m491.776-85.888c-46.528-2.752-139.52 2.752-149.12-2.752-9.6-5.44-2.752-46.528 38.272-128.64 31.168-72.256-24.576-142.4-56.064-141.056-31.488 1.408-32.832 4.096-32.832 4.096s-65.28 219.072-135.424 308.032c-26.048 71.232-82.112 56.192-82.112 56.192v277.952s179.2 39.68 273.6 39.68c94.4 0 157.312-20.544 166.912-60.224 9.6-39.68-5.504-41.088 9.6-54.784s31.488-20.544 28.736-43.84c-2.752-23.296-23.232-43.84-6.848-60.224 16.384-16.448 21.888-49.28 5.44-65.728-16.384-16.448 12.288-34.24 17.792-56.128 5.504-21.888-31.424-69.824-77.952-72.576z"

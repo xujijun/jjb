@@ -82,7 +82,7 @@ let notices = [
     target: 'ming'
   },
   {
-    text: '如果每个京价保的用户都能每个月赞赏5元，开发者就能投入更多时间维护京价保，增加更多实用功能。',
+    text: '如果你的京东账号修改了密码，请在高级设置中选择清除密码重新登录来继续使用京价保',
     button: rewards[5],
     type: 'reward',
     target: 'ming'
@@ -185,7 +185,7 @@ function switchPayMethod(payMethod, target) {
     $('.segmented-control .alipay').addClass('checked')
     $('.weixin_pay').hide()
     $('.alipay_pay').show()
-    switchAlipay('alipay')
+    switchAlipay(target)
   }
 }
 
@@ -741,12 +741,19 @@ $( document ).ready(function() {
   })
 
   $("#clearAccount").on("click", function () {
-    localStorage.removeItem('jjb_account')
-    localStorage.removeItem('jjb_orders')
-    localStorage.removeItem('jjb_messages')
-    chrome.tabs.create({
-      url: "https://passport.jd.com/uc/login"
-    })
+    weui.confirm('清除密码将移除本地存储的账号密码、订单记录、消息记录；清除后若需继续使用请重新登录并选择让京价保记住密码', function () {
+      localStorage.removeItem('jjb_account')
+      localStorage.removeItem('jjb_orders')
+      localStorage.removeItem('jjb_messages')
+      chrome.tabs.create({
+        url: "https://passport.jd.com/uc/login"
+      })
+    }, function () {
+      console.log('取消清除')
+    }, {
+      title: '清除密码确认'
+    });
+    
   })
 
 

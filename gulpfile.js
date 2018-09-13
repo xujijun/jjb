@@ -60,6 +60,7 @@ gulp.task('move-js', [], function () {
       'node_modules/jquery/dist/jquery.min.js',
       'node_modules/zepto/dist/zepto.min.js',
       'node_modules/lodash/lodash.min.js',
+      'node_modules/logline/dist/logline.min.js',
       'node_modules/dialog-polyfill/dialog-polyfill.js',
       'node_modules/moment/min/moment-with-locales.min.js',
     ])

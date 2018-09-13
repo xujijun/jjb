@@ -1,3 +1,9 @@
+Logline.using(Logline.PROTOCOL.INDEXEDDB);
+var jobLog = new Logline('job');
+var optionLog = new Logline('option');
+var messageLog = new Logline('message');
+var backgroundLog = new Logline('background');
+
 let jobs = [
   {
     id: '1',
@@ -28,15 +34,19 @@ let jobs = [
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fvip.m.jd.com%2Fpage%2Fsignin',
     title: '京东会员签到',
     mode: 'iframe',
+    key: "vip",
     type: 'm',
+    checkin: true,
     frequency: 'daily'
   },
   {
     id: '6',
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fm.jr.jd.com%2fspe%2fqyy%2fmain%2findex.html%3fuserType%3d41',
     title: '金融惠赚钱签到',
+    key: "jr-qyy",
     mode: 'iframe',
     type: 'm',
+    checkin: true,
     frequency: 'daily'
   },
   {
@@ -51,6 +61,8 @@ let jobs = [
     id: '9',
     src: 'https://vip.jr.jd.com',
     title: '京东金融会员签到',
+    key: "jr-index",
+    checkin: true,
     mode: 'tab',
     type: 'pc',
     frequency: 'daily'
@@ -67,6 +79,8 @@ let jobs = [
     id: '11',
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fbean.m.jd.com%2f',
     title: '移动端京豆签到',
+    key: "bean",
+    checkin: true,
     mode: 'iframe',
     type: 'm',
     frequency: 'daily'
@@ -75,6 +89,7 @@ let jobs = [
     id: '12',
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fljd.m.jd.com%2fcountersign%2findex.action',
     title: '双签礼包',
+    key: "double_check",
     mode: 'iframe',
     type: 'm',
     frequency: 'daily'
@@ -83,6 +98,8 @@ let jobs = [
     id: '13',
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fs.m.jd.com%2factivemcenter%2factivemsite%2fm_welfare%3fsceneval%3d2%26logintag%3d%23%2fmain',
     title: '京东用户每日福利',
+    checkin: true,
+    key: "m_welfare",
     mode: 'iframe',
     type: 'm',
     frequency: 'daily'
@@ -91,9 +108,20 @@ let jobs = [
     id: '14',
     src: 'https://coin.jd.com/m/gb/index.html',
     title: '钢镚签到',
+    key: "coin",
+    checkin: true,
     mode: 'iframe',
     type: 'm',
     frequency: 'daily'
+  },
+  {
+    id: '15',
+    src: 'https://jjb.zaoshu.so/event/jdc?e=0&p=AyIHVCtaJQMiQwpDBUoyS0IQWhkeHAxXSkAOClBMW0srARZ%2BRkEteFxwYQhgKkEDdmkVdAVLKxkOfARUG1IJAxobVRtKFQEZA10QXxcyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1ccXBACGg9XHlgdMhIHUysZUV1MXGUrayUyIgZlG2tKRk9a&t=W1dCFFlQCxxCGA5OREdcThk%3D',
+    title: '全品类券',
+    schedule: [10,11,12,13],
+    mode: 'tab',
+    type: 'pc',
+    frequency: '2h'
   },
 ]
 
@@ -194,18 +222,20 @@ chrome.webRequest.onBeforeRequest.addListener(
   }, ["blocking"]);
 
 chrome.alarms.onAlarm.addListener(function( alarm ) {
+  backgroundLog.info("onAlarm", alarm)
   switch(true){
-    // 定时检查任务
-    case alarm.name.startsWith('delayIn'):
-      clearPinnedTabs()
-      findJobs()
-      run()
-      break;
+    // 定时任务
     case alarm.name.startsWith('runJob'):
       var jobId = alarm.name.split('_')[1]
-      run(jobId)
+      runJob(jobId, true)
       break;
-    case alarm.name  == 'clearIframe':
+    // 周期运行（10分钟）
+    case alarm.name == 'cycleTask':
+      clearPinnedTabs()
+      findJobs()
+      runJob()
+      break;
+    case alarm.name == 'clearIframe':
       // 销毁掉 
       $("#iframe").remove();
       let iframe = '<iframe id="iframe" width="1000 px" height="600 px" src=""></iframe>';
@@ -219,6 +249,9 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       break;
     case alarm.name == 'reload':
       chrome.runtime.reload()
+      chrome.alarms.clearAll()
+      // 保留3天内的log
+      Logline.keep(3);
       break;
   }
 })
@@ -229,16 +262,21 @@ function saveJobStack(jobStack) {
   localStorage.setItem('jobStack', JSON.stringify(jobStack));
 }
 
-
 function getJobs() {
   return _.map(jobs, (job) => {
     var job_run_last_time = localStorage.getItem('job' + job.id + '_lasttime')
     job.last_run_at = job_run_last_time ? parseInt(job_run_last_time) : null
     job.frequency = getSetting('job' + job.id + '_frequency') || job.frequency
+    // 如果是签到任务，则读取签到状态
+    if (job.checkin) {
+      let checkinRecord = localStorage.getItem('jjb_checkin_' + job.key) ? JSON.parse(localStorage.getItem('jjb_checkin_' + job.key)) : null
+      if (checkinRecord && checkinRecord.date == moment().format("DDD")) {
+        job.checkinState = true
+      }
+    }
     return job
   })
 }
-
 
 // 寻找乔布斯
 function findJobs() {
@@ -263,8 +301,8 @@ function findJobs() {
         }
         break;
       case 'daily':
-        // 如果从没运行过，或者上次运行不在今天
-        if ( !job.last_run_at || !moment().isSame(moment(job.last_run_at), 'day') ) {
+        // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
+        if (!job.last_run_at || !moment().isSame(moment(job.last_run_at), 'day') || (job.checkin && !job.checkinState)) {
           jobStack.push(job.id)
         }
         break;
@@ -275,9 +313,11 @@ function findJobs() {
   saveJobStack(jobStack)
 }
 
+
+
 // 执行组织交给我的任务
-function run(jobId, force) {
-  console.log("run", jobId, new Date())
+function runJob(jobId, force) {
+  backgroundLog.info("run job" + jobId)
   // 如果没有指定任务ID 就从任务栈里面找一个
   if (!jobId) {
     var jobStack = localStorage.getItem('jobStack') ? JSON.parse(localStorage.getItem('jobStack')) : []
@@ -291,7 +331,27 @@ function run(jobId, force) {
   var jobList = getJobs()
   var job = _.find(jobList, {id: jobId})
   if (job && (job.frequency != 'never' || force)) {
-    console.log("运行", job.title)
+    // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段
+    if (!force && job.schedule) {
+      for (var i = 0, len = job.schedule.length; i < len; i++) {
+        let hour = moment().hour();
+        let time = job.schedule[i]
+        if (time > hour) {
+          chrome.alarms.clear('runJob_' + job.id, (wasCleared) => {
+            backgroundLog.info("schedule job cleared", wasCleared)
+            chrome.alarms.create('runJob_' + job.id, {
+              when: moment().set('hour', time).set('minute', 0).set('second', 5).get('millisecond')
+            })
+          })
+          return backgroundLog.info("schedule job", {
+            job: job,
+            time: time,
+            when: moment().set('hour', time).set('minute', 0).set('second', 5)
+          })
+        }
+      }
+    }
+    backgroundLog.info("run", job)
     if (job.mode == 'iframe') {
       $("#iframe").attr('src', job.src)
       // 10 分钟后清理 iframe
@@ -337,8 +397,11 @@ function updateUnreadCount(change = 0) {
 
 
 $( document ).ready(function() {
+  backgroundLog.info("document ready")
   // 每10分钟运行一次定时任务
-  chrome.alarms.create('delayInMinutes', {periodInMinutes: 10})
+  chrome.alarms.create('cycleTask', {
+    periodInMinutes: 10
+  })
 
   // 每600分钟完全重载
   chrome.alarms.create('reload', {periodInMinutes: 600})
@@ -745,7 +808,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       var job = _.find(jobList, {id: jobId})
       // set 临时运行
       localStorage.setItem('temporary_job' + jobId + '_frequency', 'onetime');
-      run(jobId, true)
+      runJob(jobId, true)
       chrome.notifications.create( new Date().getTime().toString(), {
         type: "basic",
         title: "正在重新运行" + job.title,
@@ -841,8 +904,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         state: "alive",
         type: job.type
       })
-      // 安排下一次运行
-      if (mapFrequency[job.frequency] < 1000) {
+      // 如果任务周期小于10小时，且不是计划任务，则安排下一次运行
+      if (mapFrequency[job.frequency] < 600 && !job.schedule) {
         chrome.alarms.create('runJob_' + job.id, {
           delayInMinutes: mapFrequency[job.frequency]
         })
@@ -953,6 +1016,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       localStorage.setItem('jjb_messages', JSON.stringify(messages));
       break;
   }
+
+  messageLog.info(msg.text, msg);
   // 如果消息 300ms 未被回复
   return true
 });

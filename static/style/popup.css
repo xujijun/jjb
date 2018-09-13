@@ -10,8 +10,8 @@ select {
 }
 
 .weui-cell_select{
-    height: 38px;
-    font-size: 15px;
+    height: 35px;
+    font-size: 14px;
 }
 
 .page__hd {
@@ -116,10 +116,32 @@ select {
 
 .frequency_settings .weui-cell__bd i.today{
     display: none;
+    font-size: 20px;
+    height: 17px;
+    margin-top: -3px;
+}
+
+.frequency_settings .weui-cell__bd{
+    line-height: 35px;
 }
 
 .frequency_settings .weui-cell__bd i.job-state {
     display: none;
+}
+
+.switch-paymethod{
+    cursor: pointer;
+}
+
+.alipay_action{
+    line-height: 26px;
+    height: 24px;
+    width: 120px;
+    margin: 0 auto;
+}
+
+.alipay_action svg{
+    float: left;
 }
 
 .messages-top{
@@ -760,6 +782,10 @@ button.Button.messages-tab.Button--plain:focus {
 .links .text-tips{
     color: #bbb;
     padding-bottom: 5px;
+}
+
+.links .el-tag{
+    padding: 0 8px;
 }
 
 .tips .weui-btn{

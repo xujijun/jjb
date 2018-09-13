@@ -511,6 +511,41 @@ function getPlusCoupon(setting) {
   }
 }
 
+// 15：领取全品类券
+function getCommonUseCoupon(setting) {
+  if (setting != 'never') {
+    var time = 0;
+    console.log('开始领取全品类券')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "15"
+    })
+    $("#quanlist .quan-item").each(function () {
+      var that = $(this)
+      if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类通用券") > -1) {
+        var coupon_name = that.find('.q-range').text()
+        var coupon_price = that.find('.q-price strong').text() + '元 (' + that.find('.q-limit').text() + ')'
+        setTimeout(function () {
+          $(that).find('.btn-def').trigger("click")
+          chrome.runtime.sendMessage({
+            text: "coupon",
+            title: "京价保自动领到一张全品类优惠券",
+            content: JSON.stringify({
+              id: '',
+              batch: '',
+              price: coupon_price,
+              name: coupon_name
+            })
+          }, function (response) {
+            console.log("Response: ", response);
+          });
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
 // 自动浏览店铺（7：店铺签到）
 function autoVisitShop(setting) {
   if (setting != 'never') {
@@ -1053,7 +1088,7 @@ function CheckDom() {
 
 
     $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
-      if (targetEle.text() == '已连续签到') {
+      if ($(this).text() == '已连续签到') {
         markCheckinStatus('bean')
       }
     })
@@ -1091,13 +1126,13 @@ function CheckDom() {
           let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
           let rawValue = $(".am-modal-body .title").text()
           let value = re.exec(rawValue)
-          markCheckinStatus('jr-qyy', value[1] + '个钢镚', () => {
+          markCheckinStatus('jr-qyy', (value ? value[1] : '一两') + '个钢镚', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               title: "京价保自动为您签到抢钢镚",
-              value: value[1],
+              value: value ? value[1] : 1,
               unit: 'coin',
-              content: "恭喜您领到了" + value[1] + "个钢镚"
+              content: "恭喜您领到了" + (value ? value[1] : '一两') + "个钢镚"
             }, function(response) {
               console.log("Response: ", response);
             })
@@ -1209,6 +1244,10 @@ function CheckDom() {
     getSetting('job4_frequency', CheckBaitiaoCouponDom)
   };
 
+  // 全品类券
+  if ($("#quanlist").length > 0 && window.location.host == 'a.jd.com') {
+    getSetting('job15_frequency', getCommonUseCoupon)
+  };
 
   // 自动访问店铺领京豆
   if ( $(".bean-shop-list").length > 0 ) {
