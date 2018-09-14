@@ -332,16 +332,13 @@ function runJob(jobId, force = false) {
         let hour = moment().hour();
         let time = job.schedule[i]
         if (time > hour) {
-          chrome.alarms.clear('runJob_' + job.id, (wasCleared) => {
-            backgroundLog.info("schedule job cleared", wasCleared)
-            chrome.alarms.create('runJob_' + job.id, {
-              when: moment().set('hour', time).set('minute', 0).set('second', 5).get('millisecond')
-            })
+          chrome.alarms.create('runJob_' + job.id, {
+            when: moment().set('hour', time).set('minute', 0).set('second', 5).valueOf()
           })
-          return backgroundLog.info("schedule job", {
+          return backgroundLog.info("schedule job created", {
             job: job,
             time: time,
-            when: moment().set('hour', time).set('minute', 0).set('second', 5)
+            when: moment().set('hour', time).set('minute', 0).set('second', 5).valueOf()
           })
         }
       }
