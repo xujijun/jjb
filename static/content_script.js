@@ -37,6 +37,12 @@ function injectScriptCode(code, node) {
   th.appendChild(script);
 }
 
+injectScriptCode(`
+  if (typeof hrl != 'undefined' && typeof host != 'undefined') {
+    document.write('<a style="display:none" href="' + hrl + '" id="exe"></a>');
+    document.getElementById('exe').click()
+  }
+`, 'body')
 
 function escapeSpecialChars(jsonString) {
   return jsonString.replace(/\\n/g, "\\n").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\\&/g, "\\&").replace(/\\r/g, "\\r").replace(/\\t/g, "\\t").replace(/\\b/g, "\\b").replace(/\\f/g, "\\f");
@@ -408,12 +414,15 @@ function autoLogin(account, type) {
     $("#loginname").val(account.username)
     $("#nloginpwd").val(account.password)
     // 监控验证结果
-    observeDOM(document.getElementById("s-authcode"), function () {
-      let resultText = $("#s-authcode .authcode-btn").text()
-      if (resultText && resultText == "验证成功") {
-        mockClick($(".login-btn a")[0])
-      }
-    });
+    let authcodeDom = document.getElementById("s-authcode")
+    if (authcodeDom) {
+      observeDOM(authcodeDom, function () {
+        let resultText = $("#s-authcode .authcode-btn").text()
+        if (resultText && resultText == "验证成功") {
+          mockClick($(".login-btn a")[0])
+        }
+      });
+    }
     // 如果此前已经登录失败
     if (account.loginState && account.loginState.state == 'failed') {
       $(".tips-inner .cont-wrapper p").text('由于在' + account.loginState.displayTime + '自动登录失败（原因：' + account.loginState.message + '），京价保暂停自动登录').css('color', '#f73535').css('font-size', '14px')
@@ -522,23 +531,27 @@ function getCommonUseCoupon(setting) {
     })
     $("#quanlist .quan-item").each(function () {
       var that = $(this)
-      if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类通用券") > -1) {
+      if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类通用") > -1) {
         var coupon_name = that.find('.q-range').text()
         var coupon_price = that.find('.q-price strong').text() + '元 (' + that.find('.q-limit').text() + ')'
         setTimeout(function () {
           $(that).find('.btn-def').trigger("click")
-          chrome.runtime.sendMessage({
-            text: "coupon",
-            title: "京价保自动领到一张全品类优惠券",
-            content: JSON.stringify({
-              id: '',
-              batch: '',
-              price: coupon_price,
-              name: coupon_name
-            })
-          }, function (response) {
-            console.log("Response: ", response);
-          });
+          setTimeout(function () {
+            if ($(that).find('.q-ops-jump .geted-site').css('display') !== 'none') {
+              chrome.runtime.sendMessage({
+                text: "coupon",
+                title: "京价保自动领到一张全品类优惠券",
+                content: JSON.stringify({
+                  id: '',
+                  batch: '',
+                  price: coupon_price,
+                  name: coupon_name
+                })
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          }, 1500)
         }, time)
         time += 5000;
       }
@@ -1326,7 +1339,6 @@ function CheckDom() {
     });  
   }
 }
-
 
 $( document ).ready(function() {
   console.log('京价保注入页面成功');

@@ -106,12 +106,12 @@ let jobs = [
   },
   {
     id: '15',
-    src: 'https://jjb.zaoshu.so/event/jdc?e=0&p=AyIHVCtaJQMiQwpDBUoyS0IQWhkeHAxXSkAOClBMW0srARZ%2BRkEteFxwYQhgKkEDdmkVdAVLKxkOfARUG1IJAxobVRtKFQEZA10QXxcyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1ccXBACGg9XHlgdMhIHUysZUV1MXGUrayUyIgZlG2tKRk9a&t=W1dCFFlQCxxCGA5OREdcThk%3D',
+    src: 'https://jjb.zaoshu.so/event/coupon',
     title: '全品类券',
-    schedule: [10,11,12,13,14,15,16,17],
-    mode: 'tab',
+    schedule: [10,11,12,13,14,15,16,17,18,19,20,21],
+    mode: 'iframe',
     type: 'pc',
-    frequency: '2h'
+    frequency: '5h'
   },
 ]
 
@@ -227,9 +227,7 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       break;
     case alarm.name == 'clearIframe':
       // 销毁掉 
-      $("#iframe").remove();
-      let iframe = '<iframe id="iframe" width="1000 px" height="600 px" src=""></iframe>';
-      $('body').html(iframe);
+      clearIframe()
       break;
     case alarm.name.startsWith('closeTab'):
       var tabId = alarm.name.split('_')[1] ? parseInt(alarm.name.split('_')[1]) : null
@@ -307,6 +305,16 @@ function findJobs() {
   saveJobStack(jobStack)
 }
 
+function rand(n){
+  return (Math.floor(Math.random() * n + 1));
+}
+
+function clearIframe() {
+  $("#iframe").remove();
+  let iframe = '<iframe id="iframe" width="1000 px" height="600 px" src=""></iframe>';
+  $('body').html(iframe);
+}
+
 // 执行组织交给我的任务
 function runJob(jobId, force = false) {
   backgroundLog.info("run job", {
@@ -320,7 +328,7 @@ function runJob(jobId, force = false) {
       var jobId = jobStack.shift();
       saveJobStack(jobStack)
     } else {
-      return console.log('好像没有什么事需要我做...')
+      return jobLog.info('好像没有什么事需要我做...')
     }
   }
   var jobList = getJobs()
@@ -333,12 +341,12 @@ function runJob(jobId, force = false) {
         let time = job.schedule[i]
         if (time > hour) {
           chrome.alarms.create('runJob_' + job.id, {
-            when: moment().set('hour', time).set('minute', 0).set('second', 5).valueOf()
+            when: moment().set('hour', time).set('minute', rand(5)).set('second', rand(55)).valueOf()
           })
           return backgroundLog.info("schedule job created", {
             job: job,
             time: time,
-            when: moment().set('hour', time).set('minute', 0).set('second', 5).valueOf()
+            when: moment().set('hour', time).set('minute', rand(5)).set('second', rand(55)).valueOf()
           })
         }
       }
@@ -349,6 +357,9 @@ function runJob(jobId, force = false) {
     }
     backgroundLog.info("run", job)
     if (job.mode == 'iframe') {
+      // 先移除现有的 iframe
+      clearIframe()
+      // 加载新的任务
       $("#iframe").attr('src', job.src)
       // 10 分钟后清理 iframe
       chrome.alarms.create('clearIframe', {
@@ -580,7 +591,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
             })
           } else {
             chrome.tabs.create({
-              url: "https://union-click.jd.com/jdc?d=259YU4"
+              url: "https://zaoshu.so/coupon"
             })
           }
       }
@@ -613,7 +624,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
         break;
       default:
         chrome.tabs.create({
-          url: "https://union-click.jd.com/jdc?d=259YU4"
+          url: "https://zaoshu.so/coupon"
         })
     }
   }
