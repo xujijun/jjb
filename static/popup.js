@@ -119,7 +119,20 @@ $('#settings').garlic({
 // 接收消息
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (message.action == 'orders_updated') {
-    renderOrders(JSON.parse(message.data))
+    let disabled_link = getSetting('disabled_link');
+    htmlRender({
+      name: 'orders',
+      orders: JSON.parse(message.data),
+      disabled_link: disabled_link == 'checked' ? true : false
+    })
+  }
+  if (message.action == 'new_message') {
+    let lastUnreadCount = $("#unreadCount").text()
+    $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
+    htmlRender({
+      name: 'messages',
+      messages: makeupMessages(JSON.parse(message.data))
+    })
   }
 });
 
@@ -157,17 +170,12 @@ function showReward() {
   }
 }
 
-function renderOrders(orders) {
-  let disabled_link = getSetting('disabled_link');
+function htmlRender(data) {
   let renderFrame = document.getElementById('renderFrame');
   setTimeout(() => {
     renderFrame.contentWindow.postMessage({
       command: 'render',
-      context: {
-        name: 'orders',
-        orders: orders,
-        disabled_link: disabled_link == 'checked' ? true : false
-      }
+      context: data
     }, '*');
   }, 500);
 }
@@ -396,6 +404,20 @@ function dealWithLoginState() {
   });
 }
 
+function makeupMessages(messages) {
+  if (messages) {
+    return messages.reverse().map(function (message) {
+      if (message.type == 'coupon') {
+        message.coupon = JSON.parse(message.content)
+      }
+      message.time = moment(message.time).locale('zh-cn').calendar()
+      return message
+    })
+  } else {
+    return []
+  }
+}
+
 $( document ).ready(function() {
   var orders = JSON.parse(localStorage.getItem('jjb_orders'))
   var messages = JSON.parse(localStorage.getItem('jjb_messages'))
@@ -543,18 +565,7 @@ $( document ).ready(function() {
     $('.contents-box.' + type).show()
   });
 
-  if (messages) {
-    messages = messages.reverse().map(function (message) {
-      if (message.type == 'coupon') {
-        message.coupon = JSON.parse(message.content)
-      }
-      message.time = moment(message.time).locale('zh-cn').calendar()
-      return message
-    })
-  } else {
-    messages = []
-  }
-
+  messages = makeupMessages(messages)
 
   if (orders) {
     orders = orders.map(function (order) {
@@ -566,19 +577,20 @@ $( document ).ready(function() {
   }
  
   if (orders && orders.length > 0) {
-    renderOrders(orders)
+    let disabled_link = getSetting('disabled_link'); 
+    htmlRender({
+      name: 'orders',
+      orders: orders,
+      disabled_link: disabled_link == 'checked' ? true : false
+    })
   }
 
   if (messages && messages.length > 0) {
     setTimeout(() => {
-      let renderFrame = document.getElementById('renderFrame');
-      renderFrame.contentWindow.postMessage({
-        command: 'render',
-        context: {
-          name: 'messages',
-          messages: messages
-        }
-      }, '*');
+      htmlRender({
+        name: 'messages',
+        messages: messages
+      });
     }, 1200);
   }
 
@@ -732,9 +744,6 @@ $( document ).ready(function() {
         content: job_elem.attr('id')
       }, function(response) {
         weui.toast('手动运行成功', 3000);
-        setTimeout(() => {
-          location.reload()
-        }, 6000);
         console.log("Response: ", response);
       });
     }

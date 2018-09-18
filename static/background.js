@@ -108,7 +108,7 @@ let jobs = [
     id: '15',
     src: 'https://jjb.zaoshu.so/event/coupon',
     title: '全品类券',
-    schedule: [10,11,12,13,14,15,16,17,18,19,20,21],
+    schedule: [10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
     mode: 'iframe',
     type: 'pc',
     frequency: '5h'
@@ -372,6 +372,12 @@ function runJob(jobId, force = false) {
         active: false,
         pinned: true
       }, function (tab) {
+        // 将标签页静音
+        chrome.tabs.update(tab.id, {
+          muted: true
+        }, function (result) {
+          backgroundLog.info("muted tab", result)
+        })
         if (job.touch) {
           attachDebugger(tab)
         }
@@ -926,6 +932,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         active: content.active == 'true',
         pinned: content.pinned == 'true'
       }, function (tab) {
+        chrome.tabs.update(tab.id, {
+          muted: true
+        }, function (result) {
+          backgroundLog.info("muted tab", result)
+        })
         chrome.alarms.create('closeTab_' + tab.id, { delayInMinutes: 1 })
       })
       break;
@@ -1020,11 +1031,17 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       if (messages.length > 100) {
         messages.shift()
       }
+      chrome.runtime.sendMessage({
+        action: "new_message",
+        data: JSON.stringify(messages)
+      });
       localStorage.setItem('jjb_messages', JSON.stringify(messages));
       break;
   }
 
-  messageLog.info(msg.text, msg);
+  if (msg.text != 'saveAccount') {
+    messageLog.info(msg.text, msg);
+  }
   // 如果消息 300ms 未被回复
   return true
 });
