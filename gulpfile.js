@@ -36,6 +36,18 @@ gulp.task('pack-js', function () {
     
 });
 
+gulp.task('pack-priceChart', function () {
+  gulp.src([
+      'node_modules/@antv/g2/dist/g2.min.js',
+      'static/priceChart.js'
+    ])
+    .pipe(concat('priceChart.js'))
+    .pipe(replace('{{version}}', argv.version))
+    .pipe(gulp.dest('build/static'));
+  console.log("pack-priceChart task done @", new Date())
+
+});
+
 gulp.task('pack-css', function () {
   return gulp.src(['static/style/weui.min.css', 'static/style/popup.css'])
     .pipe(concat('popupstyle.css'))
@@ -80,6 +92,6 @@ gulp.task('move-file', [], function () {
     .pipe(gulp.dest('build'));
 });
 
-gulp.task('default', ['move-static', 'move-file', 'move-js', 'pack-js', 'pack-css']);
+gulp.task('default', ['move-static', 'move-file', 'move-js', 'pack-js', 'pack-priceChart', 'pack-css']);
 
 gulp.task('dev', ['default', 'watch']);

@@ -8,6 +8,7 @@
     "dev": "node_modules/.bin/gulp dev"
   },
   "dependencies": {
+    "@antv/g2": "^3.2.8",
     "art-template": "^4.12.2",
     "dialog-polyfill": "^0.4.10",
     "garlicjs": "^1.4.2",

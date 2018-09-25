@@ -38,7 +38,8 @@
     "128": "static/image/128.png" 
   },
   "web_accessible_resources": [
-    "static/dialog-polyfill.js"
+    "static/dialog-polyfill.js",
+    "static/priceChart.js"
   ],
   "permissions": [
     "*://*.jd.com/*",

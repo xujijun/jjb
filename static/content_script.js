@@ -24,6 +24,7 @@ function injectScript(file, node) {
   var th = document.getElementsByTagName(node)[0];
   var s = document.createElement('script');
   s.setAttribute('type', 'text/javascript');
+  s.setAttribute('charset', "UTF-8");
   s.setAttribute('src', file);
   th.appendChild(s);
 }
@@ -73,7 +74,7 @@ async function fetchProductPage(sku) {
 }
 
 // 获取价格
-async function getNowPrice(sku, isPlus) {
+async function getNowPrice(sku, setting) {
   var data = null
   try {
     data = await fetchProductPage(sku)
@@ -103,12 +104,18 @@ async function getNowPrice(sku, isPlus) {
 
     let price = normal_price || spec_price || plus_price
 
+    let pingou_price = ((skuInfo && skuInfo.pingouItem) ? skuInfo.pingouItem.m_bp : null) || ($(data).find('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") || null)
+    // 价格追踪
+    if (!setting.disable_pricechart) {
+      reportPrice(sku, price, plus_price, pingou_price)
+    }
+   
     if (!product_name) {
-      console.log(data, $(data))
+      console.error('no product_name')
     }
     console.log(product_name + '最新价格', Number(price), 'Plus 价格', Number(plus_price))
 
-    if (Number(plus_price) > 0 && isPlus) {
+    if (Number(plus_price) > 0 && setting.is_plus) {
       return Number(plus_price)
     }
 
@@ -140,7 +147,7 @@ async function dealProduct(product, order_info, setting) {
     success_logs.push(order_success_logs.trim())
   }
 
-  var new_price = await getNowPrice(order_sku[2], setting.is_plus)
+  var new_price = await getNowPrice(order_sku[2], setting)
   console.log(product_name + '进行价格对比:', new_price, ' Vs ', order_price)
   order_info.goods.push({
     sku: order_sku[2],
@@ -804,6 +811,44 @@ function autoGobuy(setting) {
   }  
 }
 
+// 报告价格
+function reportPrice(sku, price, plus_price, pingou_price) {
+  $.ajax({
+    method: "POST",
+    type: "POST",
+    url: "https://jjb.zaoshu.so/price",
+    data: {
+      sku: sku,
+      price: Number(price),
+      plus_price: plus_price ? Number(plus_price) : null,
+      pingou_price: pingou_price ? Number(pingou_price) : null,
+    },
+    timeout: 3000,
+    dataType: "json"
+  })
+}
+
+// 价格历史
+function showPriceChart(disable) {
+  if (disable == "checked") {
+    console.log('价格走势图已禁用')
+  } else {
+    injectScript(chrome.extension.getURL('/static/priceChart.js'), 'body');
+    setTimeout(() => {
+      let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
+      let sku = urlInfo[2]
+      let price = $('.p-price .price').text().replace(/[^0-9\.-]+/g, "")
+      let plus_price = $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "")
+      let pingou_price = null
+      if ($('#pingou-banner-new') && ($('#pingou-banner-new').css('display') !== 'none')) {
+        pingou_price = $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") || price
+        price = $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "")
+      }
+      reportPrice(sku, price, plus_price, pingou_price)
+    }, 1000);
+  }
+}
+
 // 剁手保护模式
 function handProtection(setting) {
   if (setting == "checked") {
@@ -970,6 +1015,10 @@ function CheckDom() {
     mockClick($("#pcprompt-viewpc")[0])
   }
 
+  // 商品页
+  if (window.location.host == 'item.jd.com') {
+    getSetting('disable_pricechart', showPriceChart);
+  }
 
   // 会员页签到 (5:京东会员签到)
   if ($(".sign-pop").length || $(".signin .signin-days").length) {

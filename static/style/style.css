@@ -195,3 +195,31 @@ dialog .close {
         right: 150px;
     }
 }
+
+.jjbPriceChart{
+    position: static;
+    float: left;
+    padding-top: 10px; 
+    width: 100%;
+    background-color: #f7f7f7;
+    border: 1px solid #eee;
+}
+
+.jjbPriceChart .title {
+    font-size: 14px;
+    padding: 10px;
+    padding-top: 0;
+    border-bottom: 1px solid #eee;
+}
+
+.jjbPriceChart .provider {
+    padding: 3px 10px;
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+}
+
+#jjbPriceChart{
+    width: 100%;
+    background: #fff;
+}

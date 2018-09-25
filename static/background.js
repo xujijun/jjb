@@ -68,14 +68,6 @@ let jobs = [
     frequency: 'daily'
   },
   {
-    id: '10',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fm.jr.jd.com%2fmjractivity%2frn%2fplatinum_members_center%2findex.html%3fpage%3dFXDetailPage',
-    title: '金融铂金会员支付返利',
-    mode: 'iframe',
-    type: 'm',
-    frequency: 'daily'
-  },
-  {
     id: '11',
     src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fbean.m.jd.com%2f',
     title: '移动端京豆签到',
@@ -679,6 +671,19 @@ function saveLoginState(state) {
   }));
 }
 
+// 浏览器通知（合并）
+// mute_night
+function sendChromeNotification(id, content) {
+  let hour = moment().hour();
+  let muteNight = getSetting('mute_night');
+  if (muteNight && hour < 6) {
+    backgroundLog.info('mute_night', content);
+  } else {
+    chrome.notifications.create(id, content)
+    messageLog.info(id, content);
+  }
+}
+
 // 消息
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   switch(msg.text){
@@ -714,13 +719,15 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       let isPlus = getSetting('jjb_plus');
       let min = getSetting('price_pro_min');
       let days = getSetting('price_pro_days')
+      let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
       let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
       let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
       return sendResponse({
         pro_days: days || 15,
-        is_plus: is_plus,
-        prompt_only: prompt_only,
-        pro_min: min | 0.1
+        pro_min: min | 0.1,
+        prompt_only,
+        is_plus,
+        disable_pricechart
       })
       break;
     case 'saveAccount':
@@ -755,7 +762,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'paid':
       localStorage.setItem('jjb_paid', 'Y');
-      chrome.notifications.create( new Date().getTime().toString(), {
+      sendChromeNotification(new Date().getTime().toString(), {
         type: "basic",
         title: "谢谢老板",
         message: "我会努力签到、领券、申请价格保护来回报你的",
@@ -798,7 +805,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         state: "failed"
       }));
       if (msg.notice) {
-        chrome.notifications.create(new Date().getTime().toString() + "_login-failed_" + msg.type, {
+        sendChromeNotification(new Date().getTime().toString() + "_login-failed_" + msg.type, {
           type: "basic",
           title: loginErrMsg,
           message: "请点击本通知手动完成登录",
@@ -822,7 +829,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       // set 临时运行
       localStorage.setItem('temporary_job' + jobId + '_frequency', 'onetime');
       runJob(jobId, true)
-      chrome.notifications.create( new Date().getTime().toString(), {
+      sendChromeNotification(new Date().getTime().toString(), {
         type: "basic",
         title: "正在重新运行" + job.title,
         message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
@@ -859,7 +866,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       if (msg.batch == 'jiabao') {
         icon = 'static/image/money.png'
       }
-      chrome.notifications.create( new Date().getTime().toString() + '_' + msg.batch, {
+      sendChromeNotification(new Date().getTime().toString() + '_' + msg.batch, {
         type: "basic",
         title: msg.title,
         message: msg.content,
@@ -884,7 +891,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         if (msg.batch == 'coin') {
           icon = 'static/image/coin.png'
         }
-        chrome.notifications.create( new Date().getTime().toString() + '_' + msg.batch, {
+        sendChromeNotification( new Date().getTime().toString() + '_' + msg.batch, {
           type: "basic",
           title: msg.title,
           message: msg.content,
@@ -955,7 +962,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     // 高亮Tab
     case 'highlightTab':
       var content = JSON.parse(msg.content)
-      chrome.notifications.create(new Date().getTime().toString(), {
+      sendChromeNotification(new Date().getTime().toString(), {
         type: "basic",
         title: "京价保未能自动完成任务",
         message: "需要人工辅助，已将窗口切换至需要操作的标签",
@@ -981,7 +988,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       if (mute_coupon && mute_coupon == 'checked') {
         console.log('coupon', msg)
       } else {
-        chrome.notifications.create( "coupon_" + coupon.batch, {
+        sendChromeNotification( new Date().getTime().toString() + "_coupon_" + coupon.batch, {
           type: "basic",
           title: msg.title,
           message: coupon.name + coupon.price,

@@ -10,9 +10,9 @@ select {
 }
 
 .weui-cell_select{
-    height: 35px;
-    font-size: 15px;
-    padding: 1px 15px;
+    height: 36px;
+    font-size: 16px;
+    padding: 2px 15px;
 }
 
 .page__hd {
@@ -35,6 +35,13 @@ select {
 .settings .weui-navbar__item.weui-bar__item_on {
     background-image: linear-gradient(180deg, #03A9F4, rgba(3, 169, 244, 0.52));
     color: #fff;
+}
+
+.settings .weui-cell_switch {
+    height: 32px;
+    font-size: 15px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .contents {
@@ -96,7 +103,7 @@ select {
 }
 
 .recommendation{
-    height: 230px;
+    height: 210px;
     font-size: 12px;
 }
 
