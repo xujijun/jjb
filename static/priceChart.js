@@ -5,7 +5,6 @@ $( document ).ready(function() {
     <div class="jjbPriceChart">
       <h4 class="title">
         价格走势
-        <span id="disablePriceChart">X</span>
       </h4>
       <div id="jjbPriceChart"></div>
       <span class="provider"><a href="https://blog.jjb.im/price-chart.html" target="_blank">由京价保提供</a></span>
