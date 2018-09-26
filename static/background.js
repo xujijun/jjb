@@ -703,6 +703,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'loginState':
       saveLoginState(msg)
       break;
+    case 'disablePriceChart':
+      localStorage.setItem('disable_pricechart', JSON.stringify("checked"));
+      return sendResponse("done")
+      break;
     case 'getLoginState': 
       loginState = getLoginState()
       return sendResponse(loginState)

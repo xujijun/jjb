@@ -827,11 +827,20 @@ function showPriceChart(disable) {
     console.log('价格走势图已禁用')
   } else {
     injectScript(chrome.extension.getURL('/static/priceChart.js'), 'body');
-    injectScriptCode(`
-      setTimeout(() => {
-        $("#disablePriceChart").attr("extensionId", "${chrome.runtime.id}")
-      }, 1500);
-    `, 'body')
+    window.addEventListener("message", function (event) {
+      if (event.source != window)
+        return;
+      if (event.data.type && (event.data.type == "FROM_PAGE")) {
+        chrome.runtime.sendMessage({
+          text: event.data.text,
+        },
+        function (response) {
+          weui.toast('停用成功', 1000);
+          $(".jjbPriceChart").hide()
+          console.log("disablePriceChart Response: ", response);
+        });
+      }
+    });
     setTimeout(() => {
       let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
       let sku = urlInfo[2]

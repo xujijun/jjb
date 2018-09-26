@@ -5,6 +5,7 @@ $( document ).ready(function() {
     <div class="jjbPriceChart">
       <h4 class="title">
         价格走势
+        <span id="disablePriceChart">X</span>
       </h4>
       <div id="jjbPriceChart"></div>
       <span class="provider"><a href="https://blog.jjb.im/price-chart.html" target="_blank">由京价保提供</a></span>
@@ -14,16 +15,12 @@ $( document ).ready(function() {
   
   setTimeout( function(){
     $('#disablePriceChart').bind('click', () => {
-      console.log('disablePriceChart', $("#disablePriceChart").attr("extensionId"))
       weui.confirm('停用此功能后京价保将不再在商品页展示价格走势图，同时也将停止上报获取到的商品价格', function () {
-        chrome.runtime.sendMessage($("#disablePriceChart").attr("extensionId"), {
-          text: "disablePriceChart",
-        },
-        function (response) {
-          weui.toast('停用成功', 1000);
-          $(".jjbPriceChart").hide()
-          console.log("disablePriceChart Response: ", response);
-        });
+        var data = {
+          type: "FROM_PAGE",
+          text: "disablePriceChart"
+        };
+        window.postMessage(data, "*");
       }, function () {
         console.log('no')
       }, {
