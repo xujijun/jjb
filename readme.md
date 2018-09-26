@@ -1,11 +1,6 @@
-> 如果你最近因为各种原因正在考虑换一个工作，甚至换一个城市，不妨考虑一下来苏州和我一起工作：
-> 
-> <a href="https://www.v2ex.com/t/482986" target="_blank">[前端/后端] 房租减半，周末双休，睡到自然醒，来加入这家很新很小的公司吧！</a>
+# 京价保 - 自动申请京东价格保护
 
-
-# 京价保
-
-京价保是一个帮助你自动申请京东价格保护，顺便帮你签到领京东、钢镚，自动领取返利的 Chrome 拓展。
+京价保是一个帮你监控商品价格变化自动申请京东价格保护，顺便帮你签到领京东、钢镚，自动领取返利的 Chrome 拓展。
 
 强烈推荐使用 Chrome 商店安装（这样才能获得自动更新）：
 
@@ -31,10 +26,17 @@
 * 自动领Plus券
 * 自动京东金融会员签到
 * 自动领取京东金融铂金会员支付返利
+* 商品价格走势图
 
 ## 界面截图
 
-![主界面](http://jjbcdn.zaoshu.so/screenshots/jjb.1.16.1.png)
+#### 主界面
+
+![主界面](http://jjbcdn.zaoshu.so/screenshots/jjb.2.0.0.png)
+
+#### 价格走势图
+
+![价格走势图](http://jjbcdn.zaoshu.so/screenshots/pricechart.png)
 
 
 ## 重要提示
@@ -53,7 +55,6 @@
 > yarn dev --version=1.16.3 --browser=chrome
 
 `主要作用就是合并压缩代码，质疑代码和市场版本不一致，请先自行打包一下再对比`
-
 
 ## 价格
 
@@ -95,9 +96,9 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 
 你可以 Telegram 上关注京价保 https://t.me/jingjiabao
 
-您还可以关注京价保的公众号，主要发布更新通知，偶尔会有优惠推荐（俗称广告）：
+您还可以关注京价保的公众号，主要发布更新通知：
 
-![](http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg)
+![京价保公众号](http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg)
 
 ## 协议和授权
 
