@@ -25,12 +25,15 @@
         "static/content_script.js"
       ],
       "css": [
-        "static/style/style.css"
+        "static/style/contentstyle.css"
       ],
       "run_at": "document_end",
       "all_frames": true
     }
   ],
+  "externally_connectable": {
+    "matches": ["*://*.jd.com/*", "*://*.jd.hk/*"]
+  },
   "content_security_policy": "script-src 'self' 'unsafe-eval' 'sha256-QMSw9XSc08mdsgM/uQhEe2bXMSqOw4JvoBdpHZG21ps='; object-src 'self';",
   "icons": {
     "16": "static/image/16.png",

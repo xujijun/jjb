@@ -104,7 +104,7 @@ async function getNowPrice(sku, setting) {
 
     let price = normal_price || spec_price || plus_price
 
-    let pingou_price = ((skuInfo && skuInfo.pingouItem) ? skuInfo.pingouItem.m_bp : null) || ($(data).find('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") || null)
+    let pingou_price = ((skuInfo && skuInfo.pingouItem) ? skuInfo.pingouItem.m_bp : null) || ($(data).find('#tuanDecoration .price_warp .price').text() ? $(data).find('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
     // 价格追踪
     if (!setting.disable_pricechart) {
       reportPrice(sku, price, plus_price, pingou_price)
@@ -762,14 +762,7 @@ function priceProtect(setting) {
     var objDiv = document.getElementById("mescroll0");
     objDiv.scrollTop = (objDiv.scrollHeight * 2);
 
-    $('body').append('<div id="autoCheckNotice" class="weui-mask weui-mask--visible"><h1>京价保已经开始自动为您监测价格变化</h1><span class="close">x</span></div>')
-    $('span.close').on('click', () => {
-      $('.weui-mask').remove()
-    })
-
-    setTimeout(() => {
-      $("#autoCheckNotice").hide()
-    }, 1500);
+    weui.toast('京价保运行中', 1000);
 
     if ($(".bd-product-list li").length > 0) {
       console.log('成功获取价格保护商品列表', new Date())
@@ -834,15 +827,20 @@ function showPriceChart(disable) {
     console.log('价格走势图已禁用')
   } else {
     injectScript(chrome.extension.getURL('/static/priceChart.js'), 'body');
+    injectScriptCode(`
+      setTimeout(() => {
+        $("#disablePriceChart").attr("extensionId", "${chrome.runtime.id}")
+      }, 1500);
+    `, 'body')
     setTimeout(() => {
       let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
       let sku = urlInfo[2]
       let price = $('.p-price .price').text().replace(/[^0-9\.-]+/g, "")
       let plus_price = $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "")
       let pingou_price = null
-      if ($('#pingou-banner-new') && ($('#pingou-banner-new').css('display') !== 'none')) {
-        pingou_price = $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") || price
-        price = $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "")
+      if ($('#pingou-banner-new') && $('#pingou-banner-new').length > 0 && ($('#pingou-banner-new').css('display') !== 'none')) {
+        pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || price
+        price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
       }
       reportPrice(sku, price, plus_price, pingou_price)
     }, 1000);

@@ -684,6 +684,19 @@ function sendChromeNotification(id, content) {
   }
 }
 
+// 外部消息
+chrome.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse) {
+  console.log('onMessageExternal', msg)
+  switch (msg.text) {
+    case 'disablePriceChart':
+      localStorage.setItem('disable_pricechart', JSON.stringify("checked"));
+      return sendResponse("done")
+      break;
+  }
+  // 如果消息 300ms 未被回复
+  return true
+});
+
 // 消息
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   switch(msg.text){
@@ -696,6 +709,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'isPlus':
       localStorage.setItem('jjb_plus', 'Y');
+      break;
+    case 'disablePriceChart':
+      localStorage.setItem('disable_pricechart', JSON.stringify("checked"));
+      return sendResponse("done")
       break;
     case 'checkPermissions':
       chrome.permissions.contains({
