@@ -842,17 +842,21 @@ function showPriceChart(disable) {
       }
     });
     setTimeout(() => {
-      let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
-      let sku = urlInfo[2]
-      let price = $('.p-price .price').text().replace(/[^0-9\.-]+/g, "")
-      let plus_price = $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "")
-      let pingou_price = null
-      if ($('#pingou-banner-new') && $('#pingou-banner-new').length > 0 && ($('#pingou-banner-new').css('display') !== 'none')) {
-        pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || price
-        price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
+      try {
+        let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
+        let sku = urlInfo[2]
+        let price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
+        let plus_price = $('.p-price-plus .price').text() ? $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "") : null
+        let pingou_price = null
+        if ($('#pingou-banner-new') && $('#pingou-banner-new').length > 0 && ($('#pingou-banner-new').css('display') !== 'none')) {
+          pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || price
+          price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
+        }
+        reportPrice(sku, price, plus_price, pingou_price)
+      } catch (error) {
+        console.log('reportPrice error', error)
       }
-      reportPrice(sku, price, plus_price, pingou_price)
-    }, 1000);
+    }, 1500);
   }
 }
 
@@ -1384,6 +1388,7 @@ function CheckDom() {
 
   // 手机验证码
   if ($('.tip-box').size() > 0 && $(".tip-box").text().indexOf("账户存在风险") > -1) {
+    dealLoginFailed("m", "需要手机验证码")
     chrome.runtime.sendMessage({
       text: "highlightTab",
       content: JSON.stringify({
@@ -1394,6 +1399,13 @@ function CheckDom() {
       console.log("Response: ", response);
     });  
   }
+
+  // 验证码
+  if ($('.page-notice .txt-end').size() > 0 && $('.page-notice .txt-end').text().indexOf("账户存在风险") > -1) {
+    dealLoginFailed("m", "需要手机验证码")
+  }
+
+
 }
 
 $( document ).ready(function() {

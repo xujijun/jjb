@@ -103,7 +103,7 @@ let jobs = [
     schedule: [10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
     mode: 'iframe',
     type: 'pc',
-    frequency: '5h'
+    frequency: '2h'
   },
 ]
 
@@ -206,10 +206,15 @@ chrome.webRequest.onBeforeRequest.addListener(
 chrome.alarms.onAlarm.addListener(function( alarm ) {
   backgroundLog.info("onAlarm", alarm)
   switch(true){
+    // 计划任务
+    case alarm.name.startsWith('runScheduleJob'):
+      var jobId = alarm.name.split('_')[1]
+      runJob(jobId, true)
+      break;
     // 定时任务
     case alarm.name.startsWith('runJob'):
       var jobId = alarm.name.split('_')[1]
-      runJob(jobId, true)
+      runJob(jobId)
       break;
     // 周期运行（10分钟）
     case alarm.name == 'cycleTask':
@@ -309,6 +314,10 @@ function clearIframe() {
 
 // 执行组织交给我的任务
 function runJob(jobId, force = false) {
+  // 不在凌晨阶段运行非强制任务
+  if (moment().hour() < 6 && !force) {
+    return console.log('Silent Night')
+  }
   backgroundLog.info("run job", {
     jobId: jobId,
     force: force
@@ -332,7 +341,7 @@ function runJob(jobId, force = false) {
         let hour = moment().hour();
         let time = job.schedule[i]
         if (time > hour) {
-          chrome.alarms.create('runJob_' + job.id, {
+          chrome.alarms.create('runScheduleJob_' + job.id, {
             when: moment().set('hour', time).set('minute', rand(5)).set('second', rand(55)).valueOf()
           })
           return backgroundLog.info("schedule job created", {
