@@ -30,13 +30,7 @@
 
 ## 界面截图
 
-#### 主界面
-
-![主界面](http://jjbcdn.zaoshu.so/screenshots/jjb.2.0.0.png)
-
-#### 价格走势图
-
-![价格走势图](http://jjbcdn.zaoshu.so/screenshots/pricechart.png)
+![主界面](https://jjbcdn.zaoshu.so/screenshots/jjb.2.0.0.png)
 
 
 ## 重要提示
@@ -74,6 +68,15 @@
 
 京价保目前有约两万人正在使用（包括 Chrome 和 Firefox 以及其他浏览器非市场版本），其中至少有数千名开发者，京价保的代码有近千人关注，若怀疑京价保代码有问题，不妨直接审查代码。
 
+## 历史价格走势图
+
+“[价格走势图](https://blog.jjb.im/price-chart.html)”是京价保 2.0 版本引入的新功能。
+
+这是一个计划已久的功能，京价保的核心价保功能原本已经在监控已购商品的价格变化，本功能通过将这些价格信息共享，实现了一个互助的价格历史数据库。
+
+![](https://i.v2ex.co/6G1a56k5.png)
+
+目前京价保的价格历史数据库只覆盖了不到 2% 的 SKU，如果在商品页面看不到走势图请不要意外。
 
 ## 关于黑号
 
@@ -98,7 +101,7 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 
 您还可以关注京价保的公众号，主要发布更新通知：
 
-![京价保公众号](http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg)
+![京价保公众号](https://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg)
 
 ## 协议和授权
 
