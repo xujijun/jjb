@@ -3,11 +3,13 @@ var jobLog = new Logline('job');
 var optionLog = new Logline('option');
 var messageLog = new Logline('message');
 var backgroundLog = new Logline('background');
+var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
+var priceProUrl = "https://sitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
 
 let jobs = [
   {
     id: '1',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fsitepp-fm.jd.com%2frest%2fpriceprophone%2fpriceProPhoneMenu',
+    src: priceProUrl,
     title: '价格保护',
     mode: 'iframe',
     type: 'm',
@@ -15,7 +17,7 @@ let jobs = [
   },
   {
     id: '3',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fplus.m.jd.com%2Findex',
+    src: 'https://plus.m.jd.com/index',
     title: 'PLUS券',
     mode: 'iframe',
     type: 'm',
@@ -23,7 +25,7 @@ let jobs = [
   },
   {
     id: '4',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fm.jr.jd.com%2fjdbt%2fnewcoupons%2fcoupon-list.html%3fcategory%3d0%26coupony%3d0',
+    src: 'https://m.jr.jd.com/mjractivity/rn/couponCenter/index.html?RN=couponCenter&tab=20',
     title: '领白条券',
     mode: 'iframe',
     type: 'm',
@@ -31,7 +33,7 @@ let jobs = [
   },
   {
     id: '5',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3A%2F%2Fvip.m.jd.com%2Fpage%2Fsignin',
+    src: 'https://vip.m.jd.com/page/signin',
     title: '京东会员签到',
     mode: 'iframe',
     key: "vip",
@@ -41,8 +43,8 @@ let jobs = [
   },
   {
     id: '6',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fm.jr.jd.com%2fspe%2fqyy%2fmain%2findex.html%3fuserType%3d41',
-    title: '金融惠赚钱签到',
+    src: 'https://m.jr.jd.com/spe/qyy/main/index.html?userType=41',
+    title: '金融钢镚签到',
     key: "jr-qyy",
     mode: 'iframe',
     type: 'm',
@@ -69,7 +71,7 @@ let jobs = [
   },
   {
     id: '11',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fbean.m.jd.com%2f',
+    src: 'https://bean.m.jd.com',
     title: '移动端京豆签到',
     key: "bean",
     checkin: true,
@@ -79,7 +81,7 @@ let jobs = [
   },
   {
     id: '12',
-    src: 'https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fljd.m.jd.com%2fcountersign%2findex.action',
+    src: 'https://ljd.m.jd.com/countersign/index.action',
     title: '双签礼包',
     key: "double_check",
     mode: 'iframe',
@@ -575,10 +577,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
           })
           break;
         case 'jiabao':
-          openWebPageAsMoblie("https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fsitepp-fm.jd.com%2frest%2fpriceprophone%2fpriceProPhoneMenu")
-          break;
-        case 'rebate':
-          openWebPageAsMoblie("https://plogin.m.jd.com/user/login.action?appid=100&returnurl=https%3a%2f%2fm.jr.jd.com%2fmjractivity%2frn%2fplatinum_members_center%2findex.html%3fpage%3dFXDetailPage")
+          openWebPageAsMoblie(priceProUrl)
           break;
         case 'login-failed':
           if (type == 'pc') {
@@ -587,7 +586,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
             })
           } else {
             chrome.tabs.create({
-              url: "https://plogin.m.jd.com/user/login.action?appid=100"
+              url: mLoginUrl
             })
           }
           break;
@@ -625,7 +624,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
       case 'm':
         if (buttonIndex == 0) {
           chrome.tabs.create({
-            url: "https://plogin.m.jd.com/user/login.action?appid=100"
+            url: mLoginUrl
           })
         }
         break;
@@ -803,7 +802,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       loginState = getLoginState()
       if (loginState.class == 'failed') {
         chrome.tabs.create({
-          url: "https://plogin.m.jd.com/user/login.action?appid=100"
+          url: mLoginUrl
         })
       } else {
         chrome.tabs.create({
@@ -815,7 +814,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       openWebPageAsMoblie(msg.url)
       break;
     case 'openPricePro':
-      openWebPageAsMoblie("https://plogin.m.jd.com/user/login.action?appid=100&kpkey=&returnurl=https%3a%2f%2fsitepp-fm.jd.com%2frest%2fpriceprophone%2fpriceProPhoneMenu")
+      openWebPageAsMoblie(priceProUrl)
       break;
     // 登录失败
     case 'loginFailed':

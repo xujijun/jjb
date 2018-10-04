@@ -150,16 +150,15 @@ dialog .close {
 .jjbPriceChart{
     position: static;
     float: left;
-    padding-top: 10px; 
     width: 100%;
-    background-color: #f7f7f7;
+    background-color: #fff;
     border: 1px solid #eee;
 }
 
 .jjbPriceChart .title {
     font-size: 14px;
     padding: 10px;
-    padding-top: 0;
+    background-color: #f7f7f7;
     border-bottom: 1px solid #eee;
 }
 
@@ -181,4 +180,13 @@ dialog .close {
     cursor: pointer;
     font-size: 16px;
     font-weight: 600;
+}
+
+#jjbPriceChart .no_data,
+#jjbPriceChart .loading {
+    text-align: center;
+    padding: 20px;
+    background-position-y: top;
+    padding-top: 30px;
+    margin-top: 10px;
 }

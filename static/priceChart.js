@@ -5,9 +5,11 @@ $( document ).ready(function() {
     <div class="jjbPriceChart">
       <h4 class="title">
         价格走势
-        <span id="disablePriceChart">X</span>
+        <span id="disablePriceChart">&times;</span>
       </h4>
-      <div id="jjbPriceChart"></div>
+      <div id="jjbPriceChart">
+        <div class="ELazy-loading loading">加载中</div>
+      </div>
       <span class="provider"><a href="https://blog.jjb.im/price-chart.html" target="_blank">由京价保提供</a></span>
     </div>
   `;
@@ -29,6 +31,7 @@ $( document ).ready(function() {
     })
     $.get("https://jjb.zaoshu.so/price/" + sku, function (data) {
       if (data.length > 2) {
+        $("#jjbPriceChart .ELazy-loading").hide()
         var chart = new G2.Chart({
           container: 'jjbPriceChart',
           forceFit: true,
@@ -46,7 +49,7 @@ $( document ).ready(function() {
         chart.line().position('timestamp*value').shape('hv').color('key');
         chart.render();
       } else {
-        $(".jjbPriceChart").hide()
+        $("#jjbPriceChart").html(`<div class="no_data">暂无数据</div>`)
       }
     });
   }, 1000)

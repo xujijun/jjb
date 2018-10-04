@@ -261,7 +261,11 @@ async function getAllOrders(setting) {
 }
 
 var auto_login_html = "<p class='auto_login'><span class='jjb-login'>让京价保记住密码并自动登录</span></p>";
-
+var remberme_html = `<label for="remberme" class="remberme J_ping" report-eventid="MLoginRegister_AutoLogin">
+  <input type="checkbox" id="remberme" checked>
+  <span class="icon icon-rember"></span>
+  <span class="txt-remberme">一个月内免登录</span>
+  </label>`
 
 function mockClick(element) {
   // DOM 2 Events
@@ -319,9 +323,12 @@ function CheckBaitiaoCouponDom(setting) {
     var time = 0;
     $("#react-root .react-root .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
       let targetEle = $(this)
+      if (targetEle.text() == '确定') {
+        console.log('需要登录')
+        mockClick(targetEle[0])
+      }
       if (targetEle.text() == '立即领取') {
         let couponDetails = targetEle.parent().prev().find('span').toArray()
-        console.log(couponDetails)
         var coupon_name = couponDetails[2] ? $(couponDetails[2]).text().trim() : '未知白条券'
         var coupon_price = couponDetails[0] ? $(couponDetails[0]).text().trim(): '？' + (couponDetails[1] ? (' (' + $(couponDetails[1]).text() + ')') : '')
         setTimeout(function () {
@@ -455,8 +462,10 @@ function autoLogin(account, type) {
         // 监控登录失败
         setTimeout(function () {
           let errormsg = $('.login-box .msg-error').text()
-          dealLoginFailed("pc", errormsg)
-        }, 1500)
+          if (errormsg.length > 0) {
+            dealLoginFailed("pc", errormsg)
+          }
+        }, 2000)
       }
     }
   // 手机登录
@@ -866,7 +875,7 @@ function handProtection(setting) {
     injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
     let url = $("#InitCartUrl").attr("href")
     let item = $(".ellipsis").text()
-    let price = $(".summary-price-wrap .p-price").text()
+    let price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
     // 拼接提示
     let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
       `<p class="green-text">恭喜你省下了 ` + price + ` ！</p>` +
@@ -962,7 +971,7 @@ function CheckDom() {
   };
 
   // M 是否登录
-  if ($("#mCommonMy") && $("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") {
+  if (($("#mCommonMy") && $("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0 )) {
     console.log('M 已经登录')
     chrome.runtime.sendMessage({
       text: "loginState",
@@ -987,7 +996,13 @@ function CheckDom() {
   // 手机版登录页
   if ( $(".loginPage").length > 0 ) {
     getAccount('m')
-    $(auto_login_html).insertAfter( ".loginPage .notice" )
+    $(auto_login_html).insertAfter( ".loginPage .notice")
+    $(remberme_html).appendTo(".loginPage .quick-nav")
+    // 选中“记住我”
+    mockClick($("#remberme")[0])
+    // 隐藏“一键登录”
+    $("#loginOneStep").hide()
+    // 京价保登陆
     $('.loginPage').on('click', '.jjb-login', function (e) {
       window.event ? window.event.returnValue = false : e.preventDefault();
       var username = $("#username").val()
@@ -1358,22 +1373,6 @@ function CheckDom() {
   if ($("#InitCartUrl").size() > 0) {
     getSetting('hand_protection', handProtection)
   }
-
-  // 自营筛选
-  // if ($("#search").size() > 0) {
-  //   $('#search .form').submit(function (evt) {
-  //     evt.preventDefault();
-  //   });
-  //   $("#search input").attr("onkeydown", "javascript:if(event.keyCode==13) addSelfOperated('key');");
-  //   $("#search button").attr("onclick", "addSelfOperated('key'); return false;");
-  // }
-  // if ($("#search-2014").size() > 0) {
-  //   $('#search-2014 .form').submit(function (evt) {
-  //     evt.preventDefault();
-  //   });
-  //   $("#search-2014 input").attr("onkeydown", "javascript:if(event.keyCode==13) addSelfOperated('key');");
-  //   $("#search-2014 button").attr("onclick", "addSelfOperated('key'); return false;");
-  // }
   
 
   // 自动跳转至商品页面
@@ -1388,7 +1387,7 @@ function CheckDom() {
 
   // 手机验证码
   if ($('.tip-box').size() > 0 && $(".tip-box").text().indexOf("账户存在风险") > -1) {
-    dealLoginFailed("m", "需要手机验证码")
+    dealLoginFailed("pc", "需要手机验证码")
     chrome.runtime.sendMessage({
       text: "highlightTab",
       content: JSON.stringify({
