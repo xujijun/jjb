@@ -431,6 +431,17 @@ function dealLoginFailed(type, errormsg) {
   });
 }
 
+function getBase64Image(img) {
+  var canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  var dataURL = canvas.toDataURL("image/png");
+
+  return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+}
+
 // 自动登录
 function autoLogin(account, type) {
   console.log('京价保正在为您自动登录', type)
@@ -486,14 +497,59 @@ function autoLogin(account, type) {
     $("#username").val(account.username)
     $("#password").val(account.password)
     $("#loginBtn").addClass("btn-active")
-    if ($("#input-code").height() > 0) {
-      dealLoginFailed("m", "需要完成登录验证")
-    } else {
+    // 自动登录
+    function mLogin() {
       setTimeout(function () {
         if ($("#username").val() && $("#password").val()) {
           mockClick($("#loginBtn")[0])
+          // 监控失败提示
+          setTimeout(function () {
+            if ($(".notice").text() && $(".notice").text().indexOf("错误") > -1) {
+              dealLoginFailed("m", "需要完成登录验证")
+            }
+          }, 1500)
         }
       }, 500)
+    }
+    // 如果需要验证码
+    if ($("#input-code").height() > 0) {
+      let captcha = $("#username_login .code-box img")[0]
+      let base64Image = getBase64Image(captcha)
+      $("#username_login").append(`<div class="weui-loadmore">
+            <i class="weui-loading"></i>
+            <span class="weui-loadmore__tips">正在识别验证码</span>
+        </div>
+      `)
+      $.ajax({
+        method: "POST",
+        type: "POST",
+        url: "https://jjb.zaoshu.so/captcha",
+        data: {
+          base64Image: base64Image,
+        },
+        timeout: 8000,
+        dataType: "json",
+        success: function(data){
+          if (data.result && data.result.length > 3) {
+            if ($("#code").is(":focus") || $("#code").val().length > 0 ) {
+              $("#username_login").append(`<p class="tips">验证码参考：${data.result}</p>`)
+            } else {
+              $("#code").val(data.result)
+              mLogin()
+            }
+          } else {
+            dealLoginFailed("m", "需要完成登录验证")
+          }
+        },
+        error: function(xhr, type){
+          dealLoginFailed("m", "需要完成登录验证")
+        },
+        complete: function() {
+          $("#username_login .weui-loadmore").hide()
+        }
+      })
+    } else {
+      mLogin()
     }
   }
 }
@@ -530,18 +586,22 @@ function getPlusCoupon(setting) {
         var coupon_price = that.find('.cp-val').text() + '元 (' + that.find('.cp-lmt').text() + ')'
         setTimeout(function () {
           $(that).find('.get-btn').trigger("click")
-          chrome.runtime.sendMessage({
-            text: "coupon",
-            title: "京价保自动领到一张 PLUS 优惠券",
-            content: JSON.stringify({
-              id: '',
-              batch: '',
-              price: coupon_price,
-              name: coupon_name
-            })
-          }, function (response) {
-            console.log("Response: ", response);
-          });
+          setTimeout(function () {
+            if ($(that).find('.get-btn').text() == '去使用') {
+              chrome.runtime.sendMessage({
+                text: "coupon",
+                title: "京价保自动领到一张 PLUS 优惠券",
+                content: JSON.stringify({
+                  id: '',
+                  batch: '',
+                  price: coupon_price,
+                  name: coupon_name
+                })
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          }, time + 1500)
         }, time)
         time += 5000;
       }
@@ -951,7 +1011,6 @@ function handProtection(setting) {
   }
 }
 
-
 function markCheckinStatus(type, value, cb) {
   chrome.runtime.sendMessage({
     text: "checkin_status",
@@ -961,9 +1020,6 @@ function markCheckinStatus(type, value, cb) {
   })
   if (cb) { cb() }
 }
-
-
-
 
 // 主体任务
 function CheckDom() {
@@ -1430,7 +1486,7 @@ $( document ).ready(function() {
   setTimeout( function(){
     console.log('京价保开始执行任务');
     CheckDom()
-  }, 2000)
+  }, 1000)
 });
 
 var nodeList = document.querySelectorAll('script');

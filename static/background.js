@@ -197,9 +197,9 @@ try {
 // 阻止打开京东金融App的代码
 chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
-    if (details.url == "https://m.jr.jd.com/statics/downloadApp/newdl/newdl.js" || details.url == "https://h5.360buyimg.com/ws_js/jdwebm.js?v=mlogin")
+    if (details.url == "https://m.jr.jd.com/statics/downloadApp/newdl/newdl.js")
       return {
-        cancel: (details.url.indexOf("://m.jr.jd.com/") != -1 || details.url.indexOf("://360buyimg.com/") != -1)
+        cancel: (details.url.indexOf("://m.jr.jd.com/") != -1)
       };
   }, {
     urls: ["*://m.jr.jd.com/*", "*://m.jd.com/*"]
@@ -310,7 +310,7 @@ function rand(n){
 
 function clearIframe() {
   $("#iframe").remove();
-  let iframe = '<iframe id="iframe" width="1000 px" height="600 px" src=""></iframe>';
+  let iframe = '<iframe id="iframe" width="400 px" height="600 px" src=""></iframe>';
   $('body').html(iframe);
 }
 
@@ -441,8 +441,6 @@ $( document ).ready(function() {
     })
   }
 })
-
-
 
 // 调试模式
 // var phonesArray = [

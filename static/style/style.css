@@ -146,6 +146,16 @@ dialog .close {
     right: 140px;
 }
 
+#username_login .tips{
+    font-size: 12px;
+    padding: 2px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    color: #666;
+}
+
 .jjbPriceChart{
     position: static;
     float: left;
