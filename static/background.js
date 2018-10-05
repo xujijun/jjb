@@ -169,21 +169,21 @@ chrome.runtime.onInstalled.addListener(function (object) {
 });
 
 // add JDAPP to USER AGENT
-var JDAPP_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0';
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  function (details) {
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
-      if (details.requestHeaders[i].name === 'User-Agent') {
-        details.requestHeaders[i].value = JDAPP_USER_AGENT;
-        break;
-      }
-    }
-    return {
-      requestHeaders: details.requestHeaders
-    };
-  }, {
-    urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com/*"]
-  }, ['blocking', 'requestHeaders']);
+// var JDAPP_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0';
+// chrome.webRequest.onBeforeSendHeaders.addListener(
+//   function (details) {
+//     for (var i = 0; i < details.requestHeaders.length; ++i) {
+//       if (details.requestHeaders[i].name === 'User-Agent') {
+//         details.requestHeaders[i].value = JDAPP_USER_AGENT;
+//         break;
+//       }
+//     }
+//     return {
+//       requestHeaders: details.requestHeaders
+//     };
+//   }, {
+//     urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com/*"]
+//   }, ['blocking', 'requestHeaders']);
 
 
 // 判断浏览器
@@ -381,9 +381,9 @@ function runJob(jobId, force = false) {
         }, function (result) {
           backgroundLog.info("muted tab", result)
         })
-        if (job.touch) {
-          attachDebugger(tab)
-        }
+        // if (job.touch) {
+        //   attachDebugger(tab)
+        // }
         chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
       })
     }
@@ -445,80 +445,80 @@ $( document ).ready(function() {
 
 
 // 调试模式
-var phonesArray = [
-  {
-    title: "Apple iPhone",
-    width: 320,
-    height: 568,
-    deviceScaleFactor: 2,
-    userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0",
-    touch: true,
-    mobile: true
-  },
-  {
-    title: "Android Tablet",
-    width: 472,
-    height: 732,
-    deviceScaleFactor: 1.5,
-    userAgent: "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 5X Build/OPR4.170623.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Mobile Safari/537.36 JDAPP/7.0",
-    touch: true,
-    mobile: true
-  }
-];
+// var phonesArray = [
+//   {
+//     title: "Apple iPhone",
+//     width: 320,
+//     height: 568,
+//     deviceScaleFactor: 2,
+//     userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0",
+//     touch: true,
+//     mobile: true
+//   },
+//   {
+//     title: "Android Tablet",
+//     width: 472,
+//     height: 732,
+//     deviceScaleFactor: 1.5,
+//     userAgent: "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 5X Build/OPR4.170623.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Mobile Safari/537.36 JDAPP/7.0",
+//     touch: true,
+//     mobile: true
+//   }
+// ];
 
-var phones = {};
-phonesArray.forEach(function (phone) {
-  phones[phone.title.replace(/\s+/gi, '')] = phone;
-});
+// var phones = {};
+// phonesArray.forEach(function (phone) {
+//   phones[phone.title.replace(/\s+/gi, '')] = phone;
+// });
 
 
-// the good stuff.
-function turnItOn(tab) {
-  chrome.debugger.sendCommand({
-    tabId: tab.id
-  }, "Page.setTouchEmulationEnabled", {
-    enabled: true,
-  }, function () {
-    chrome.debugger.sendCommand({
-      tabId: tab.id
-    }, "Network.setUserAgentOverride", {
-      userAgent: phones.AndroidTablet.userAgent
-    }, function () {
-      // set up device metrics
-      chrome.debugger.sendCommand({
-        tabId: tab.id
-      }, "Page.setDeviceMetricsOverride", {
-        width: phones.AndroidTablet.width,
-        height: phones.AndroidTablet.height,
-        deviceScaleFactor: phones.AndroidTablet.deviceScaleFactor,
-        mobile: phones.AndroidTablet.mobile
-      }, function () {
-        // reload page
-        chrome.debugger.sendCommand({
-          tabId: tab.id
-        }, "Page.reload", {
-          ignoreCache: false
-        }, function () {
-          setTimeout(() => {
-            chrome.debugger.detach({
-              tabId: tab.id
-            });
-          }, 10*1000);
-        });
-      });
-    });
-  });
-}
+// // the good stuff.
+// function turnItOn(tab) {
+//   chrome.debugger.sendCommand({
+//     tabId: tab.id
+//   }, "Page.setTouchEmulationEnabled", {
+//     enabled: true,
+//   }, function () {
+//     chrome.debugger.sendCommand({
+//       tabId: tab.id
+//     }, "Network.setUserAgentOverride", {
+//       userAgent: phones.AndroidTablet.userAgent
+//     }, function () {
+//       // set up device metrics
+//       chrome.debugger.sendCommand({
+//         tabId: tab.id
+//       }, "Page.setDeviceMetricsOverride", {
+//         width: phones.AndroidTablet.width,
+//         height: phones.AndroidTablet.height,
+//         deviceScaleFactor: phones.AndroidTablet.deviceScaleFactor,
+//         mobile: phones.AndroidTablet.mobile
+//       }, function () {
+//         // reload page
+//         chrome.debugger.sendCommand({
+//           tabId: tab.id
+//         }, "Page.reload", {
+//           ignoreCache: false
+//         }, function () {
+//           setTimeout(() => {
+//             chrome.debugger.detach({
+//               tabId: tab.id
+//             });
+//           }, 10*1000);
+//         });
+//       });
+//     });
+//   });
+// }
 
-// this sets up the debugger. attached to all the things.
-function attachDebugger(tab) {
-  var protocolVersion = '1.2';
-  chrome.debugger.attach({
-    tabId: tab.id
-  }, protocolVersion, function () {
-    turnItOn(tab);
-  });
-}
+// // this sets up the debugger. attached to all the things.
+// function attachDebugger(tab) {
+//   var protocolVersion = '1.2';
+//   chrome.debugger.attach({
+//     tabId: tab.id
+//   }, protocolVersion, function () {
+//     turnItOn(tab);
+//   });
+// }
 
 
 function openWebPageAsMoblie(url) {

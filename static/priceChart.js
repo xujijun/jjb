@@ -29,28 +29,37 @@ $( document ).ready(function() {
         title: '停用价格走势图'
       });
     })
-    $.get("https://jjb.zaoshu.so/price/" + sku, function (data) {
-      if (data.length > 2) {
-        $("#jjbPriceChart .ELazy-loading").hide()
-        var chart = new G2.Chart({
-          container: 'jjbPriceChart',
-          forceFit: true,
-          padding: [50, '5%', 80, '6%'],
-          height: 300
-        });
-        chart.source(data, {
-          timestamp: {
-            type: 'time',
-            mask: 'MM-DD HH:mm',
-            range: [0, 1],
-            tickCount: 5
-          }
-        });
-        chart.line().position('timestamp*value').shape('hv').color('key');
-        chart.render();
-      } else {
-        $("#jjbPriceChart").html(`<div class="no_data">暂无数据</div>`)
+    $.ajax({
+      method: "GET",
+      type: "GET",
+      url: "https://jjb.zaoshu.so/price/" + sku,
+      timeout: 3000,
+      success: function(data){
+        if (data.length > 2) {
+          $("#jjbPriceChart .ELazy-loading").hide()
+          var chart = new G2.Chart({
+            container: 'jjbPriceChart',
+            forceFit: true,
+            padding: [50, '5%', 80, '6%'],
+            height: 300
+          });
+          chart.source(data, {
+            timestamp: {
+              type: 'time',
+              mask: 'MM-DD HH:mm',
+              range: [0, 1],
+              tickCount: 5
+            }
+          });
+          chart.line().position('timestamp*value').shape('hv').color('key');
+          chart.render();
+        } else {
+          $("#jjbPriceChart").html(`<div class="no_data">暂无数据</div>`)
+        }
+      },
+      error: function(xhr, type){
+        $("#jjbPriceChart").html(`<div class="no_data">查询失败，请稍后重试</div>`)
       }
-    });
+   });
   }, 1000)
 });

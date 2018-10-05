@@ -909,3 +909,8 @@ button.Button.messages-tab.Button--plain:focus {
     color: #999;
     cursor: pointer;
 }
+
+.update .weui-dialog .weui-dialog__bd{
+    white-space: pre-line;
+    text-align: left;
+}

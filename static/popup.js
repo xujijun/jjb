@@ -249,10 +249,58 @@ function changeTips() {
   }
 }
 
+// 对比版本
+function versionCompare(v1, v2, options) {
+  var lexicographical = options && options.lexicographical,
+      zeroExtend = options && options.zeroExtend,
+      v1parts = v1.split('.'),
+      v2parts = v2.split('.');
+
+  function isValidPart(x) {
+      return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x);
+  }
+
+  if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
+      return NaN;
+  }
+
+  if (zeroExtend) {
+      while (v1parts.length < v2parts.length) v1parts.push("0");
+      while (v2parts.length < v1parts.length) v2parts.push("0");
+  }
+
+  if (!lexicographical) {
+      v1parts = v1parts.map(Number);
+      v2parts = v2parts.map(Number);
+  }
+
+  for (var i = 0; i < v1parts.length; ++i) {
+      if (v2parts.length == i) {
+          return 1;
+      }
+
+      if (v1parts[i] == v2parts[i]) {
+          continue;
+      }
+      else if (v1parts[i] > v2parts[i]) {
+          return 1;
+      }
+      else {
+          return -1;
+      }
+  }
+
+  if (v1parts.length != v2parts.length) {
+      return -1;
+  }
+
+  return 0;
+}
+
 function showJEvent() {
   // 加载反馈
   if ($("#jEventIframe").attr('src') == '') {
-    $("#jEventIframe").attr('src', "https://i.duotai.net/forms/zm5rk/i6svm4on")
+    $("#jEventIframe").attr('src', "https://jjb.zaoshu.so/recommend")
     setTimeout(function () {
       $('.iframe-loading').hide()
     }, 800)
@@ -464,6 +512,34 @@ $( document ).ready(function() {
     }
     if (json.announcements && json.announcements.length > 0) {
       localStorage.setItem('announcements', JSON.stringify(json.announcements))
+    }
+  });
+
+  // 查询最新版本
+  $.getJSON("https://jjb.zaoshu.so/updates/check?version={{version}}", function (json) {
+    let skipVerison = localStorage.getItem('skipVerison')
+    let localVerison = skipVerison || "{{version}}"
+    if (versionCompare(localVerison, json.lastVerison) < 0 && json.notice) {
+      weui.dialog({
+        title: json.title || '京价保有版本更新',
+        content: json.changelog || '一系列改进',
+        className: 'update',
+        buttons: [{
+            label: '不再提醒',
+            type: 'default',
+            onClick: function () {
+              localStorage.setItem('skipVerison', json.lastVerison)
+            }
+        }, {
+            label: '下载更新',
+            type: 'primary',
+            onClick: function () {
+              chrome.tabs.create({
+                url: json.url || "https://blog.jjb.im"
+              })
+            }
+        }]
+      });
     }
   });
 

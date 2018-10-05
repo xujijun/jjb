@@ -92,8 +92,17 @@ async function getNowPrice(sku, setting) {
     let itemOnlyJsonString = itemOnlyInfo ? (itemOnlyInfo[1] ? "{" + itemOnlyInfo[1].replace(/,\s*$/, "") + "}" : null) : null
     let skuJsonString = itemInfo ? (itemInfo[1] ? "{" + itemInfo[1].replace(/,\s*$/, "") + "}" : null) : null
 
-    let itemOnly = itemOnlyJsonString ? JSON.parse(escapeSpecialChars(itemOnlyJsonString)) : null
-    let skuInfo = skuJsonString ? JSON.parse(escapeSpecialChars(skuJsonString)) : null
+    let itemOnly = null
+    try {
+      itemOnly = itemOnlyJsonString ? JSON.parse(escapeSpecialChars(itemOnlyJsonString)) : null
+    } catch (error) {
+    }
+
+    let skuInfo = null
+    try {
+      skuInfo = skuJsonString ? JSON.parse(escapeSpecialChars(skuJsonString)) : null
+    } catch (error) {
+    }
 
     let product_name = (itemOnly ? itemOnly.item.skuName : null) || $(data).find('#itemName').text() || $(data).find('.title-text').text()
     let normal_price = (skuInfo ? skuInfo.price.p : null) || $(data).find('#jdPrice').val() || $(data).find('#specJdPrice').text()
@@ -250,7 +259,11 @@ async function getAllOrders(setting) {
   $( "#dataList0 li" ).each(function() {
     dealorders.push(dealOrder($(this), orders, setting))
   });
-  await Promise.all(dealorders)
+  try {
+    await Promise.all(dealorders)
+  } catch (error) {
+    console.error('dealorders', error)
+  }
   chrome.runtime.sendMessage({
     text: "orders",
     content: JSON.stringify(orders)
@@ -997,9 +1010,14 @@ function CheckDom() {
   if ( $(".loginPage").length > 0 ) {
     getAccount('m')
     $(auto_login_html).insertAfter( ".loginPage .notice")
-    $(remberme_html).appendTo(".loginPage .quick-nav")
+    $(".loginPage .quick-nav").prepend(remberme_html)
     // 选中“记住我”
-    mockClick($("#remberme")[0])
+    setTimeout(function () {
+      let remberme = $("#remberme").val()
+      if (remberme != "on") {
+        mockClick($("#remberme")[0])
+      }
+    }, 200)
     // 隐藏“一键登录”
     $("#loginOneStep").hide()
     // 京价保登陆
