@@ -422,7 +422,7 @@ function dealLoginFailed(type, errormsg) {
     content: errormsg
   }
   // 如果是单纯的登录页面，则不发送浏览器提醒
-  if (window.location.href == "https://plogin.m.jd.com/user/login.action?appid=100" || window.location.href == "https://passport.jd.com/uc/login") {
+  if (window.innerWidth == 420 || window.location.href == "https://passport.jd.com/uc/login") {
     loginFailedDetail.notice = false
     console.log("主动登录页面不发送浏览器消息提醒")
   }
@@ -566,7 +566,7 @@ function getCommonUseCoupon(setting) {
         setTimeout(function () {
           $(that).find('.btn-def').trigger("click")
           setTimeout(function () {
-            if ($(that).find('.q-ops-jump .geted-site').css('display') !== 'none') {
+            if ($(".tip-title").text() && $(".tip-title").text().indexOf("领取成功") > -1) {
               chrome.runtime.sendMessage({
                 text: "coupon",
                 title: "京价保自动领到一张全品类优惠券",

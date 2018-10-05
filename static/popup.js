@@ -415,7 +415,7 @@ function dealWithLoginState() {
       $('.frequency_settings .job-' + type + ' .reload').hide()
       $('.frequency_settings .job-' + type + ' .job-state').show()
 
-      if (loginUrl) {
+      if (loginUrl && type != 'm') {
         loginTypeNoticeDom.attr("href", loginUrl)
         loginTypeNoticeDom.attr("target", "_blank")
       }

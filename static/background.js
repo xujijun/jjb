@@ -168,22 +168,22 @@ chrome.runtime.onInstalled.addListener(function (object) {
   }
 });
 
-// add JDAPP to USER AGENT
-// var JDAPP_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0';
-// chrome.webRequest.onBeforeSendHeaders.addListener(
-//   function (details) {
-//     for (var i = 0; i < details.requestHeaders.length; ++i) {
-//       if (details.requestHeaders[i].name === 'User-Agent') {
-//         details.requestHeaders[i].value = JDAPP_USER_AGENT;
-//         break;
-//       }
-//     }
-//     return {
-//       requestHeaders: details.requestHeaders
-//     };
-//   }, {
-//     urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com/*"]
-//   }, ['blocking', 'requestHeaders']);
+// use iPhone as USER AGENT
+var iPhone_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1';
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  function (details) {
+    for (var i = 0; i < details.requestHeaders.length; ++i) {
+      if (details.requestHeaders[i].name === 'User-Agent') {
+        details.requestHeaders[i].value = iPhone_USER_AGENT;
+        break;
+      }
+    }
+    return {
+      requestHeaders: details.requestHeaders
+    };
+  }, {
+    urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com/*"]
+  }, ['blocking', 'requestHeaders']);
 
 
 // 判断浏览器
@@ -197,12 +197,12 @@ try {
 // 阻止打开京东金融App的代码
 chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
-    if (details.url == "https://m.jr.jd.com/statics/downloadApp/newdl/newdl.js")
+    if (details.url == "https://m.jr.jd.com/statics/downloadApp/newdl/newdl.js" || details.url == "https://h5.360buyimg.com/ws_js/jdwebm.js?v=mlogin")
       return {
-        cancel: details.url.indexOf("://m.jr.jd.com/") != -1
+        cancel: (details.url.indexOf("://m.jr.jd.com/") != -1 || details.url.indexOf("://360buyimg.com/") != -1)
       };
   }, {
-    urls: ["*://m.jr.jd.com/*"]
+    urls: ["*://m.jr.jd.com/*", "*://m.jd.com/*"]
   }, ["blocking"]);
 
 chrome.alarms.onAlarm.addListener(function( alarm ) {
@@ -585,9 +585,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
               url: "https://passport.jd.com/uc/login"
             })
           } else {
-            chrome.tabs.create({
-              url: mLoginUrl
-            })
+            openWebPageAsMoblie(mLoginUrl)
           }
           break;
         default:
@@ -623,9 +621,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
         break;
       case 'm':
         if (buttonIndex == 0) {
-          chrome.tabs.create({
-            url: mLoginUrl
-          })
+          openWebPageAsMoblie(mLoginUrl)
         }
         break;
       default:
@@ -801,9 +797,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'openLogin':
       loginState = getLoginState()
       if (loginState.class == 'failed') {
-        chrome.tabs.create({
-          url: mLoginUrl
-        })
+        openWebPageAsMoblie(mLoginUrl)
       } else {
         chrome.tabs.create({
           url: "https://passport.jd.com/uc/login"
