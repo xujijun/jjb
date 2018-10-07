@@ -2,7 +2,7 @@
 
 京价保是一个帮你监控商品价格变化自动申请京东价格保护，顺便帮你签到领京豆、钢镚的 Chrome 拓展。
 
-强烈推荐使用 Chrome 商店安装（这样才能获得自动更新）：
+**强烈推荐使用 Chrome 商店安装**（这样才能获得自动更新）：
 
 <a target='_blank' rel='nofollow' href='https://chrome.google.com/webstore/detail/gfgkebiommjpiaomalcbfefimhhanlfd'>
   <img alt='Chrome
@@ -15,7 +15,11 @@
   <img alt="安装 Firefox 版" class="firefox" src="https://d33wubrfki0l68.cloudfront.net/4ce5ce101cdaa4030248fab2934960ad1cc6960e/3f95c/firefox-quantum.png" width="32px">
 </a>
 
-> 
+或者直接下载的 CRX文件手动安装（非常不建议）
+
+<a href="http://jjb.zaoshu.so/updates/latest" target="_black">
+  <img alt="下载 CRX 文件" class="firefox" src="https://jjbcdn.zaoshu.so/crx-icon.png" width="32px">
+</a>
 
 ## 主要功能
 
@@ -35,11 +39,11 @@
 
 ## 重要提示
 
-1. 京价保并非开源软件，不许可您以任何形式进行再发行，请仔细阅读协议模块。
+1. 京价保并非开源软件，不许可您以任何形式进行再发行，请仔细阅读[#协议和授权](https://github.com/sunoj/jjb#%E5%8D%8F%E8%AE%AE%E5%92%8C%E6%8E%88%E6%9D%83)。
 
-2. 当前仓库是插件源代码，无法直接安装，如需安装请自行参考 #如何开发 编译。
+2. 当前仓库是插件源代码，无法直接安装，如需安装请自行参考 [#如何开发](https://github.com/sunoj/jjb#%E5%A6%82%E4%BD%95%E5%BC%80%E5%8F%91) 编译。
 
-3. 京价保绝对不会在任何情况下强行劫持任何网页的访问，如果发现类似问题请 Google 搜索或使用二分法停用插件排除。或者，为了防止京价保的影响亦可直接卸载京价保。故不再回复类似的 Issue。
+3. 京价保绝对不会在任何情况下强行劫持任何网页的访问，如果发现类似问题请善用 Google 搜索并使用二分法停用插件排除，同时考虑运营商劫持的可能性。或者，为了防止京价保的影响亦可直接卸载京价保。故不再回复类似的 Issue。详情参考：[#安全提示](https://github.com/sunoj/jjb#%E5%AE%89%E5%85%A8%E6%8F%90%E7%A4%BA)
 
 
 ## 如何开发
@@ -62,14 +66,6 @@
 
 你的打赏能帮助京价保保持更新，适配京东的页面修改，添加更多自动功能。
 
-## 安全提示
-
-京价保不会在任何情况下强行劫持访问、插入恶意代码、上传隐私信息或利用你的电脑挖矿。
-
-若你发现任何类似问题，请首先确保你使用的是商店版本，不建议在任何情况下使用第三方提供的安装包。
-
-京价保目前有约两万人正在使用（包括 Chrome 和 Firefox 以及其他浏览器非市场版本），其中至少有数千名开发者，京价保的代码有近千人关注，若怀疑京价保代码有问题，不妨直接审查代码。
-
 ## 历史价格走势图
 
 “[价格走势图](https://blog.jjb.im/price-chart.html)”是京价保 2.0 版本引入的新功能。
@@ -80,13 +76,26 @@
 
 目前京价保的价格历史数据库只覆盖了不到 2% 的 SKU，如果在商品页面看不到走势图请不要意外。
 
-## 隐私政策
+## 安全提示
+
+京价保不会在任何情况下强行劫持访问、插入恶意代码、上传隐私信息或利用你的电脑挖矿。
+
+若你发现任何类似问题，请首先确保你使用的是商店版本，不建议在任何情况下使用第三方提供的安装包。
+
+京价保目前有约两万人正在使用（包括 Chrome 和 Firefox 以及其他浏览器非市场版本），其中至少有数千名开发者，京价保的代码有近千人关注，若怀疑京价保代码有问题，不妨直接审查代码。
+
+如果你确实发现京东页面（或者还有其他电商和非电商网站）被劫持，请考虑运营商劫持的可能性，并筛查拓展列表。同时强烈建议你打开京价保的“**强制使用 HTTPS 访问京东**”的功能。
+
+> http 协议是一种古老的有重大先天缺陷和安全隐患的历史产物，任何现代的网站都应该完全禁止通过 http 来访问，我对于京东未能默认强制使用 https 表示强烈的不满和十分失望。
+
+
+### 隐私政策
 
 京价保的部分功能链接带有京东联盟的返利链接，如果介意可以关闭这些功能。
 
-详见：https://blog.jjb.im/policy.html
+了解详见：https://blog.jjb.im/policy.html
 
-## 关于黑号
+### 关于黑号
 
 网络上有很多人表示多次领券和申请价格保护会导致账号“黑号”，不知道其对京东的风控政策是如何了解的，为何正常使用其官方提供的功能会导致账号被“黑”？
 
@@ -94,6 +103,7 @@
 
 但，若你担心此项风险，决定自我审查，关闭领券功能或直接卸载京价保即可。
 
+> Tips. 如果发现这部分情况下无法领券，有可能是因为你参加了一个特殊的活动：“爱奇艺会员+京东PLUS 89元”，了解详情可参考：https://github.com/sunoj/jjb/issues/96
 
 ## 系统支持
 
@@ -109,7 +119,8 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 
 您还可以关注京价保的公众号，主要发布更新通知：
 
-![京价保公众号](https://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg)
+<img alt="京价保公众号" class="firefox" src="(https://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg?imageView2/0/h/300" width="300px">
+
 
 ## 协议和授权
 
@@ -152,8 +163,4 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 
 <h3>
   <a href="https://www.duohui.cn/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多会 - 专业的活动管理系统</a>
-</h3>
-
-<h3>
-  <a href="https://www.duotai.net/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多态</a>
 </h3>
