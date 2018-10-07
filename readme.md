@@ -21,6 +21,8 @@
   <img alt="下载 CRX 文件" class="firefox" src="https://jjbcdn.zaoshu.so/crx-icon.png" width="32px">
 </a>
 
+*此方法通常只适用于 Chromium 内核的国产浏览器，因为 Chrome 出于安全原因已禁止通过除 Chrome 官方商店以外的其他渠道安装拓展。*
+
 ## 主要功能
 
 * 自动监控最近订单商品的价格变化，在商品降价时自动申请价格保护
@@ -122,6 +124,8 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 ![京价保公众号](https://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg?imageView2/0/h/300)
 
 京价保现在还有一个官方博客： https://blog.jjb.im
+
+或者也可以关注京价保的知乎专栏：https://zhuanlan.zhihu.com/jjblog
 
 ## 协议和授权
 
