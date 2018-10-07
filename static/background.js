@@ -336,6 +336,11 @@ function runJob(jobId, force = false) {
   }
   var jobList = getJobs()
   var job = _.find(jobList, {id: jobId})
+  // 检查登录状态
+  let loginState = getLoginState()
+  if (loginState[job.type].state != 'alive' && !force) {
+    return jobLog.log(job.title, '由于账号未登录已暂停运行')
+  }
   if (job && (job.frequency != 'never' || force)) {
     // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段
     if (!force && job.schedule) {
@@ -985,8 +990,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       var content = JSON.parse(msg.content)
       sendChromeNotification(new Date().getTime().toString(), {
         type: "basic",
-        title: "京价保未能自动完成任务",
-        message: "需要人工辅助，已将窗口切换至需要操作的标签",
+        title: content.title ? content.title : "京价保未能自动完成任务",
+        message: "需要人工辅助，已将窗口切换至需要操作的标签" ,
         iconUrl: 'static/image/128.png'
       })
       chrome.tabs.query({

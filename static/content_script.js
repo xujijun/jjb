@@ -483,11 +483,28 @@ function autoLogin(account, type) {
         setTimeout(function () {
           mockClick($(".login-btn a")[0])
         }, 500)
+        // 是否需要滑动验证
+        setTimeout(function () {
+          let slidemsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
+          if (slidemsg.length > 0) {
+            dealLoginFailed("pc", "需要完成登录验证")
+            chrome.runtime.sendMessage({
+              text: "highlightTab",
+              content: JSON.stringify({
+                title: "需要完成滑动拼图以登录",
+                url: window.location.href,
+                pinned: "true"
+              })
+            }, function (response) {
+              console.log("Response: ", response);
+            });
+          }
+        }, 1500)
         // 监控登录失败
         setTimeout(function () {
           let errormsg = $('.login-box .msg-error').text()
           if (errormsg.length > 0) {
-            dealLoginFailed("pc", errormsg)
+            dealLoginFailed("pc",errormsg)
           }
         }, 2000)
       }

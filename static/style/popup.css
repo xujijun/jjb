@@ -4,6 +4,16 @@ select {
     -moz-appearance: none;
 }
 
+
+
+a {
+    color:#0b85c3;
+}
+
+a:hover {
+    color: #006da5;
+}
+
 .popup{
     height: 600px;
     width: 800px;
@@ -13,6 +23,14 @@ select {
     height: 36px;
     font-size: 16px;
     padding: 2px 15px;
+}
+
+.frequency_settings .weui-cell__bd i.show{
+    font-size: 20px;
+    margin-left: -5px;
+    display: inline-block !important;
+    height: 20px;
+    margin-top: -2px;
 }
 
 .page__hd {
@@ -124,9 +142,6 @@ select {
 
 .frequency_settings .weui-cell__bd i.today{
     display: none;
-    font-size: 20px;
-    height: 17px;
-    margin-top: -3px;
 }
 
 .frequency_settings .weui-cell__bd{
@@ -141,6 +156,9 @@ select {
     cursor: pointer;
 }
 
+#notice{
+    color: #333;
+}
 .alipay_action{
     line-height: 26px;
     height: 24px;
@@ -399,6 +417,18 @@ img.weui-tabbar__icon {
     background: #fbf3a5;
     color: #ce7f66;
     padding-top: 0.8em;
+}
+
+#loginNotice a {
+    color: #126700;
+}
+
+#loginNotice a:hover {
+    color: #0c4600;
+}
+
+#loginNotice a.failed {
+    color: #de4545;
 }
 
 #loginNotice.state-alive .title {
@@ -800,6 +830,10 @@ button.Button.messages-tab.Button--plain:focus {
     display: none;
 }
 
+a.weui-btn:hover {
+    color: #ffffffd6;
+}
+
 .showChangeLog{
     cursor: pointer;
 }
@@ -891,10 +925,15 @@ button.Button.messages-tab.Button--plain:focus {
 .alive .weui-cell {
     background: #e6ffcad4;
 }
+.alive .weui-cell:hover {
+    background: #d8f9b4;
+}
 .failed .weui-cell {
     background: #ffd3d3b5;
 }
-
+.failed .weui-cell:hover {
+    background: #ffd9d9;
+}
 .failed .status-text {
     color: #de4545;
 }

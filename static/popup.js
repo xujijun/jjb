@@ -238,6 +238,7 @@ function changeTips() {
   }
   if (tip.type == "link" && tip.mode == "mobliepage") {
     if (tip.button) {
+      $(".tips .weui-btn").removeClass("switch-paymethod")
       $(".tips .weui-btn").addClass("openMobliePage")
       $(".tips .weui-btn").attr("data-url", tip.url)
       $(".tips .weui-btn").removeAttr("href")
@@ -361,8 +362,8 @@ function markJobStatus() {
       if (record.value) {
         title = title + '，领到：' + record.value
       }
-      $(".checkin-" + task).find('.reload').hide()
-      $(".checkin-" + task).find('.today').attr('title', title).show()
+      $(".checkin-" + task).find('.reload').removeClass('show').hide()
+      $(".checkin-" + task).find('.today').attr('title', title).addClass('show')
     }
   });
 }
@@ -399,7 +400,7 @@ function dealWithLoginState() {
     "unknown": "未知"
   }
   function getStateDescription(loginState, type) {
-    return stateText[loginState[type].state] + "（ " + (loginState[type].message ? loginState[type].message : "") + (loginState[type].time ? " 上次检查： " + moment(loginState[type].time).locale('zh-cn').calendar() : "") + "）"
+    return stateText[loginState[type].state] + (loginState[type].message ? `（ ${loginState[type].message} 上次检查： ${moment(loginState[type].time).locale('zh-cn').calendar()} ）` : '')
   }
   function dealWithLoginNotice(loginState, type) {
     let loginTypeNoticeDom = $('.login-type_' + type)
@@ -412,8 +413,8 @@ function dealWithLoginState() {
     loginTypeNoticeDom.attr("title", stateDescription)
     $('.login-type_' + type + ' .status-text').text(stateText[loginState[type].state])
     if (!loginState[type] || loginState[type].state != "alive") {
-      $('.frequency_settings .job-' + type + ' .reload').hide()
-      $('.frequency_settings .job-' + type + ' .job-state').show()
+      $('.frequency_settings .job-' + type + ' .reload').removeClass('show').hide()
+      $('.frequency_settings .job-' + type + ' .job-state').addClass('show')
 
       if (loginUrl && type != 'm') {
         loginTypeNoticeDom.attr("href", loginUrl)
@@ -744,7 +745,7 @@ $( document ).ready(function() {
     });
   })
 
-  $("#loginState").on("click", function () {
+  $(".showLoginState").on("click", function () {
     $("#loginNotice").show()
   })
 
