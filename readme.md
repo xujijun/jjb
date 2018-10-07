@@ -62,7 +62,7 @@
 
 在理想的情况下，京价保通常至少能够提供每个月大于5元的等同现金的收入（每天3~15个京豆+0.08个钢镚），即使你买的东西中没有任何一件降价。
 
-![](https://oi4m2ufmx.qnssl.com/jjb/weixin_pay.png?imageView2/0/h/300)
+![打赏作者](https://jjbcdn.zaoshu.so/weixin_pay.png?imageView2/0/h/300)
 
 你的打赏能帮助京价保保持更新，适配京东的页面修改，添加更多自动功能。
 
@@ -115,12 +115,13 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 
 ## 获取信息
 
-你可以 Telegram 上关注京价保 https://t.me/jingjiabao
+你可以 Telegram 上关注京价保： https://t.me/jingjiabao
 
-您还可以关注京价保的公众号，主要发布更新通知：
+您还可以关注京价保的公众号（发布更新通知）：
 
-<img alt="京价保公众号" class="firefox" src="(https://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg?imageView2/0/h/300" width="300px">
+![京价保公众号](https://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg?imageView2/0/h/300)
 
+京价保现在还有一个官方博客： https://blog.jjb.im
 
 ## 协议和授权
 
