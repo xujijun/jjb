@@ -22,7 +22,7 @@ gulp.task('pack-popupjs', function () {
     'node_modules/jquery/dist/jquery.min.js',
     'node_modules/garlicjs/dist/garlic.min.js',
     'node_modules/tippy.js/dist/tippy.all.js',
-    'node_modules/moment/min/moment-with-locales.min.js',
+    'node_modules/luxon/build/global/luxon.js',
     'node_modules/weui.js/dist/weui.min.js',
     'static/popup.js'
   ])
@@ -89,7 +89,7 @@ gulp.task('move-js', [], function () {
     'node_modules/lodash/lodash.min.js',
     'node_modules/logline/dist/logline.min.js',
     'node_modules/dialog-polyfill/dialog-polyfill.js',
-    'node_modules/moment/min/moment-with-locales.min.js',
+    'node_modules/luxon/build/global/luxon.js',
   ])
   .pipe(gulp.dest('build/static'));
 });

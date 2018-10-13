@@ -8,17 +8,26 @@
     <script id="tpl-orders" type="text/html">
       {{if orders && orders.length > 0}}
         {{each orders order index}}
-          <div class="weui-cells__title time"> 下单时间： {{order.time}}</div>
+          <div class="order_time"> 下单时间： {{order.time}}</div>
           {{each order.goods good i}}
             <div class="weui-cell good">
               <div class="weui-cell__bd">
-                <p class="good_title">
+                <div class="good_title">
                   {{if good.sku && !disabled_link}}
-                    <a href="https://jjb.zaoshu.so/good/{{good.sku}}" target="_blank">{{good.name}}</a>
+                    <a href="https://jjb.zaoshu.so/good/{{good.sku}}" target="_blank">
+                      {{if good.img}}
+                        <img src="https:{{good.img}}" alt="{{good.name}}">
+                      {{/if}}
+                      <p>{{good.name}}</p>
+                      {{if good.quantity}}
+                        <span class="count">&times; {{good.quantity}}</span>
+                      {{/if}}
+                    </a>
                   {{else}}
-                    <span>{{good.name}}</span>
+                    <p>{{good.name}}</p>
                   {{/if}}
-                </p>
+                  
+                </div>
               </div>
               <div class="weui-cell__ft">
                 <span class="order_price">￥{{good.order_price}}</span>

@@ -1,3 +1,5 @@
+var DateTime = luxon.DateTime;
+
 Logline.using(Logline.PROTOCOL.INDEXEDDB);
 var jobLog = new Logline('job');
 var optionLog = new Logline('option');
@@ -261,7 +263,7 @@ function getJobs() {
     // 如果是签到任务，则读取签到状态
     if (job.checkin) {
       let checkinRecord = localStorage.getItem('jjb_checkin_' + job.key) ? JSON.parse(localStorage.getItem('jjb_checkin_' + job.key)) : null
-      if (checkinRecord && checkinRecord.date == moment().format("DDD")) {
+      if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
         job.checkinState = true
       }
     }
@@ -281,19 +283,19 @@ function findJobs() {
     switch(job.frequency){
       case '2h':
         // 如果从没运行过，或者上次运行已经过去超过2小时，那么需要运行
-        if (!job.last_run_at || moment().isAfter(moment(job.last_run_at).add(2, 'hour'))) {
+        if (!job.last_run_at || (DateTime.local() > DateTime.fromMillis(job.last_run_at).plus({ hours: 2 }))) {
           jobStack.push(job.id)
         }
         break;
       case '5h':
         // 如果从没运行过，或者上次运行已经过去超过5小时，那么需要运行
-        if (!job.last_run_at || moment().isAfter(moment(job.last_run_at).add(5, 'hour')) ) {
+        if (!job.last_run_at || (DateTime.local() > DateTime.fromMillis(job.last_run_at).plus({ hours: 5 }))) {
           jobStack.push(job.id)
         }
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
-        if (!job.last_run_at || !moment().isSame(moment(job.last_run_at), 'day') || (job.checkin && !job.checkinState)) {
+        if (!job.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(job.last_run_at), 'day')) || (job.checkin && !job.checkinState)) {
           jobStack.push(job.id)
         }
         break;
@@ -317,7 +319,7 @@ function clearIframe() {
 // 执行组织交给我的任务
 function runJob(jobId, force = false) {
   // 不在凌晨阶段运行非强制任务
-  if (moment().hour() < 6 && !force) {
+  if (DateTime.local().hour < 6 && !force) {
     return console.log('Silent Night')
   }
   backgroundLog.info("run job", {
@@ -345,16 +347,21 @@ function runJob(jobId, force = false) {
     // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段
     if (!force && job.schedule) {
       for (var i = 0, len = job.schedule.length; i < len; i++) {
-        let hour = moment().hour();
-        let time = job.schedule[i]
-        if (time > hour) {
+        let hour = DateTime.local().hour;
+        let scheduledHour = job.schedule[i]
+        if (scheduledHour > hour) {
+          let scheduledTime = DateTime.local().set({
+            hour: scheduledHour, 
+            minute: rand(5), 
+            second: rand(55)
+          }).valueOf()
           chrome.alarms.create('runScheduleJob_' + job.id, {
-            when: moment().set('hour', time).set('minute', rand(5)).set('second', rand(55)).valueOf()
+            when: scheduledTime
           })
           return backgroundLog.info("schedule job created", {
             job: job,
-            time: time,
-            when: moment().set('hour', time).set('minute', rand(5)).set('second', rand(55)).valueOf()
+            time: scheduledHour,
+            when: scheduledTime
           })
         }
       }
@@ -676,12 +683,16 @@ function saveLoginState(state) {
     message: state.content || state.message,
     state: state.state
   }));
+  chrome.runtime.sendMessage({
+    action: "loginState_updated",
+    data:state
+  });
 }
 
 // 浏览器通知（合并）
 // mute_night
 function sendChromeNotification(id, content) {
-  let hour = moment().hour();
+  let hour = DateTime.local().hour;
   let muteNight = getSetting('mute_night');
   if (muteNight && hour < 6) {
     backgroundLog.info('mute_night', content);
@@ -783,7 +794,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       let loginTypeState = localStorage.getItem('jjb_login-state_' + msg.type) ? JSON.parse(localStorage.getItem('jjb_login-state_' + msg.type)) : {}
       // 如果有 loginTypeState
       if (account && loginTypeState && loginTypeState.time) {
-        loginTypeState.displayTime = moment(loginTypeState.time).locale('zh-cn').calendar()
+        loginTypeState.displayTime = DateTime.fromISO(loginTypeState.time).setLocale('zh-cn').toFormat('f')
         account.loginState = loginTypeState
       }
       return sendResponse(account)
@@ -929,11 +940,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'checkin_status':
       let currentStatus = localStorage.getItem('jjb_checkin_' + msg.batch) ? JSON.parse(localStorage.getItem('jjb_checkin_' + msg.batch)) : null
       let data = {
-        date: moment().format("DDD"),
+        date: DateTime.local().toFormat("o"),
         time: new Date(),
         value: msg.value
       }
-      if (currentStatus && currentStatus.date == moment().format("DDD")) {
+      if (currentStatus && currentStatus.date == DateTime.local().toFormat("o")) {
         console.log('已经记录过今日签到状态了')
       } else {
         localStorage.setItem('jjb_checkin_' + msg.batch, JSON.stringify(data));
@@ -988,18 +999,18 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     // 高亮Tab
     case 'highlightTab':
       var content = JSON.parse(msg.content)
-      sendChromeNotification(new Date().getTime().toString(), {
-        type: "basic",
-        title: content.title ? content.title : "京价保未能自动完成任务",
-        message: "需要人工辅助，已将窗口切换至需要操作的标签" ,
-        iconUrl: 'static/image/128.png'
-      })
       chrome.tabs.query({
         url: content.url,
         pinned: content.pinned == 'true'
       }, function (tabs) {
-        var tabIds = $.map(tabs, function (tab) {
+        $.map(tabs, function (tab) {
           chrome.tabs.update(tab.id, { pinned: false }, function (newTab) {
+            sendChromeNotification(new Date().getTime().toString(), {
+              type: "basic",
+              title: content.title ? content.title : "京价保未能自动完成任务",
+              message: "需要人工辅助，已将窗口切换至需要操作的标签" ,
+              iconUrl: 'static/image/128.png'
+            })
             chrome.tabs.highlight({
               tabs: newTab.index
             })

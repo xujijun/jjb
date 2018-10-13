@@ -199,3 +199,12 @@ dialog .close {
     padding-top: 30px;
     margin-top: 10px;
 }
+
+.first_area_md {
+    height: auto !important;
+    position: relative;
+}
+
+.first_area_md .jjbPriceChart{
+    margin-top: 20px;
+}

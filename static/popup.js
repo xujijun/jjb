@@ -1,3 +1,5 @@
+var DateTime = luxon.DateTime;
+
 (function ($) {
   $.each(['show', 'hide'], function (i, ev) {
     var el = $.fn[ev];
@@ -116,23 +118,44 @@ $('#settings').garlic({
   }
 });
 
+function readableTime(datetime) {
+  if (DateTime.local().hasSame(datetime, 'day')) {
+    return '今天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
+  }
+  if (DateTime.local().hasSame(datetime.minus({ days: 1 }), 'day')){
+    return '昨天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
+  }
+  return datetime.setLocale('zh-cn').toFormat('f')
+}
+
 // 接收消息
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  if (message.action == 'orders_updated') {
-    let disabled_link = getSetting('disabled_link');
-    htmlRender({
-      name: 'orders',
-      orders: JSON.parse(message.data),
-      disabled_link: disabled_link == 'checked' ? true : false
-    })
-  }
-  if (message.action == 'new_message') {
-    let lastUnreadCount = $("#unreadCount").text()
-    $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
-    htmlRender({
-      name: 'messages',
-      messages: makeupMessages(JSON.parse(message.data))
-    })
+  switch (message.action) {
+    case 'orders_updated':
+      let disabled_link = getSetting('disabled_link');
+      let orders = JSON.parse(message.data).map(function (order) {
+        order.time = readableTime(DateTime.fromISO(order.time))
+        return order
+      })
+      htmlRender({
+        name: 'orders',
+        orders: orders,
+        disabled_link: disabled_link == 'checked' ? true : false
+      })
+      break;
+    case 'new_message':
+      let lastUnreadCount = $("#unreadCount").text()
+      $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
+      htmlRender({
+        name: 'messages',
+        messages: makeupMessages(JSON.parse(message.data))
+      })
+      break;
+    case 'loginState_updated':
+      dealWithLoginState()
+      break;
+    default:
+      break;
   }
 });
 
@@ -346,9 +369,9 @@ function markJobStatus() {
       if (jobId) {
         var last_run_time = localStorage.getItem(jobId + '_lasttime')
         if (last_run_time) {
-          job_elem.find('.reload-icon').attr('title', '上次运行： ' + moment(Number(last_run_time)).locale('zh-cn').calendar())
+          job_elem.find('.reload-icon')[0]._tippy.setContent('上次运行： ' + readableTime(DateTime.fromMillis(Number(last_run_time))))
         } else {
-          job_elem.find('.reload-icon').attr('title', '从未执行')
+          job_elem.find('.reload-icon')[0]._tippy.setContent('从未执行')
         }
       }
     }
@@ -357,13 +380,13 @@ function markJobStatus() {
   // 标记签到状态
   checkinTasks.forEach(task => {
     let record = localStorage.getItem('jjb_checkin_' + task) ? JSON.parse(localStorage.getItem('jjb_checkin_' + task)) : null
-    if (record && record.date == moment().format("DDD")) {
-      let title = '完成于：' + moment(record.time).locale('zh-cn').calendar()
+    if (record && record.date == DateTime.local().toFormat("o")) {
+      let title = '完成于：' + readableTime(DateTime.fromISO(record.time))
       if (record.value) {
         title = title + '，领到：' + record.value
       }
       $(".checkin-" + task).find('.reload').removeClass('show').hide()
-      $(".checkin-" + task).find('.today').attr('title', title).addClass('show')
+      $(".checkin-" + task).find('.today').addClass('show')[0]._tippy.setContent(title)
     }
   });
 }
@@ -400,7 +423,7 @@ function dealWithLoginState() {
     "unknown": "未知"
   }
   function getStateDescription(loginState, type) {
-    return stateText[loginState[type].state] + (loginState[type].message ? `（ ${loginState[type].message} 上次检查： ${moment(loginState[type].time).locale('zh-cn').calendar()} ）` : '')
+    return stateText[loginState[type].state] + (loginState[type].message ? `（ ${loginState[type].message} 上次检查： ${readableTime(DateTime.fromISO(loginState[type].time))} ）` : '')
   }
   function dealWithLoginNotice(loginState, type) {
     let loginTypeNoticeDom = $('.login-type_' + type)
@@ -409,8 +432,8 @@ function dealWithLoginState() {
     if (loginState[type].state != "unknown") {
       stateDescription = "当前登录状态" + getStateDescription(loginState, type)
     }
-    loginTypeNoticeDom.addClass(loginState[type].state)
-    loginTypeNoticeDom.attr("title", stateDescription)
+    loginTypeNoticeDom.removeClass("alive").removeClass("failed").addClass(loginState[type].state)
+    loginTypeNoticeDom[0]._tippy.setContent(stateDescription)
     $('.login-type_' + type + ' .status-text').text(stateText[loginState[type].state])
     if (!loginState[type] || loginState[type].state != "alive") {
       $('.frequency_settings .job-' + type + ' .reload').removeClass('show').hide()
@@ -420,12 +443,15 @@ function dealWithLoginState() {
         loginTypeNoticeDom.attr("href", loginUrl)
         loginTypeNoticeDom.attr("target", "_blank")
       }
+    } else {
+      $('.frequency_settings .job-' + type + ' .job-state').removeClass('show')
     }
   }
   function dealResponse(loginState) {
     dealWithLoginNotice(loginState, 'pc')
     dealWithLoginNotice(loginState, 'm')
-    $("#loginState").attr("title", "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))
+    $("#loginState")[0]._tippy.setContent("PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))
+    $("#loginState").removeClass("alive").removeClass("failed").removeClass("warning")
     $("#loginState").addClass(loginState.class)
     $("#loginNotice").addClass('state-' + loginState.class)
     // 登录提醒
@@ -459,7 +485,7 @@ function makeupMessages(messages) {
       if (message.type == 'coupon') {
         message.coupon = JSON.parse(message.content)
       }
-      message.time = moment(message.time).locale('zh-cn').calendar()
+      message.time = readableTime(DateTime.fromISO(message.time))
       return message
     })
   } else {
@@ -480,6 +506,9 @@ $( document ).ready(function() {
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
   
+  // tippy
+  tippy('.tippy')
+
   // 处理登录状态
   dealWithLoginState()
 
@@ -571,7 +600,7 @@ $( document ).ready(function() {
     showTest()
   }
 
-  // 常规弹窗延迟100ms
+  // 常规弹窗延迟200ms
   setTimeout(() => {
     if (paid) {
       $("#dialogs").hide()
@@ -593,16 +622,7 @@ $( document ).ready(function() {
     if (!account) {
       $("#clearAccount").addClass('weui-btn_disabled')
     }
-  }, 100);
-
-  // tippy
-  setTimeout(function () {
-    tippy('.tippy', {
-      animation: 'scale',
-      duration: 20,
-      arrow: true
-    })
-  }, 800)
+  }, 200);
 
 
   $('.settings .weui-navbar__item').on('click', function () {
@@ -646,7 +666,7 @@ $( document ).ready(function() {
 
   if (orders) {
     orders = orders.map(function (order) {
-      order.time = moment(order.time).locale('zh-cn').calendar()
+      order.time = readableTime(DateTime.fromISO(order.time))
       return order
     })
   } else {
@@ -716,7 +736,9 @@ $( document ).ready(function() {
   $(".switch-paymethod").on("click", function () {
     let to = $(this).data('to')
     let target = $(this).data('target')
-    switchPayMethod(to, target)
+    if ($(this).hasClass('switch-paymethod')){
+      switchPayMethod(to, target)
+    }
   })
 
   $(".showChangeLog").on("click", function () {

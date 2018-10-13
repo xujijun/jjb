@@ -1,5 +1,8 @@
 $( document ).ready(function() {
   let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
+  if (window.location.host == 're.jd.com') {
+    urlInfo = /(https|http):\/\/re.jd.com\/cps\/item\/([0-9]*).html/g.exec(window.location.href);
+  }
   let sku = urlInfo[2]
   let priceChartDOM = `
     <div class="jjbPriceChart">
@@ -13,7 +16,13 @@ $( document ).ready(function() {
       <span class="provider"><a href="https://blog.jjb.im/price-chart.html" target="_blank">由京价保提供</a></span>
     </div>
   `;
-  $(".product-intro").append(priceChartDOM);
+  if ($(".product-intro").length > 0) {
+    $(".product-intro").append(priceChartDOM);
+  }
+
+  if ($(".first_area_md").length > 0) {
+    $(".first_area_md").append(priceChartDOM);
+  }
   
   setTimeout( function(){
     $('#disablePriceChart').bind('click', () => {

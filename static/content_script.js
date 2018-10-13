@@ -136,12 +136,13 @@ async function getNowPrice(sku, setting) {
 
 async function dealProduct(product, order_info, setting) {
   console.log('dealProduct', product, order_info)
-  var success_logs = []
-  var product_name = product.find('.item-name .name').text()
-  var order_price = Number(product.find('.item-opt .price').text().replace(/[^0-9\.-]+/g, ""))
-  var order_sku = product.find('.item-opt .apply').attr('id').split('_')
-  var order_quantity =  Number(product.find('.item-name .count').text().trim())
-  var order_success_logs = product.next().find('.ajaxFecthState .jb-has-succ').text()
+  let success_logs = []
+  let product_name = product.find('.item-name .name').text()
+  let order_price = Number(product.find('.item-opt .price').text().replace(/[^0-9\.-]+/g, ""))
+  let order_sku = product.find('.item-opt .apply').attr('id').split('_')
+  let order_quantity =  Number(product.find('.item-name .count').text().trim().replace(/[^0-9\.-]+/g, ""))
+  let order_success_logs = product.next().find('.ajaxFecthState .jb-has-succ').text()
+  let product_img =  product.find('.img img').attr('src')
   console.log('发现有效的订单', product_name, order_price)
 
   if (order_success_logs && typeof order_success_logs == "object") {
@@ -161,6 +162,7 @@ async function dealProduct(product, order_info, setting) {
   order_info.goods.push({
     sku: order_sku[2],
     name: product_name,
+    img: product_img,
     order_price: order_price,
     new_price: new_price,
     success_log: success_logs,
@@ -530,47 +532,63 @@ function autoLogin(account, type) {
     }
     // 如果需要验证码
     if ($("#input-code").height() > 0) {
-      let captcha = $("#username_login .code-box img")[0]
-      let base64Image = getBase64Image(captcha)
-      $("#username_login").append(`<div class="weui-loadmore">
-            <i class="weui-loading"></i>
-            <span class="weui-loadmore__tips">正在识别验证码</span>
-        </div>
-      `)
-      $.ajax({
-        method: "POST",
-        type: "POST",
-        url: "https://jjb.zaoshu.so/captcha",
-        data: {
-          base64Image: base64Image,
-        },
-        timeout: 8000,
-        dataType: "json",
-        success: function(data){
-          if (data.result && data.result.length > 3) {
-            if ($("#code").is(":focus") || $("#code").val().length > 0 ) {
-              $("#username_login").append(`<p class="tips">验证码参考：${data.result}</p>`)
-            } else {
-              $("#code").val(data.result)
-              mLogin()
-            }
-          } else {
-            dealLoginFailed("m", "需要完成登录验证")
-          }
-        },
-        error: function(xhr, type){
-          dealLoginFailed("m", "需要完成登录验证")
-        },
-        complete: function() {
-          $("#username_login .weui-loadmore").hide()
-        }
-      })
+      tryFillCaptcha()
     } else {
       mLogin()
     }
   }
 }
 
+
+function dealWithCaptchaError(isRetry, error) {
+  console.log('dealWithCaptchaError', error)
+  if (isRetry) {
+    dealLoginFailed("m", "需要完成登录验证")
+  } else {
+    setTimeout(() => {
+      tryFillCaptcha(true)
+    }, 500);
+  }
+}
+
+// 识别验证码
+function tryFillCaptcha(isRetry) {
+  let captcha = $("#username_login .code-box img")[0]
+  let base64Image = getBase64Image(captcha)
+  $("#username_login").append(`<div class="weui-loadmore">
+        <i class="weui-loading"></i>
+        <span class="weui-loadmore__tips">${isRetry ? '正在重新识别验证码' : '正在识别验证码'}</span>
+    </div>
+  `)
+  $.ajax({
+    method: "POST",
+    type: "POST",
+    url: "https://jjb.zaoshu.so/captcha",
+    data: {
+      base64Image: base64Image,
+    },
+    timeout: 8000,
+    dataType: "json",
+    success: function(data){
+      if (data.result && data.result.length > 3) {
+        if ($("#code").is(":focus") || $("#code").val().length > 0 ) {
+          $("#username_login").append(`<p class="tips">验证码参考：${data.result}</p>`)
+        } else {
+          $("#code").val(data.result)
+          mLogin()
+        }
+      } else {
+        dealWithCaptchaError(isRetry, data.result)
+      }
+    },
+    error: function(xhr, type){
+      dealWithCaptchaError(isRetry, xhr)
+    },
+    complete: function() {
+      $("#username_login .weui-loadmore").hide()
+    }
+  })
+}
 
 // 转存老的账号
 function resaveAccount() {
@@ -951,7 +969,9 @@ function showPriceChart(disable) {
           pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || price
           price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
         }
-        reportPrice(sku, price, plus_price, pingou_price)
+        if (price) {
+          reportPrice(sku, price, plus_price, pingou_price)
+        }
       } catch (error) {
         console.log('reportPrice error', error)
       }
@@ -1133,7 +1153,7 @@ function CheckDom() {
   }
 
   // 商品页
-  if (window.location.host == 'item.jd.com') {
+  if (window.location.host == 'item.jd.com' || window.location.host == 're.jd.com') {
     getSetting('disable_pricechart', showPriceChart);
   }
 
