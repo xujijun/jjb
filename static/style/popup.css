@@ -207,7 +207,7 @@ a:hover {
     padding-top: 5px;
 }
 
-#orders .weui-cell:before, #orders.weui-cells:before,  #orders.weui-cells:after{
+#orders .weui-cell:before, .contents-box.weui-cells:before,  .contents-box.weui-cells:after{
     border-top: none;
     content: none;
 }
@@ -388,6 +388,12 @@ a:hover {
 
 .weui-navbar__item{
     padding: 7px 0;
+    cursor: pointer;
+}
+
+#recommendedLink p{
+    text-align: center;
+    margin-top: 5px;
 }
 
 .iframe-loading{

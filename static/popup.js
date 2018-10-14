@@ -122,7 +122,7 @@ function readableTime(datetime) {
   if (DateTime.local().hasSame(datetime, 'day')) {
     return '今天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
   }
-  if (DateTime.local().hasSame(datetime.minus({ days: 1 }), 'day')){
+  if (DateTime.local().hasSame(datetime.plus({ days: 1 }), 'day')){
     return '昨天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
   }
   return datetime.setLocale('zh-cn').toFormat('f')
@@ -226,7 +226,7 @@ function listenVoice(type, batch) {
     text: type,
     batch: batch,
     test: true,
-    title: "【试听】京价保通知试听",
+    title: "京价保通知试听",
     content: "并没有钱，这只是假象，你不要太当真"
   }, function (response) {
     console.log("Response: ", response);
@@ -272,6 +272,31 @@ function changeTips() {
     $("#notice").addClass("openMobliePage")
   }
 }
+
+
+function buildLinkDom(link){
+  if (link.moblie) {
+    return `
+      <p>
+        <a class="openMobliePage" style="${link.style}" data-url="${link.url}">${link.title}</a>
+      </p>
+    `
+  }
+  return `
+    <p>
+      <a href="${link.url}" style="${link.style}" class="weui-form-preview__btn weui-form-preview__btn_primary" target="_blank">${link.title}</a>
+    </p>
+  `
+}
+
+// show recommendedLink
+function showRecommendedLinks() {
+  let recommendedLinks = localStorage.getItem('recommendedLinks') ? JSON.parse(localStorage.getItem('recommendedLinks')) : []
+  $.each(recommendedLinks, function (i, link) {
+    $("#recommendedLink").append(buildLinkDom(link))
+  })
+}
+
 
 // 对比版本
 function versionCompare(v1, v2, options) {
@@ -348,10 +373,12 @@ function receiveMessage(event) {
     switch (event.data.name) {
       case 'orders':
         $('#orders').html(event.data.html)
+        tippy(".tippy")
         break;
       case 'messages':
         $('#messages').html(event.data.html)
         bindMessageAction()
+        tippy(".tippy")
         break;
       default:
         break;
@@ -523,6 +550,9 @@ $( document ).ready(function() {
   // 随机显示 Tips
   changeTips()
 
+  // 推荐链接
+  showRecommendedLinks()
+
   $('body').width(windowWidth-1)
   // 窗口 resize
   setTimeout(() => {
@@ -543,13 +573,16 @@ $( document ).ready(function() {
     if (json.announcements && json.announcements.length > 0) {
       localStorage.setItem('announcements', JSON.stringify(json.announcements))
     }
+    if (json.recommendedLinks && json.recommendedLinks.length > 0) {
+      localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
+    }
   });
 
   // 查询最新版本
   $.getJSON("https://jjb.zaoshu.so/updates/check?version={{version}}", function (json) {
     let skipVerison = localStorage.getItem('skipVerison')
     let localVerison = skipVerison || "{{version}}"
-    if (versionCompare(localVerison, json.lastVerison) < 0 && json.notice) {
+    if (versionCompare(localVerison, json.lastVerison) < 0  && json.notice && versionCompare(localVerison, json.noticeVerison) < 1) {
       weui.dialog({
         title: json.title || '京价保有版本更新',
         content: json.changelog || '一系列改进',

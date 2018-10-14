@@ -1217,41 +1217,43 @@ function CheckDom() {
         }
       }, 2000)
     } else {
-      markCheckinStatus('double_check')
+      if ($("#receiveAward .link-gift").text() == "今天已领点击查看礼包"){
+        markCheckinStatus('double_check')
+      }
     }
   };
 
   // 13：京东用户每日福利
-  if ($(".signDay_day").length) {
-    console.log('13：京东用户每日福利')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "13"
-    })
-    if ($(".day_able .signDay_day_btm").text() == "签到领取") {
-      $(".day_able .signDay_day_btm").trigger("tap")
-      $(".day_able .signDay_day_btm").trigger("click")
-      setTimeout(function () {
-        if ($(".day_able .signDay_day_btm").text() == "已签到领取") {
-          let value = 1
-          markCheckinStatus('vip', value + '京豆', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              batch: "bean",
-              value: value,
-              unit: 'bean',
-              title: "京价保自动为您签到领京豆",
-              content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 2000)
-    } else {
-      markCheckinStatus('m_welfare')
-    }
-  };
+  // if ($(".signDay_day").length) {
+  //   console.log('13：京东用户每日福利')
+  //   chrome.runtime.sendMessage({
+  //     text: "run_status",
+  //     jobId: "13"
+  //   })
+  //   if ($(".day_able .signDay_day_btm").text() == "签到领取") {
+  //     $(".day_able .signDay_day_btm").trigger("tap")
+  //     $(".day_able .signDay_day_btm").trigger("click")
+  //     setTimeout(function () {
+  //       if ($(".day_able .signDay_day_btm").text() == "已签到领取") {
+  //         let value = 1
+  //         markCheckinStatus('vip', value + '京豆', () => {
+  //           chrome.runtime.sendMessage({
+  //             text: "checkin_notice",
+  //             batch: "bean",
+  //             value: value,
+  //             unit: 'bean',
+  //             title: "京价保自动为您签到领京豆",
+  //             content: "恭喜您获得了" + value + '个京豆奖励'
+  //           }, function (response) {
+  //             console.log("Response: ", response);
+  //           })
+  //         })
+  //       }
+  //     }, 2000)
+  //   } else {
+  //     markCheckinStatus('m_welfare')
+  //   }
+  // };
 
 
   // 京豆签到 (11:京豆签到)
@@ -1325,13 +1327,13 @@ function CheckDom() {
           let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
           let rawValue = $(".am-modal-body .title").text()
           let value = re.exec(rawValue)
-          markCheckinStatus('jr-qyy', (value ? value[1] : '一两') + '个钢镚', () => {
+          markCheckinStatus('jr-qyy', (value ? value[1] : '～0.01') + '个钢镚', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               title: "京价保自动为您签到抢钢镚",
-              value: value ? value[1] : 1,
+              value: value ? value[1] : 0.01,
               unit: 'coin',
-              content: "恭喜您领到了" + (value ? value[1] : '一两') + "个钢镚"
+              content: "恭喜您领到了" + (value ? value[1] : '～0.01') + "个钢镚"
             }, function(response) {
               console.log("Response: ", response);
             })
@@ -1339,7 +1341,9 @@ function CheckDom() {
         }
       }, 1000)
     } else {
-      markCheckinStatus('jr-qyy')
+      if ($(".gangbeng .btn").text() == "已签到") {
+        markCheckinStatus('jr-qyy')
+      }
     }
   };
 
