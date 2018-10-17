@@ -90,6 +90,7 @@ gulp.task('move-js', [], function () {
     'node_modules/logline/dist/logline.min.js',
     'node_modules/dialog-polyfill/dialog-polyfill.js',
     'node_modules/luxon/build/global/luxon.js',
+    'node_modules/hammer-touchemulator/touch-emulator.js'
   ])
   .pipe(gulp.dest('build/static'));
 });

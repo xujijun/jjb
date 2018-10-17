@@ -171,7 +171,7 @@ chrome.runtime.onInstalled.addListener(function (object) {
 });
 
 // use iPhone as USER AGENT
-var iPhone_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1';
+var iPhone_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1';
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
     for (var i = 0; i < details.requestHeaders.length; ++i) {

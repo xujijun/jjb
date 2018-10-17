@@ -654,7 +654,9 @@ $( document ).ready(function() {
     // 如果当前没有弹框 且 需要展示changelog
     if ($(".js_dialog:visible").length < 1 && changelog_version != current_version) {
       localStorage.setItem('changelog_version', $("#changeLogs").data('version'))
-      $("#changeLogs").show()
+      if ($("#changeLogs").data('major') == 'Y') {
+        $("#changeLogs").show()
+      }
     }
 
     if (!account) {

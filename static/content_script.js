@@ -275,13 +275,6 @@ async function getAllOrders(setting) {
   localStorage.setItem('jjb_last_check', new Date().getTime());
 }
 
-var auto_login_html = "<p class='auto_login'><span class='jjb-login'>让京价保记住密码并自动登录</span></p>";
-var remberme_html = `<label for="remberme" class="remberme J_ping" report-eventid="MLoginRegister_AutoLogin">
-  <input type="checkbox" id="remberme" checked>
-  <span class="icon icon-rember"></span>
-  <span class="txt-remberme">一个月内免登录</span>
-  </label>`
-
 function mockClick(element) {
   // DOM 2 Events
   var dispatchMouseEvent = function (target, var_args) {
@@ -366,240 +359,6 @@ function CheckBaitiaoCouponDom(setting) {
         }, time)
         time += 5000;
       }
-    })
-  }
-}
-
-// 保存账号
-function saveAccount(account) {
-  chrome.runtime.sendMessage({
-    text: "saveAccount",
-    content: JSON.stringify(account)
-  }, function (response) {
-    console.log('saveAccount response', response)
-  });
-}
-
-// 获取账号信息
-function getAccount(type) {
-  console.log("getAccount", type)
-  chrome.runtime.sendMessage({
-    text: "getAccount",
-    type: type
-  },
-  function (account) {
-    if (account && account.username && account.password) {
-      setTimeout(() => {
-        autoLogin(account, type)
-      }, 50);
-    } else {
-      chrome.runtime.sendMessage({
-        text: "loginState",
-        state: "failed",
-        message: "由于账号未保存无法自动登录",
-        type: type
-      }, function (response) {
-        console.log("Response: ", response);
-      });
-    }
-  });
-}
-// 获取设置
-function getSetting(name, cb) {
-  chrome.runtime.sendMessage({
-    text: "getSetting",
-    content: name
-  }, function (response) {
-    cb(response)
-    console.log("getSetting Response: ", response);
-  });
-}
-
-// 登录失败
-function dealLoginFailed(type, errormsg) {
-  let loginFailedDetail = {
-    text: "loginFailed",
-    type: type,
-    notice: true,
-    content: errormsg
-  }
-  // 如果是单纯的登录页面，则不发送浏览器提醒
-  if (window.innerWidth == 420 || window.location.href == "https://passport.jd.com/uc/login") {
-    loginFailedDetail.notice = false
-    console.log("主动登录页面不发送浏览器消息提醒")
-  }
-  chrome.runtime.sendMessage(loginFailedDetail, function (response) {
-    console.log("loginFailed Response: ", response);
-  });
-}
-
-function getBase64Image(img) {
-  var canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  var ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-  var dataURL = canvas.toDataURL("image/png");
-
-  return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-}
-
-// 自动登录
-function autoLogin(account, type) {
-  console.log('京价保正在为您自动登录', type)
-  if (type == 'pc') {
-    // 切换到账号登录
-    mockClick($(".login-tab-r a")[0])
-    // 自动补全填入
-    $("#loginname").val(account.username)
-    $("#nloginpwd").val(account.password)
-    // 监控验证结果
-    let authcodeDom = document.getElementById("s-authcode")
-    if (authcodeDom) {
-      observeDOM(authcodeDom, function () {
-        let resultText = $("#s-authcode .authcode-btn").text()
-        if (resultText && resultText == "验证成功") {
-          mockClick($(".login-btn a")[0])
-        }
-      });
-    }
-    // 如果此前已经登录失败
-    if (account.loginState && account.loginState.state == 'failed') {
-      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginState.displayTime + '自动登录失败（原因：' + account.loginState.message + '），京价保暂停自动登录').css('color', '#f73535').css('font-size', '14px')
-      $(".login-wrap .tips-wrapper").hide()
-      $("#content .tips-wrapper").css('background', '#fff97a')
-      chrome.runtime.sendMessage({
-        text: "highlightTab",
-        content: JSON.stringify({
-          url: window.location.href,
-          pinned: "true"
-        })
-      }, function (response) {
-        console.log("Response: ", response);
-      });  
-    } else {
-      // 如果显示需要验证
-      if ($("#s-authcode").height() > 0) {
-        dealLoginFailed("pc", "需要完成登录验证")
-      } else {
-        setTimeout(function () {
-          mockClick($(".login-btn a")[0])
-        }, 500)
-        // 是否需要滑动验证
-        setTimeout(function () {
-          let slidemsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
-          if (slidemsg.length > 0) {
-            dealLoginFailed("pc", "需要完成登录验证")
-            chrome.runtime.sendMessage({
-              text: "highlightTab",
-              content: JSON.stringify({
-                title: "需要完成滑动拼图以登录",
-                url: window.location.href,
-                pinned: "true"
-              })
-            }, function (response) {
-              console.log("Response: ", response);
-            });
-          }
-        }, 1500)
-        // 监控登录失败
-        setTimeout(function () {
-          let errormsg = $('.login-box .msg-error').text()
-          if (errormsg.length > 0) {
-            dealLoginFailed("pc",errormsg)
-          }
-        }, 2000)
-      }
-    }
-  // 手机登录
-  } else {
-    $("#username").val(account.username)
-    $("#password").val(account.password)
-    $("#loginBtn").addClass("btn-active")
-    // 自动登录
-    function mLogin() {
-      setTimeout(function () {
-        if ($("#username").val() && $("#password").val()) {
-          mockClick($("#loginBtn")[0])
-          // 监控失败提示
-          setTimeout(function () {
-            if ($(".notice").text() && $(".notice").text().indexOf("错误") > -1) {
-              dealLoginFailed("m", "需要完成登录验证")
-            }
-          }, 1500)
-        }
-      }, 500)
-    }
-    // 如果需要验证码
-    if ($("#input-code").height() > 0) {
-      tryFillCaptcha()
-    } else {
-      mLogin()
-    }
-  }
-}
-
-
-function dealWithCaptchaError(isRetry, error) {
-  console.log('dealWithCaptchaError', error)
-  if (isRetry) {
-    dealLoginFailed("m", "需要完成登录验证")
-  } else {
-    setTimeout(() => {
-      tryFillCaptcha(true)
-    }, 500);
-  }
-}
-
-// 识别验证码
-function tryFillCaptcha(isRetry) {
-  let captcha = $("#username_login .code-box img")[0]
-  let base64Image = getBase64Image(captcha)
-  $("#username_login").append(`<div class="weui-loadmore">
-        <i class="weui-loading"></i>
-        <span class="weui-loadmore__tips">${isRetry ? '正在重新识别验证码' : '正在识别验证码'}</span>
-    </div>
-  `)
-  $.ajax({
-    method: "POST",
-    type: "POST",
-    url: "https://jjb.zaoshu.so/captcha",
-    data: {
-      base64Image: base64Image,
-    },
-    timeout: 8000,
-    dataType: "json",
-    success: function(data){
-      if (data.result && data.result.length > 3) {
-        if ($("#code").is(":focus") || $("#code").val().length > 0 ) {
-          $("#username_login").append(`<p class="tips">验证码参考：${data.result}</p>`)
-        } else {
-          $("#code").val(data.result)
-          mLogin()
-        }
-      } else {
-        dealWithCaptchaError(isRetry, data.result)
-      }
-    },
-    error: function(xhr, type){
-      dealWithCaptchaError(isRetry, xhr)
-    },
-    complete: function() {
-      $("#username_login .weui-loadmore").hide()
-    }
-  })
-}
-
-// 转存老的账号
-function resaveAccount() {
-  var jjb_username = localStorage.getItem('jjb_username')
-  var jjb_password = localStorage.getItem('jjb_password')
-  if (jjb_username && jjb_password) {
-    localStorage.removeItem('jjb_username')
-    localStorage.removeItem('jjb_password')
-    saveAccount({
-      username: jjb_username,
-      password: jjb_password
     })
   }
 }
@@ -1058,6 +817,297 @@ function markCheckinStatus(type, value, cb) {
   if (cb) { cb() }
 }
 
+var auto_login_html = "<p class='auto_login'><span class='jjb-login'>让京价保记住密码并自动登录</span></p>";
+var remberme_html = `<label for="remberme" class="remberme J_ping" report-eventid="MLoginRegister_AutoLogin">
+  <input type="checkbox" id="remberme" checked>
+  <span class="icon icon-rember"></span>
+  <span class="txt-remberme">一个月内免登录</span>
+  </label>`
+
+// 保存账号
+function saveAccount(account) {
+  chrome.runtime.sendMessage({
+    text: "saveAccount",
+    content: JSON.stringify(account)
+  }, function (response) {
+    console.log('saveAccount response', response)
+  });
+}
+
+// 获取账号信息
+function getAccount(type) {
+  console.log("getAccount", type)
+  chrome.runtime.sendMessage({
+    text: "getAccount",
+    type: type
+  },
+  function (account) {
+    if (account && account.username && account.password) {
+      setTimeout(() => {
+        autoLogin(account, type)
+      }, 50);
+    } else {
+      chrome.runtime.sendMessage({
+        text: "loginState",
+        state: "failed",
+        message: "由于账号未保存无法自动登录",
+        type: type
+      }, function (response) {
+        console.log("Response: ", response);
+      });
+    }
+  });
+}
+// 获取设置
+function getSetting(name, cb) {
+  chrome.runtime.sendMessage({
+    text: "getSetting",
+    content: name
+  }, function (response) {
+    cb(response)
+    console.log("getSetting Response: ", response);
+  });
+}
+
+// 登录失败
+function dealLoginFailed(type, errormsg) {
+  let loginFailedDetail = {
+    text: "loginFailed",
+    type: type,
+    notice: true,
+    content: errormsg
+  }
+  // 如果是单纯的登录页面，则不发送浏览器提醒
+  if (window.innerWidth == 420 || window.location.href == "https://passport.jd.com/uc/login") {
+    loginFailedDetail.notice = false
+    console.log("主动登录页面不发送浏览器消息提醒")
+  }
+  chrome.runtime.sendMessage(loginFailedDetail, function (response) {
+    console.log("loginFailed Response: ", response);
+  });
+}
+
+function getBase64Image(img) {
+  var canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  var dataURL = canvas.toDataURL("image/png");
+
+  return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+}
+
+// 自动登录
+function autoLogin(account, type) {
+  console.log('京价保正在为您自动登录', type)
+  if (type == 'pc') {
+    // 切换到账号登录
+    mockClick($(".login-tab-r a")[0])
+    // 自动补全填入
+    $("#loginname").val(account.username)
+    $("#nloginpwd").val(account.password)
+    // 监控验证结果
+    let authcodeDom = document.getElementById("s-authcode")
+    if (authcodeDom) {
+      observeDOM(authcodeDom, function () {
+        let resultText = $("#s-authcode .authcode-btn").text()
+        if (resultText && resultText == "验证成功") {
+          mockClick($(".login-btn a")[0])
+        }
+      });
+    }
+    // 如果此前已经登录失败
+    if (account.loginState && account.loginState.state == 'failed') {
+      $(".tips-inner .cont-wrapper p").text('由于在' + account.loginState.displayTime + '自动登录失败（原因：' + account.loginState.message + '），京价保暂停自动登录').css('color', '#f73535').css('font-size', '14px')
+      $(".login-wrap .tips-wrapper").hide()
+      $("#content .tips-wrapper").css('background', '#fff97a')
+      chrome.runtime.sendMessage({
+        text: "highlightTab",
+        content: JSON.stringify({
+          url: window.location.href,
+          pinned: "true"
+        })
+      }, function (response) {
+        console.log("Response: ", response);
+      });  
+    } else {
+      // 如果显示需要验证
+      if ($("#s-authcode").height() > 0) {
+        dealLoginFailed("pc", "需要完成登录验证")
+      } else {
+        setTimeout(function () {
+          mockClick($(".login-btn a")[0])
+        }, 500)
+        // 是否需要滑动验证
+        setTimeout(function () {
+          let slidemsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
+          if (slidemsg.length > 0) {
+            dealLoginFailed("pc", "需要完成登录验证")
+            chrome.runtime.sendMessage({
+              text: "highlightTab",
+              content: JSON.stringify({
+                title: "需要完成滑动拼图以登录",
+                url: window.location.href,
+                pinned: "true"
+              })
+            }, function (response) {
+              console.log("Response: ", response);
+            });
+          }
+        }, 1500)
+        // 监控登录失败
+        setTimeout(function () {
+          let errormsg = $('.login-box .msg-error').text()
+          if (errormsg.length > 0) {
+            dealLoginFailed("pc",errormsg)
+          }
+        }, 2000)
+      }
+    }
+  // 手机登录
+  } else {
+    $("#username").val(account.username)
+    $("#password").val(account.password)
+    $("#loginBtn").addClass("btn-active")
+    // 自动登录
+    function mLogin() {
+      setTimeout(function () {
+        if ($("#username").val() && $("#password").val()) {
+          mockClick($("#loginBtn")[0])
+          // 是否需要滑动验证
+          setTimeout(function () {
+            let slidemsg = $("#captcha_body .sp_msg").text()
+            if (slidemsg == '请按照箭头路线滑动手指') {
+              dealLoginFailed("m", "需要完成登录验证")
+            }
+          }, 1000)
+          // 监控失败提示
+          observeDOM($(".notice")[0], function () {
+            if ($(".notice").text() && $(".notice").text().length > 0) {
+              dealLoginFailed("m", $(".notice").text())
+            }
+          })
+        }
+      }, 500)
+    }
+    // 如果需要验证码
+    if ($("#input-code").height() > 0) {
+      tryFillCaptcha()
+    } else {
+      mLogin()
+    }
+  }
+}
+
+
+function dealWithCaptchaError(isRetry, error) {
+  console.log('dealWithCaptchaError', error)
+  if (isRetry) {
+    dealLoginFailed("m", "需要完成登录验证")
+  } else {
+    setTimeout(() => {
+      tryFillCaptcha(true)
+    }, 500);
+  }
+}
+
+// 识别验证码
+function tryFillCaptcha(isRetry) {
+  let captcha = $("#username_login .code-box img")[0]
+  let base64Image = getBase64Image(captcha)
+  $("#username_login").append(`<div class="weui-loadmore">
+        <i class="weui-loading"></i>
+        <span class="weui-loadmore__tips">${isRetry ? '正在重新识别验证码' : '正在识别验证码'}</span>
+    </div>
+  `)
+  $.ajax({
+    method: "POST",
+    type: "POST",
+    url: "https://jjb.zaoshu.so/captcha",
+    data: {
+      base64Image: base64Image,
+    },
+    timeout: 8000,
+    dataType: "json",
+    success: function(data){
+      if (data.result && data.result.length > 3) {
+        if ($("#code").is(":focus") || $("#code").val().length > 0 ) {
+          $("#username_login").append(`<p class="tips">验证码参考：${data.result}</p>`)
+        } else {
+          $("#code").val(data.result)
+          mLogin()
+        }
+      } else {
+        dealWithCaptchaError(isRetry, data.result)
+      }
+    },
+    error: function(xhr, type){
+      dealWithCaptchaError(isRetry, xhr)
+    },
+    complete: function() {
+      $("#username_login .weui-loadmore").hide()
+    }
+  })
+}
+
+// 转存老的账号
+function resaveAccount() {
+  var jjb_username = localStorage.getItem('jjb_username')
+  var jjb_password = localStorage.getItem('jjb_password')
+  if (jjb_username && jjb_password) {
+    localStorage.removeItem('jjb_username')
+    localStorage.removeItem('jjb_password')
+    saveAccount({
+      username: jjb_username,
+      password: jjb_password
+    })
+  }
+}
+
+// 登录页
+function dealLoginPage() {
+  // 手机版登录页
+  if ( $(".loginPage").length > 0 ) {
+    getAccount('m')
+    $(auto_login_html).insertAfter( ".loginPage .notice")
+    // 隐藏“一键登录”
+    $("#loginOneStep").hide()
+    // 点击让京价保自动登陆
+    $('.loginPage').on('click', '.jjb-login', function (e) {
+      window.event ? window.event.returnValue = false : e.preventDefault();
+      var username = $("#username").val()
+      var password = $("#password").val()
+      // 保存账号和密码
+      if (username && password) {
+        saveAccount({
+          username: username,
+          password: password
+        })
+      }
+      mockClick($("#loginBtn")[0])
+    })
+  };
+  // PC版登录页
+  if ($(".login-tab-r").length > 0) {
+    getAccount('pc')
+    $(auto_login_html).insertAfter("#formlogin")
+    $('.login-box').on('click', '.jjb-login', function (e) {
+      window.event ? window.event.returnValue = false : e.preventDefault();
+      var username = $("#loginname").val()
+      var password = $("#nloginpwd").val()
+      // 保存账号和密码
+      if (username && password) {
+        saveAccount({
+          username: username,
+          password: password
+        })
+      }
+      mockClick($(".login-btn a")[0])
+    })
+  };
+}
+
 // 主体任务
 function CheckDom() {
   // 转存账号
@@ -1098,54 +1148,8 @@ function CheckDom() {
     });
   }
 
-  // 账号登录
-  // 手机版登录页
-  if ( $(".loginPage").length > 0 ) {
-    getAccount('m')
-    $(auto_login_html).insertAfter( ".loginPage .notice")
-    $(".loginPage .quick-nav").prepend(remberme_html)
-    // 选中“记住我”
-    setTimeout(function () {
-      let remberme = $("#remberme").val()
-      if (remberme != "on") {
-        mockClick($("#remberme")[0])
-      }
-    }, 200)
-    // 隐藏“一键登录”
-    $("#loginOneStep").hide()
-    // 京价保登陆
-    $('.loginPage').on('click', '.jjb-login', function (e) {
-      window.event ? window.event.returnValue = false : e.preventDefault();
-      var username = $("#username").val()
-      var password = $("#password").val()
-      // 保存账号和密码
-      if (username && password) {
-        saveAccount({
-          username: username,
-          password: password
-        })
-      }
-      mockClick($("#loginBtn")[0])
-    })
-  };
-  // PC版登录页
-  if ($(".login-tab-r").length > 0) {
-    getAccount('pc')
-    $(auto_login_html).insertAfter("#formlogin")
-    $('.login-box').on('click', '.jjb-login', function (e) {
-      window.event ? window.event.returnValue = false : e.preventDefault();
-      var username = $("#loginname").val()
-      var password = $("#nloginpwd").val()
-      // 保存账号和密码
-      if (username && password) {
-        saveAccount({
-          username: username,
-          password: password
-        })
-      }
-      mockClick($(".login-btn a")[0])
-    })
-  };
+  // 账号登录页
+  dealLoginPage()
 
   // 移除遮罩
   if ($("#pcprompt-viewpc").size() > 0) {
@@ -1155,6 +1159,16 @@ function CheckDom() {
   // 商品页
   if (window.location.host == 'item.jd.com' || window.location.host == 're.jd.com') {
     getSetting('disable_pricechart', showPriceChart);
+  }
+
+  // 移动页增加滑动支持
+  if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com') {
+    injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
+    injectScriptCode(`
+      setTimeout(function () {
+        TouchEmulator();
+      }, 200)
+    `, 'body')
   }
 
   // 会员页签到 (5:京东会员签到)

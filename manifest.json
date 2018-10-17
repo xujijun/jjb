@@ -39,7 +39,8 @@
   },
   "web_accessible_resources": [
     "static/dialog-polyfill.js",
-    "static/priceChart.js"
+    "static/priceChart.js",
+    "static/touch-emulator.js"
   ],
   "permissions": [
     "*://*.jd.com/*",
