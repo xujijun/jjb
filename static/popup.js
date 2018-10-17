@@ -368,11 +368,16 @@ function bindMessageAction() {
   });
 }
 
+
+
 function receiveMessage(event) {
   if (event.data.html) {
     switch (event.data.name) {
       case 'orders':
-        $('#orders').html(event.data.html)
+        $('#orders').html(event.data.html)     
+        $(".backup_picture").on("error", function(){
+          $(this).attr('src', 'https://jjbcdn.zaoshu.so/web/img_error.png');
+        });
         tippy(".tippy")
         break;
       case 'messages':
@@ -456,7 +461,7 @@ function dealWithLoginState() {
     let loginTypeNoticeDom = $('.login-type_' + type)
     let loginUrl = loginTypeNoticeDom.data("url")
     let stateDescription = "当前登录状态未知，可点击登录"
-    if (loginState[type].state != "unknown") {
+    if (loginState[type] && loginState[type].state != "unknown") {
       stateDescription = "当前登录状态" + getStateDescription(loginState, type)
     }
     loginTypeNoticeDom.removeClass("alive").removeClass("failed").addClass(loginState[type].state)

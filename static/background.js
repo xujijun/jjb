@@ -171,7 +171,7 @@ chrome.runtime.onInstalled.addListener(function (object) {
 });
 
 // use iPhone as USER AGENT
-var iPhone_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1';
+var iPhone_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1';
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
     for (var i = 0; i < details.requestHeaders.length; ++i) {
@@ -756,14 +756,14 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'getPriceProtectionSetting':
       let isPlus = getSetting('jjb_plus');
-      let min = getSetting('price_pro_min');
+      let pro_min = getSetting('price_pro_min');
       let days = getSetting('price_pro_days')
       let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
       let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
       let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
       return sendResponse({
-        pro_days: days || 15,
-        pro_min: min | 0.1,
+        pro_days: days ? Number(days) : 15,
+        pro_min: pro_min ? Number(pro_min) : 0.1,
         prompt_only,
         is_plus,
         disable_pricechart

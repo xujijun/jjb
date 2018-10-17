@@ -230,10 +230,12 @@ a:hover {
 }
 
 .good_title img{
-    width: 55px;
     display: inline-block;
     float: left;
     padding-right: 10px;
+    width: 55px;
+    height: 55px;
+    overflow: hidden;
 }
 
 .good_title span.count {

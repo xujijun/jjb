@@ -16,7 +16,7 @@
                   {{if good.sku && !disabled_link}}
                     <a href="https://jjb.zaoshu.so/good/{{good.sku}}" target="_blank">
                       {{if good.img}}
-                        <img src="https:{{good.img}}" alt="{{good.name}}">
+                        <img src="https:{{good.img}}" class="backup_picture" alt="{{good.name}}">
                       {{/if}}
                       <p>{{good.name}}</p>
                       {{if good.quantity}}
@@ -81,7 +81,11 @@
                     {{if message.coupon.batch == 'baitiao'}}
                       <a href="https://vip.jr.jd.com/coupon/myCoupons?default=IOU" target="_blank">{{message.coupon.name}}</a>
                     {{else}}
-                      <a href="https://search.jd.com/Search?coupon_batch={{message.coupon.batch}}" target="_blank">{{message.coupon.name}}</a>
+                      {{if message.coupon.batch}}
+                        <a href="https://search.jd.com/Search?coupon_batch={{message.coupon.batch}}" target="_blank">{{message.coupon.name}}</a>
+                      {{else}}
+                        <a href="https://jjb.zaoshu.so/event/jdc?e=0&p=AyIPZRprFDJWWA1FBCVbV0IUWVALHFRBEwQAQB1AWQkrW1N8UGM3WyZ1VmxSCHMIE1dEbytsKxkOfARUG1IJAhMbVR5KFQsZBFUQWhAyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1cTXxUBFwBQG1McMhU3F18ES1kiN2UrayUCEjdVKwRRX08%3D&t=W1dCFFlQCxxUQRMEAEAdQFkJ" target="_blank">{{message.coupon.name}}</a>
+                      {{/if}}
                     {{/if}}
                   </div>
                 {{else}}
