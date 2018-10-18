@@ -611,6 +611,11 @@ $( document ).ready(function() {
     }
   });
 
+  // 是否已存在弹窗
+  function isNoDialog(){
+    return ($(".js_dialog:visible").length < 1) && ($(".weui-dialog:visible").length < 1)
+  }
+
   // 入学考试
   function showTest(target) {
     let testNo = target || '1'
@@ -643,16 +648,16 @@ $( document ).ready(function() {
     if (paid) {
       $("#dialogs").hide()
     } else {
-      if ($(".js_dialog:visible").length < 1 && time[time.length - 1] < 4) {
+      if (isNoDialog() && time[time.length - 1] < 4) {
         showReward()
       }
     }
     // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
-    if ($(".js_dialog:visible").length < 1 && displayRecommend == 'true' && time[time.length - 1] > 7) {
+    if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > 7) {
       showJEvent()
     }
     // 如果当前没有弹框 且 需要展示changelog
-    if ($(".js_dialog:visible").length < 1 && changelog_version != current_version) {
+    if (isNoDialog() && changelog_version != current_version) {
       localStorage.setItem('changelog_version', $("#changeLogs").data('version'))
       if ($("#changeLogs").data('major') == 'Y') {
         $("#changeLogs").show()

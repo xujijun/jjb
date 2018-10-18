@@ -6,7 +6,7 @@ var optionLog = new Logline('option');
 var messageLog = new Logline('message');
 var backgroundLog = new Logline('background');
 var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
-var priceProUrl = "https://sitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
+var priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
 
 let jobs = [
   {
