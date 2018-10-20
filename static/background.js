@@ -1,12 +1,15 @@
-var DateTime = luxon.DateTime;
+import Logline from 'logline'
+import {DateTime} from 'luxon'
+import * as _ from "lodash"
+$ = window.$ = window.jQuery = require('jquery')
 
-Logline.using(Logline.PROTOCOL.INDEXEDDB);
-var jobLog = new Logline('job');
-var optionLog = new Logline('option');
-var messageLog = new Logline('message');
-var backgroundLog = new Logline('background');
+Logline.using(Logline.PROTOCOL.INDEXEDDB)
+
+var logger = {}
+
 var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
 var priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
+var priceProPage = null
 
 let jobs = [
   {
@@ -67,7 +70,7 @@ let jobs = [
     title: '京东金融会员签到',
     key: "jr-index",
     checkin: true,
-    mode: 'tab',
+    mode: 'iframe',
     type: 'pc',
     frequency: 'daily'
   },
@@ -208,16 +211,15 @@ chrome.webRequest.onBeforeRequest.addListener(
   }, ["blocking"]);
 
 chrome.alarms.onAlarm.addListener(function( alarm ) {
-  backgroundLog.info("onAlarm", alarm)
+  log('background', "onAlarm", alarm)
+  var jobId = alarm.name.split('_')[1]
   switch(true){
     // 计划任务
     case alarm.name.startsWith('runScheduleJob'):
-      var jobId = alarm.name.split('_')[1]
       runJob(jobId, true)
       break;
     // 定时任务
     case alarm.name.startsWith('runJob'):
-      var jobId = alarm.name.split('_')[1]
       runJob(jobId)
       break;
     // 周期运行（10分钟）
@@ -226,14 +228,14 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       findJobs()
       runJob()
       break;
-    case alarm.name == 'clearIframe':
+    case alarm.name.startsWith('clearIframe'):
+      let iframeId = jobId || 'iframe'
       // 销毁掉 
-      clearIframe()
+      resetIframe(iframeId)
       break;
     case alarm.name.startsWith('closeTab'):
-      var tabId = alarm.name.split('_')[1] ? parseInt(alarm.name.split('_')[1]) : null
       try {
-        chrome.tabs.get(tabId, (tab) => {
+        chrome.tabs.get(jobId, (tab) => {
           if (tab) {
             chrome.tabs.remove(tab.id)
           }
@@ -310,10 +312,19 @@ function rand(n){
   return (Math.floor(Math.random() * n + 1));
 }
 
-function clearIframe() {
-  $("#iframe").remove();
-  let iframe = '<iframe id="iframe" width="400 px" height="600 px" src=""></iframe>';
-  $('body').html(iframe);
+function log(type, message, details) {
+  if (logger[type]) {
+    logger[type](message, details)
+  } else {
+    logger[type] = new Logline(type)
+    console.log(type, message, details)
+  }
+}
+
+function resetIframe(domId) {
+  $("#" + domId).remove();
+  let iframeDom = `<iframe id="${domId}" width="400 px" height="600 px" src=""></iframe>`;
+  $('body').append(iframeDom);
 }
 
 // 执行组织交给我的任务
@@ -322,7 +333,7 @@ function runJob(jobId, force = false) {
   if (DateTime.local().hour < 6 && !force) {
     return console.log('Silent Night')
   }
-  backgroundLog.info("run job", {
+  log('background', "run job", {
     jobId: jobId,
     force: force
   })
@@ -333,7 +344,7 @@ function runJob(jobId, force = false) {
       var jobId = jobStack.shift();
       saveJobStack(jobStack)
     } else {
-      return jobLog.info('好像没有什么事需要我做...')
+      return log('info', '好像没有什么事需要我做...')
     }
   }
   var jobList = getJobs()
@@ -341,7 +352,7 @@ function runJob(jobId, force = false) {
   // 检查登录状态
   let loginState = getLoginState()
   if (loginState[job.type].state != 'alive' && !force) {
-    return jobLog.log(job.title, '由于账号未登录已暂停运行')
+    return log('job', job.title, '由于账号未登录已暂停运行')
   }
   if (job && (job.frequency != 'never' || force)) {
     // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段
@@ -358,7 +369,7 @@ function runJob(jobId, force = false) {
           chrome.alarms.create('runScheduleJob_' + job.id, {
             when: scheduledTime
           })
-          return backgroundLog.info("schedule job created", {
+          return log('background', "schedule job created", {
             job: job,
             time: scheduledHour,
             when: scheduledTime
@@ -366,20 +377,13 @@ function runJob(jobId, force = false) {
         }
       }
       // 如果当前已经过了最晚的运行时段，则放弃运行
-      return backgroundLog.info("pass schedule job", {
+      return log('background', "pass schedule job", {
         job: job
       })
     }
-    backgroundLog.info("run", job)
+    log('background', "run", job)
     if (job.mode == 'iframe') {
-      // 先移除现有的 iframe
-      clearIframe()
-      // 加载新的任务
-      $("#iframe").attr('src', job.src)
-      // 10 分钟后清理 iframe
-      chrome.alarms.create('clearIframe', {
-        delayInMinutes: 10
-      })
+      openByIframe(job.src, 'job')
     } else {
       chrome.tabs.create({
         index: 1,
@@ -391,7 +395,7 @@ function runJob(jobId, force = false) {
         chrome.tabs.update(tab.id, {
           muted: true
         }, function (result) {
-          backgroundLog.info("muted tab", result)
+          log('background', "muted tab", result)
         })
         // if (job.touch) {
         //   attachDebugger(tab)
@@ -401,6 +405,20 @@ function runJob(jobId, force = false) {
     }
   }
 
+}
+
+function openByIframe(src, type) {
+  // 加载新的任务
+  let iframeId = "iframe"
+  if (type == 'temporary') {
+    iframeId = 'iframe_' + rand(10241024)
+  }
+  resetIframe(iframeId)
+  $("#" + iframeId).attr('src', src)
+  // 10 分钟后清理 iframe
+  chrome.alarms.create('clearIframe_' + iframeId, {
+    delayInMinutes: 10
+  })
 }
 
 function updateUnreadCount(change = 0) {
@@ -425,7 +443,7 @@ function updateUnreadCount(change = 0) {
 
 
 $( document ).ready(function() {
-  backgroundLog.info("document ready")
+  log('background', "document ready")
   // 每10分钟运行一次定时任务
   chrome.alarms.create('cycleTask', {
     periodInMinutes: 10
@@ -453,82 +471,6 @@ $( document ).ready(function() {
     })
   }
 })
-
-// 调试模式
-// var phonesArray = [
-//   {
-//     title: "Apple iPhone",
-//     width: 320,
-//     height: 568,
-//     deviceScaleFactor: 2,
-//     userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1 JDAPP/7.0",
-//     touch: true,
-//     mobile: true
-//   },
-//   {
-//     title: "Android Tablet",
-//     width: 472,
-//     height: 732,
-//     deviceScaleFactor: 1.5,
-//     userAgent: "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 5X Build/OPR4.170623.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Mobile Safari/537.36 JDAPP/7.0",
-//     touch: true,
-//     mobile: true
-//   }
-// ];
-
-// var phones = {};
-// phonesArray.forEach(function (phone) {
-//   phones[phone.title.replace(/\s+/gi, '')] = phone;
-// });
-
-
-// // the good stuff.
-// function turnItOn(tab) {
-//   chrome.debugger.sendCommand({
-//     tabId: tab.id
-//   }, "Page.setTouchEmulationEnabled", {
-//     enabled: true,
-//   }, function () {
-//     chrome.debugger.sendCommand({
-//       tabId: tab.id
-//     }, "Network.setUserAgentOverride", {
-//       userAgent: phones.AndroidTablet.userAgent
-//     }, function () {
-//       // set up device metrics
-//       chrome.debugger.sendCommand({
-//         tabId: tab.id
-//       }, "Page.setDeviceMetricsOverride", {
-//         width: phones.AndroidTablet.width,
-//         height: phones.AndroidTablet.height,
-//         deviceScaleFactor: phones.AndroidTablet.deviceScaleFactor,
-//         mobile: phones.AndroidTablet.mobile
-//       }, function () {
-//         // reload page
-//         chrome.debugger.sendCommand({
-//           tabId: tab.id
-//         }, "Page.reload", {
-//           ignoreCache: false
-//         }, function () {
-//           setTimeout(() => {
-//             chrome.debugger.detach({
-//               tabId: tab.id
-//             });
-//           }, 10*1000);
-//         });
-//       });
-//     });
-//   });
-// }
-
-// // this sets up the debugger. attached to all the things.
-// function attachDebugger(tab) {
-//   var protocolVersion = '1.2';
-//   chrome.debugger.attach({
-//     tabId: tab.id
-//   }, protocolVersion, function () {
-//     turnItOn(tab);
-//   });
-// }
 
 
 function openWebPageAsMoblie(url) {
@@ -695,10 +637,24 @@ function sendChromeNotification(id, content) {
   let hour = DateTime.local().hour;
   let muteNight = getSetting('mute_night');
   if (muteNight && hour < 6) {
-    backgroundLog.info('mute_night', content);
+    log('background', 'mute_night', content);
   } else {
     chrome.notifications.create(id, content)
-    messageLog.info(id, content);
+    log('message', id, content);
+  }
+}
+
+function getPriceProtectionSetting() {
+  let isPlus = getSetting('jjb_plus');
+  let pro_min = getSetting('price_pro_min');
+  let days = getSetting('price_pro_days')
+  let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
+  let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
+  return {
+    pro_days: days ? Number(days) : 15,
+    pro_min: pro_min ? Number(pro_min) : 0.1,
+    prompt_only,
+    is_plus
   }
 }
 
@@ -715,9 +671,62 @@ chrome.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse
   return true
 });
 
+
+// 报告价格
+function reportPrice(sku, price, plus_price, pingou_price) {
+  $.ajax({
+    method: "POST",
+    type: "POST",
+    url: "https://jjb.zaoshu.so/price",
+    data: {
+      sku: sku,
+      price: Number(price),
+      plus_price: plus_price ? Number(plus_price) : null,
+      pingou_price: pingou_price ? Number(pingou_price) : null,
+    },
+    timeout: 3000,
+    dataType: "json"
+  })
+}
+
 // 消息
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-  switch(msg.text){
+  if (!msg.action) {
+    msg.action = msg.text
+  }
+  switch(msg.action){
+    // 获取移动页商品价格
+    case 'getProductPrice':
+      let url = `https://item.m.jd.com/product/${msg.sku}.html`
+      priceProPage = sender
+      openByIframe(url, 'temporary')
+      sendResponse({
+        working: true
+      })
+      break;
+    // 通知商品价格
+    case 'productPrice':
+      // 当前有价保页面
+      if (priceProPage && priceProPage.tab) {
+        chrome.tabs.sendMessage(priceProPage.tab.id, {
+          action: 'productPrice',
+          setting: getPriceProtectionSetting(),
+          ...msg
+        }, {
+          frameId: priceProPage.frameId
+        }, function (response) {
+          console.log('productPrice response', response)
+        })
+      }
+      // 价格追踪
+      let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
+      if (disable_pricechart && msg.sku && msg.price) {
+        reportPrice(msg.sku, msg.price, msg.plus_price, msg.pingou_price)
+      }
+      sendResponse({
+        done: true
+      })
+      break;
     case 'loginState':
       saveLoginState(msg)
       break;
@@ -755,19 +764,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       });
       break;
     case 'getPriceProtectionSetting':
-      let isPlus = getSetting('jjb_plus');
-      let pro_min = getSetting('price_pro_min');
-      let days = getSetting('price_pro_days')
-      let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
-      let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
-      let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
-      return sendResponse({
-        pro_days: days ? Number(days) : 15,
-        pro_min: pro_min ? Number(pro_min) : 0.1,
-        prompt_only,
-        is_plus,
-        disable_pricechart
-      })
+      let priceProtectionSetting = getPriceProtectionSetting()
+      return sendResponse(priceProtectionSetting)
       break;
     case 'saveAccount':
       var content = JSON.parse(msg.content)
@@ -876,6 +874,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         result: true
       })
       break;
+   
     case 'notice':
       var play_audio = getSetting('play_audio')
       if (msg.batch == 'jiabao') {
@@ -979,7 +978,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         chrome.tabs.update(tab.id, {
           muted: true
         }, function (result) {
-          backgroundLog.info("muted tab", result)
+          log('background', "muted tab", result)
         })
         chrome.alarms.create('closeTab_' + tab.id, { delayInMinutes: 1 })
       })
@@ -1084,8 +1083,12 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   }
 
   if (msg.text != 'saveAccount') {
-    messageLog.info(msg.text, msg);
+    log('message', msg.text, msg);
   }
   // 如果消息 300ms 未被回复
   return true
 });
+
+
+
+Logline.keep(3);

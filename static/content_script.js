@@ -73,69 +73,8 @@ async function fetchProductPage(sku) {
   }
 }
 
-// 获取价格
-async function getNowPrice(sku, setting) {
-  var data = null
-  try {
-    data = await fetchProductPage(sku)
-  } catch (e) {
-    console.log('fetchProductPage', e)
-  }
-  
-  if (data) {
-    let itemInfoRe = new RegExp(/<script>[\r\n\s]+window._itemInfo = \({([\s\S]*)}\);[\r\n\s]+<\/script>[\r\n\s]+<script>/, "m");
-    let itemOnlyRe = new RegExp(/<script>[\r\n\s]+window._itemOnly =[\r\n\s]+\({([\s\S]*)}\);[\r\n\s]+window\._isLogin/, "m");
-
-    let itemInfo = itemInfoRe.exec(data)
-    let itemOnlyInfo = itemOnlyRe.exec(data)
-
-    let itemOnlyJsonString = itemOnlyInfo ? (itemOnlyInfo[1] ? "{" + itemOnlyInfo[1].replace(/,\s*$/, "") + "}" : null) : null
-    let skuJsonString = itemInfo ? (itemInfo[1] ? "{" + itemInfo[1].replace(/,\s*$/, "") + "}" : null) : null
-
-    let itemOnly = null
-    try {
-      itemOnly = itemOnlyJsonString ? JSON.parse(escapeSpecialChars(itemOnlyJsonString)) : null
-    } catch (error) {
-    }
-
-    let skuInfo = null
-    try {
-      skuInfo = skuJsonString ? JSON.parse(escapeSpecialChars(skuJsonString)) : null
-    } catch (error) {
-    }
-
-    let product_name = (itemOnly ? itemOnly.item.skuName : null) || $(data).find('#itemName').text() || $(data).find('.title-text').text()
-    let normal_price = (skuInfo ? skuInfo.price.p : null) || $(data).find('#jdPrice').val() || $(data).find('#specJdPrice').text()
-
-    let spec_price = ($(data).find('#priceSale').text() ? $(data).find('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $(data).find('#spec_price').text()
-
-    let plus_price = (skuInfo ? skuInfo.price.tpp : null) || $(data).find('#specPlusPrice').text()
-
-    let price = normal_price || spec_price || plus_price
-
-    let pingou_price = ((skuInfo && skuInfo.pingouItem) ? skuInfo.pingouItem.m_bp : null) || ($(data).find('#tuanDecoration .price_warp .price').text() ? $(data).find('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
-    // 价格追踪
-    if (!setting.disable_pricechart) {
-      reportPrice(sku, price, plus_price, pingou_price)
-    }
-   
-    if (!product_name) {
-      console.error('no product_name')
-    }
-    console.log(product_name + '最新价格', Number(price), 'Plus 价格', Number(plus_price))
-
-    if (Number(plus_price) > 0 && setting.is_plus) {
-      return Number(plus_price)
-    }
-
-    return Number(price)
-  } else {
-    return null
-  }
-}
-
+// 当个商品价保申请
 async function dealProduct(product, order_info, setting) {
-  console.log('dealProduct', product, order_info)
   let success_logs = []
   let product_name = product.find('.item-name .name').text()
   let order_price = Number(product.find('.item-opt .price').text().replace(/[^0-9\.-]+/g, ""))
@@ -143,7 +82,7 @@ async function dealProduct(product, order_info, setting) {
   let order_quantity =  Number(product.find('.item-name .count').text().trim().replace(/[^0-9\.-]+/g, ""))
   let order_success_logs = product.next().find('.ajaxFecthState .jb-has-succ').text()
   let product_img =  product.find('.img img').attr('src')
-  console.log('发现有效的订单', product_name, order_price)
+  console.log('发现有效的订单：', product_name, " 下单价格：", order_price)
 
   if (order_success_logs && typeof order_success_logs == "object") {
     order_success_logs.forEach(function(log) {
@@ -157,20 +96,40 @@ async function dealProduct(product, order_info, setting) {
     success_logs.push(order_success_logs.trim())
   }
 
-  var new_price = await getNowPrice(order_sku[2], setting)
-  console.log(product_name + '进行价格对比:', new_price, ' Vs ', order_price)
+  // 请求价格
+  chrome.runtime.sendMessage({
+    action: "getProductPrice",
+    sku: order_sku[2],
+    setting: setting
+  }, function(response) {
+    console.log("getProductPrice Response: ", response);
+  });
+
   order_info.goods.push({
     sku: order_sku[2],
     name: product_name,
     img: product_img,
     order_price: order_price,
-    new_price: new_price,
     success_log: success_logs,
     quantity: order_quantity
   })
   var applyBtn = $(product).find('.item-opt .apply')
-  var applyId = applyBtn.attr('id')
-  var lastApplyPrice = localStorage.getItem('jjb_order_' + applyId)
+  // 记录订单信息
+  applyBtn.attr('sku', order_sku[2])
+  applyBtn.attr('order_price', order_price)
+  applyBtn.attr('product_name', product_name)
+}
+
+// 申请价保
+function apply(applyBtn, priceInfo, setting) {
+  let order_price = applyBtn.attr('order_price')
+  let product_name = applyBtn.attr('product_name')
+  let applyId = applyBtn.attr('id')
+  let lastApplyPrice = localStorage.getItem('jjb_order_' + applyId)
+  let new_price = Number(priceInfo.normal_price)
+  if (Number(priceInfo.plus_price) > 0 && setting.is_plus) {
+    new_price =  Number(priceInfo.plus_price)
+  }
   if (new_price > 0 && new_price < order_price && (order_price - new_price) > setting.pro_min ) {
     if (lastApplyPrice && Number(lastApplyPrice) <= new_price) {
       console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', new_price, ' Vs ', lastApplyPrice)
@@ -206,7 +165,7 @@ async function dealProduct(product, order_info, setting) {
       setTimeout(function () {
         observeDOM(document.getElementById(resultId), function () {
           let resultText = $("#" + resultId).text()
-          if (resultText && resultText.indexOf("预计") < 0) {
+          if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
             chrome.runtime.sendMessage({
               batch: 'jiabao',
               text: "notice",
@@ -221,6 +180,46 @@ async function dealProduct(product, order_info, setting) {
       }, 5000)
     }
   }
+}
+
+// 提取价格信息
+function seekPriceInfo() {
+  let urlInfo = /(https|http):\/\/item.m.jd.com\/product\/([0-9]*).html/g.exec(window.location.href);
+  let sku = urlInfo[2]
+
+  let normal_price =($('#priceSaleChoice').text() ? $('#priceSaleChoice').text().replace(/[^0-9\.-]+/g, "") : null) || $('#jdPrice').val() || ($('#specJdPrice').text() ? $('#specJdPrice').text().replace(/[^0-9\.-]+/g, "") : null)
+
+  let spec_price = ($('#priceSale').text() ? $('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $('#spec_price').text() || ($('#specPrice').text() ? $('#specPrice').text().replace(/[^0-9\.-]+/g, "") : null)
+
+  let plus_price = ($('.vip_price #priceSaleChoice1').text() ? $('.vip_price #priceSaleChoice1').text().replace(/[^0-9\.-]+/g, "") : null) || $('#specPlusPrice').text()
+
+  let price = normal_price || spec_price || plus_price
+
+  let pingou_price = ($('#tuanDecoration .price_warp .price').text() ? $('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
+  
+  // 通知价格
+  chrome.runtime.sendMessage({
+    action: 'productPrice',
+    sku: sku,
+    normal_price: price,
+    plus_price: plus_price,
+    pingou_price: pingou_price
+  }, function (response) {
+    console.log("productPrice Response: ", response);
+  });
+  
+}
+
+
+// 查找订单并对比
+function findOrderBySkuAndApply(priceInfo, setting) {
+  console.log('findOrderBySkuAndApply', priceInfo)
+  $( ".item-opt a.apply" ).each(function() {
+    let skuid = $(this).attr('sku')
+    if (skuid && skuid == priceInfo.sku) {
+      apply($(this), priceInfo, setting)
+    }
+  });
 }
 
 async function dealOrder(order, orders, setting) {
@@ -680,22 +679,7 @@ function autoGobuy(setting) {
   }  
 }
 
-// 报告价格
-function reportPrice(sku, price, plus_price, pingou_price) {
-  $.ajax({
-    method: "POST",
-    type: "POST",
-    url: "https://jjb.zaoshu.so/price",
-    data: {
-      sku: sku,
-      price: Number(price),
-      plus_price: plus_price ? Number(plus_price) : null,
-      pingou_price: pingou_price ? Number(pingou_price) : null,
-    },
-    timeout: 3000,
-    dataType: "json"
-  })
-}
+
 
 // 价格历史
 function showPriceChart(disable) {
@@ -983,11 +967,14 @@ function autoLogin(account, type) {
             }
           }, 1000)
           // 监控失败提示
-          observeDOM($(".notice")[0], function () {
-            if ($(".notice").text() && $(".notice").text().length > 0) {
-              dealLoginFailed("m", $(".notice").text())
-            }
-          })
+          setTimeout(function () {
+            observeDOM($(".notice")[0], function () {
+              let errormsg = $(".notice").text()
+              if (errormsg.length > 0) {
+                dealLoginFailed("m", errormsg)
+              }
+            })
+          }, 500)
         }
       }, 500)
     }
@@ -1161,6 +1148,11 @@ function CheckDom() {
     getSetting('disable_pricechart', showPriceChart);
   }
 
+  // 移动商品页
+  if (window.location.host == 'item.m.jd.com') {
+    seekPriceInfo();
+  }
+  
   // 移动页增加滑动支持
   if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com') {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
@@ -1236,38 +1228,6 @@ function CheckDom() {
       }
     }
   };
-
-  // 13：京东用户每日福利
-  // if ($(".signDay_day").length) {
-  //   console.log('13：京东用户每日福利')
-  //   chrome.runtime.sendMessage({
-  //     text: "run_status",
-  //     jobId: "13"
-  //   })
-  //   if ($(".day_able .signDay_day_btm").text() == "签到领取") {
-  //     $(".day_able .signDay_day_btm").trigger("tap")
-  //     $(".day_able .signDay_day_btm").trigger("click")
-  //     setTimeout(function () {
-  //       if ($(".day_able .signDay_day_btm").text() == "已签到领取") {
-  //         let value = 1
-  //         markCheckinStatus('vip', value + '京豆', () => {
-  //           chrome.runtime.sendMessage({
-  //             text: "checkin_notice",
-  //             batch: "bean",
-  //             value: value,
-  //             unit: 'bean',
-  //             title: "京价保自动为您签到领京豆",
-  //             content: "恭喜您获得了" + value + '个京豆奖励'
-  //           }, function (response) {
-  //             console.log("Response: ", response);
-  //           })
-  //         })
-  //       }
-  //     }, 2000)
-  //   } else {
-  //     markCheckinStatus('m_welfare')
-  //   }
-  // };
 
 
   // 京豆签到 (11:京豆签到)
@@ -1543,6 +1503,18 @@ $( document ).ready(function() {
     CheckDom()
   }, 1000)
 });
+
+// 消息
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  switch (message.action) {
+    case 'productPrice':
+      findOrderBySkuAndApply(message, message.setting)
+      break;
+    default:
+      break;
+  }
+});
+
 
 var nodeList = document.querySelectorAll('script');
 for (var i = 0; i < nodeList.length; ++i) {

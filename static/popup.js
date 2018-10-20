@@ -1,14 +1,17 @@
-var DateTime = luxon.DateTime;
+import {DateTime} from 'luxon'
+import * as _ from "lodash"
+import tippy from 'tippy.js'
+import weui from 'weui.js'
+import Vue from '../node_modules/vue/dist/vue.esm.js'
+$ = window.$ = window.jQuery = require('jquery')
 
-(function ($) {
-  $.each(['show', 'hide'], function (i, ev) {
-    var el = $.fn[ev];
-    $.fn[ev] = function () {
-      this.trigger(ev);
-      return el.apply(this, arguments);
-    };
-  });
-})(jQuery);
+$.each(['show', 'hide'], function (i, ev) {
+  var el = $.fn[ev];
+  $.fn[ev] = function () {
+    this.trigger(ev);
+    return el.apply(this, arguments);
+  };
+});
 
 let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check', 'm_welfare', 'coin']
 
@@ -111,12 +114,16 @@ function getSetting(settingKey) {
   return setting
 }
 
-// 设置保存
-$('#settings').garlic({
-  getPath: function ($elem) {
-    return $elem.attr('name');
+// 处理订单
+var ordersVM = new Vue({
+  el: '#orders',
+  data: {
+    orders: [],
+    disabled_link: getSetting('disabled_link') == 'checked' ? true : false
+  },
+  methods: {
   }
-});
+})
 
 function readableTime(datetime) {
   if (DateTime.local().hasSame(datetime, 'day')) {
@@ -424,29 +431,6 @@ function markJobStatus() {
 }
 
 
-// 处理需要授权的任务
-function dealRequestPermissionsJob() {
-  $(".request-permissions").each((index, element) => {
-    let job = $(element)
-    let permissions = job.data('permissions')
-    chrome.runtime.sendMessage({
-      text: "checkPermissions",
-      permissions: permissions
-    },
-    function (result) {
-      if (result.granted) {
-        job.find('.request-permissions-icon').hide()
-      } else {
-        job.find('.request-permissions-icon').show()
-        job.find('select').val("never");
-        localStorage.setItem(job.find('select').attr("name"), JSON.stringify("never"))
-        job.find('select').prop("disabled", true)
-      }
-    });
-  });
-}
-
-
 // 处理登录状态
 function dealWithLoginState() {
   let stateText = {
@@ -525,8 +509,21 @@ function makeupMessages(messages) {
   }
 }
 
+
+function getOrders() {
+  let orders = JSON.parse(localStorage.getItem('jjb_orders'))
+  if (orders) {
+    orders = orders.map(function (order) {
+      order.time = readableTime(DateTime.fromISO(order.time))
+      return order
+    })
+  } else {
+    orders = []
+  }
+  ordersVM.orders = orders
+}
+
 $( document ).ready(function() {
-  var orders = JSON.parse(localStorage.getItem('jjb_orders'))
   var messages = JSON.parse(localStorage.getItem('jjb_messages'))
   var paid = localStorage.getItem('jjb_paid');
   var account = localStorage.getItem('jjb_account');
@@ -538,14 +535,21 @@ $( document ).ready(function() {
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
   
+  // 设置保存
+  $('#settings').garlic({
+    getPath: function ($elem) {
+      return $elem.attr('name');
+    }
+  });
+
+  // 渲染订单
+  getOrders()
+  
   // tippy
   tippy('.tippy')
 
   // 处理登录状态
   dealWithLoginState()
-
-  // 处理需要授权的任务
-  dealRequestPermissionsJob()
 
   // 标记任务状态
   setTimeout(() => {
@@ -584,7 +588,7 @@ $( document ).ready(function() {
   });
 
   // 查询最新版本
-  $.getJSON("https://jjb.zaoshu.so/updates/check?version={{version}}", function (json) {
+  $.getJSON("https://jjb.zaoshu.so/updates/check?version={{version}}&browser={{browser}}", function (json) {
     let skipVerison = localStorage.getItem('skipVerison')
     let localVerison = skipVerison || "{{version}}"
     if (versionCompare(localVerison, json.lastVerison) < 0  && json.notice && versionCompare(localVerison, json.noticeVerison) < 1) {
@@ -603,7 +607,7 @@ $( document ).ready(function() {
             type: 'primary',
             onClick: function () {
               chrome.tabs.create({
-                url: json.url || "https://blog.jjb.im"
+                url: json.url || "https://jjb.zaoshu.so/updates/latest"
               })
             }
         }]
@@ -627,6 +631,7 @@ $( document ).ready(function() {
 
   if (admission_test && admission_test == 'N') {
     $("#admissionTest").show()
+    $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")
     $("#admissionTest .answer").on("click", function () {
       let next = $(this).data('next')
       if (next) {
@@ -709,24 +714,6 @@ $( document ).ready(function() {
 
   messages = makeupMessages(messages)
 
-  if (orders) {
-    orders = orders.map(function (order) {
-      order.time = readableTime(DateTime.fromISO(order.time))
-      return order
-    })
-  } else {
-    orders = []
-  }
- 
-  if (orders && orders.length > 0) {
-    let disabled_link = getSetting('disabled_link'); 
-    htmlRender({
-      name: 'orders',
-      orders: orders,
-      disabled_link: disabled_link == 'checked' ? true : false
-    })
-  }
-
   if (messages && messages.length > 0) {
     setTimeout(() => {
       htmlRender({
@@ -796,6 +783,7 @@ $( document ).ready(function() {
   })
 
   $("#openWechatCard").on("click", function () {
+    $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")
     $("#wechatDialags").show()
   })
 

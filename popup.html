@@ -103,7 +103,6 @@
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
-                      <!-- <i class="request-permissions-icon tippy weui-icon-warn" title="运行本任务需要授权京价保调试网页的权限（用于模拟手机），点击完成授权" data-permissions="debugger"></i> -->
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job14_frequency">
@@ -410,7 +409,35 @@
           </div>
           <div class="weui-tab__panel">
             <div id="orders" class="weui-cells contents-box orders">
-              <div class="no_order"> 暂时还没有监控到订单 </div>
+              <div class="orders" v-if="orders && orders.length > 0">
+                <li v-for="order in orders">
+                  <div class="order_time"> 下单时间： {{order.time}}</div>
+                  <div class="weui-cell good" v-for="good in order.goods" >
+                    <div class="weui-cell__bd" v-if="good">
+                      <div class="good_title">
+                        <a :href="`https://jjb.zaoshu.so/good/${good.sku}`" v-if="good.sku && !disabled_link" target="_blank">
+                          <img v-if="good.img" :src="`https:${good.img}`" class="backup_picture" :alt="good.name">
+                          <p>{{good.name}}</p>
+                          <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
+                        </a>
+                        <p v-else>{{good.name}}</p>
+                      </div>
+                    </div>
+                    <div class="weui-cell__ft" v-if="good">
+                      <span class="order_price">￥{{good.order_price}}</span>
+                      <span class="new_price down" v-if="good.order_price > good.new_price">￥{{good.new_price}}</span>
+                      <span class="new_price up" v-else-if="good.order_price < good.new_price">￥{{good.new_price}}</span>
+                      <span class="new_price" v-else>￥{{good.new_price}}</span>
+                    </div>
+                    <p class="success_log" v-for="log in good.success_log">{{log}}</p>
+                  </div>
+                </li>
+                <p class="text-tips">只显示在价保监控范围内且为自营的订单（默认15天内）</p>
+              </div>
+              <div class="no_order" v-else> 
+                <h4>暂时还没有监控到订单</h4> 
+                <p class="tips">只显示选定范围的订单(默认为最近7天)</p>
+              </div>
             </div>
             <div id="messages" class="weui-cells contents-box messages">
               <div class="no_message"> 暂时还没有未读消息 </div>
@@ -432,7 +459,7 @@
               <p class="weui-tabbar__label">源代码</p>
             </a>
           </div>
-          <iframe id="renderFrame" src="" frameborder="0"></iframe>
+          <iframe id="renderFrame"  frameborder="0"></iframe>
         </div>
       </div>
 
@@ -495,8 +522,6 @@
         </div>
       </div>
 
-
-
       <!-- 活动推荐 -->
       <div id="jEventDialags">
         <div class="js_dialog" style="opacity: 1;">
@@ -506,7 +531,7 @@
               <strong class="weui-dialog__title">活动推荐</strong>
             </div>
             <span class="js-close">x</span>
-            <iframe id="jEventIframe" src="" frameborder="0"></iframe>
+            <iframe id="jEventIframe" frameborder="0"></iframe>
             <div class="weui-toast iframe-loading">
               <i class="weui-loading weui-icon_toast"></i>
               <p class="weui-toast__content">数据加载中</p>
@@ -525,7 +550,7 @@
             </div>
             <span class="js-close">x</span>
             <div class="weui-dialog__bd">
-              <img src="http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg" class="tippy" data-tippy-content="微信搜索“京价保”也可以关注"  alt="jjb-official" width="280">
+              <img  class="jjb-official tippy" data-tippy-content="微信搜索“京价保”也可以关注"  alt="jjb-official" width="280">
               <p class="tips">主要发布更新通知，亦可在公众号留言向开发者反馈。</p>
             </div>
           </div>
@@ -541,7 +566,7 @@
               <strong class="weui-dialog__title">建议反馈</strong>
             </div>
             <span class="js-close">x</span>
-            <iframe id="feedbackIframe" src="" frameborder="0"></iframe>
+            <iframe id="feedbackIframe"  frameborder="0"></iframe>
             <div class="weui-toast iframe-loading">
               <i class="weui-loading weui-icon_toast"></i>
               <p class="weui-toast__content">数据加载中</p>
@@ -559,7 +584,7 @@
               <strong class="weui-dialog__title">常见问题</strong>
             </div>
             <span class="js-close">x</span>
-            <iframe id="faqIframe" src="" frameborder="0"></iframe>
+            <iframe id="faqIframe"  frameborder="0"></iframe>
             <div class="weui-toast iframe-loading">
               <i class="weui-loading weui-icon_toast"></i>
               <p class="weui-toast__content">数据加载中</p>
@@ -824,7 +849,7 @@
                 <p>京价保从第一个版本开始就开放所有的源代码，有超过 1000 位程序员/工程师在 <a href="https://github.com/sunoj/jjb" target="_blank">Github</a> 关注了京价保的代码，如果你对京价保的代码感兴趣，或者发现什么代码中的问题，亦或是怀疑京价保有什么泄露隐私的小动作，都可以在代码中找到答案。</p>
                 <p>京价保还创建了一个公众号，会不定期推送一些功能更新或者相关文章，你还可以通过公众号来提交一些反馈建议。</p>
                 <p style="text-align: center;margin-top: -1em;margin-bottom: 0em;">
-                  <img src="http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg" width="160"></img>
+                  <img class="jjb-official"  width="160"></img>
                 </p>
 
                 <p>如果你使用 Telegram，那么你还可以 Telegram 上关注京价保：<a href="https://t.me/jingjiabao" target="_blank">https://t.me/jingjiabao</a> </p>
@@ -889,7 +914,8 @@
     </div>
     
     <!-- body 最后 -->
-    <script src="static/js/bundle.js"></script>
+    <script src="static/popup.js"></script>
+    <script src="static/garlic.min.js"></script>
   </body>
 </html>
 

@@ -4,8 +4,6 @@ select {
     -moz-appearance: none;
 }
 
-
-
 a {
     color:#0b85c3;
 }
@@ -187,6 +185,10 @@ a:hover {
     overflow-y: auto;
     overflow-x: hidden;
     height: 515px;
+}
+
+.orders li{
+    display: block;
 }
 
 .messages{
