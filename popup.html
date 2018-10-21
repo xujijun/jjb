@@ -154,6 +154,20 @@
                       </select>
                     </div>
                   </div>
+                  <div id="job16" class="weui-cell weui-cell_select weui-cell_select-after">
+                    <div class="weui-cell__bd job-m checkin-baitiao">
+                      <span data-tippy-placement="top-start" class="tippy" data-tippy-content="白条每日抽奖，大部分情况获得京豆">白条每日抽奖</span>
+                      <i class="today tippy weui-icon-success-circle reload"></i>
+                      <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                    </div>
+                    <div class="weui-cell__bd">
+                      <select class="weui-select" name="job11_frequency">
+                        <option value="daily">每天</option>
+                        <option value="never">从不</option>
+                      </select>
+                    </div>
+                  </div>
                   <div id="job12" class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd job-m checkin-double_check">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="完成京豆和京东金融签到有一个双签奖励">领取双签奖励</span>

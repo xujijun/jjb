@@ -136,6 +136,18 @@ let jobs = [
     type: ['pc'],
     frequency: '2h'
   },
+  {
+    id: '16',
+    src: {
+      m: 'https://m.jr.jd.com/btyingxiao/marketing/html/index.html',
+    },
+    title: '白条签到',
+    key: "baitiao",
+    checkin: true,
+    mode: 'iframe',
+    type: ['m'],
+    frequency: 'daily'
+  }
 ]
 
 function getSetting(settingKey, defaultValue) {
@@ -457,9 +469,9 @@ function openByIframe(src, type) {
   }
   resetIframe(iframeId)
   $("#" + iframeId).attr('src', src)
-  // 10 分钟后清理 iframe
+  // 5 分钟后清理 iframe
   chrome.alarms.create('clearIframe_' + iframeId, {
-    delayInMinutes: 10
+    delayInMinutes: 5
   })
 }
 
@@ -949,7 +961,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 签到状态
     case 'checkin_status':
-      let currentStatus = localStorage.getItem('jjb_checkin_' + msg.batch) ? JSON.parse(localStorage.getItem('jjb_checkin_' + msg.batch)) : null
+      let currentStatus = getSetting('jjb_checkin_' + msg.batch, null)
       let data = {
         date: DateTime.local().toFormat("o"),
         time: new Date(),
@@ -960,6 +972,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       } else {
         localStorage.setItem('jjb_checkin_' + msg.batch, JSON.stringify(data));
       }
+      sendResponse(data)
       break;
     // 运行状态
     case 'run_status':
@@ -977,6 +990,9 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
           delayInMinutes: mapFrequency[job.frequency]
         })
       }
+      sendResponse({
+        result: true
+      })
       break;
     case 'create_tab':
       var content = JSON.parse(msg.content)

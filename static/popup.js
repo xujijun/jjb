@@ -13,7 +13,7 @@ $.each(['show', 'hide'], function (i, ev) {
   };
 });
 
-let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check', 'm_welfare', 'coin']
+let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check', 'm_welfare', 'coin', 'baitiao']
 
 let rewards = [
   '给开发者加个鸡腿',

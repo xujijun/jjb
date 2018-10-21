@@ -94,7 +94,7 @@ async function dealProduct(product, order_info, setting) {
 
   if (order_success_logs && order_success_logs.length > 0) {
     order_success_logs.each(function() {
-      let log = $(this).text().trim().replace('查看退款详情','')
+      let log = $(this).text().trim().replace('查看退款详情','').replace('查看申请记录','')
       if (log && log.indexOf("成功") > -1) {
         success_logs.push(log)
       }
@@ -856,8 +856,10 @@ function markCheckinStatus(type, value, cb) {
     batch: type,
     value: value,
     status: "signed"
-  })
-  if (cb) { cb() }
+  }, function (response) {
+    console.log('markCheckinStatus response', response)
+    if (cb) { cb() }
+  });
 }
 
 var auto_login_html = "<p class='auto_login'><span class='jjb-login'>让京价保记住密码并自动登录</span></p>";
@@ -1153,7 +1155,72 @@ function dealLoginPage() {
     })
   };
 }
+// 签到领京豆（vip）
+function vipCheckin(setting) {
+  if (setting != 'never') {
+    console.log('签到领京豆（vip）')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "5"
+    })
+    if ($(".sign-pop").hasClass('signed') || $(".signin-desc").text() == '今日已签到 请明日再来') {
+      markCheckinStatus('vip')
+    } else {
+      $(".sign-pop").trigger("tap")
+      $(".sign-pop").trigger("click")
+      setTimeout(function () {
+        if ($(".sign-pop").hasClass('signed')) {
+          let value = $(".modal-sign-in .jdnum span").text()
+          markCheckinStatus('vip', value + '京豆', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              batch: "bean",
+              value: value,
+              unit: 'bean',
+              title: "京价保自动为您签到领京豆",
+              content: "恭喜您获得了" + value + '个京豆奖励'
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 2000)
+    }
+  }
+}
 
+// 16: 白条签到（baitiao）
+function baitiaoLottery(setting) {
+  if (setting != 'never') {
+    console.log('白条签到（baitiao）')
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "16"
+    })
+    $("#lottery .mark_btn_start").trigger("tap")
+    $("#lottery .mark_btn_start").trigger("click")
+    observeDOM(document.body, function () {
+      if ($(".layer_wrap_header").text() == '恭喜你获得') {
+        let value = $(".layer_wrap_gold_text").text().replace(/[^0-9\.-]+/g, "")
+        markCheckinStatus('baitiao', $(".layer_wrap_gold_text").text(), () => {
+          chrome.runtime.sendMessage({
+            text: "checkin_notice",
+            batch: "bean",
+            value: value,
+            unit: 'bean',
+            title: "京价保自动为您白条签到",
+            content: "恭喜您获得了" + $(".layer_wrap_gold_text").text()
+          }, function (response) {
+            console.log("Response: ", response);
+          })
+        })
+      }
+      if ($(".jrm-tips").text() == '您今天已签到,请明天再来') {
+        markCheckinStatus('baitiao')
+      }
+    })
+  }
+}
 // 主体任务
 function CheckDom() {
   // 转存账号
@@ -1231,34 +1298,12 @@ function CheckDom() {
 
   // 会员页签到 (5:京东会员签到)
   if ($(".sign-pop").length || $(".signin .signin-days").length) {
-    console.log('签到领京豆（vip）')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "5"
-    })
-    if ($(".sign-pop").hasClass('signed') || $(".signin-desc").text() == '今日已签到 请明日再来') {
-      markCheckinStatus('vip')
-    } else {
-      $(".sign-pop").trigger("tap")
-      $(".sign-pop").trigger("click")
-      setTimeout(function () {
-        if ($(".sign-pop").hasClass('signed')) {
-          let value = $(".modal-sign-in .jdnum span").text()
-          markCheckinStatus('vip', value + '京豆', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              batch: "bean",
-              value: value,
-              unit: 'bean',
-              title: "京价保自动为您签到领京豆",
-              content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 2000)
-    }
+    getSetting('job5_frequency', vipCheckin)
+  };
+
+  // 16 白条签到 
+  if ($("#lottery .mark_btn_start").length || $("#lottery .mark_btn_start").length > 0) {
+    getSetting('job16_frequency', baitiaoLottery)
   };
 
   // 双签奖励 (12:双签奖励)
