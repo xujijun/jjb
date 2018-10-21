@@ -91,7 +91,6 @@ gulp.task('move-static', ['build-bundle'], function () {
 gulp.task('move-js', [], function () {
   gulp.src([
     'static/start.js',
-    'node_modules/art-template/lib/template-web.js',
     'node_modules/zepto/dist/zepto.min.js',
     'node_modules/garlicjs/dist/garlic.min.js',
     'node_modules/dialog-polyfill/dialog-polyfill.js',

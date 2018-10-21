@@ -187,7 +187,7 @@ a:hover {
     height: 515px;
 }
 
-.orders li{
+.orders li, .messages li{
     display: block;
 }
 
@@ -545,6 +545,40 @@ img.weui-tabbar__icon {
     flex: 1;
     height: 48px;
     cursor: pointer;
+}
+
+.messages-tab span{
+    width: 22px;
+    height: 22px;
+    background: #ccc;
+    display: block;
+    margin: 0 auto;
+}
+
+.messages-tab.selectedTab span{
+    background: #4bc2ff;
+}
+
+.messages-tab span.notice {
+    -webkit-mask: url(../image/notice.svg) no-repeat center;
+    mask: url(../image/notice.svg) no-repeat center;
+    -webkit-mask-size: 20px;
+    mask-size: 20px;
+    
+}
+
+.messages-tab span.coupon {
+    -webkit-mask: url(../image/coupon.svg) no-repeat center;
+    mask: url(../image/coupon.svg) no-repeat center;
+    -webkit-mask-size: 22px;
+    mask-size: 22px;
+}
+
+.messages-tab span.checkin {
+    -webkit-mask: url(../image/checkin.svg) no-repeat center;
+    mask: url(../image/checkin.svg) no-repeat center;
+    -webkit-mask-size: 20px;
+    mask-size: 20px;
 }
 
 .message-items {

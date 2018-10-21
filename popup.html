@@ -416,7 +416,7 @@
                     <div class="weui-cell__bd" v-if="good">
                       <div class="good_title">
                         <a :href="`https://jjb.zaoshu.so/good/${good.sku}`" v-if="good.sku && !disabled_link" target="_blank">
-                          <img v-if="good.img" :src="`https:${good.img}`" class="backup_picture" :alt="good.name">
+                          <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
                           <p>{{good.name}}</p>
                           <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
                         </a>
@@ -440,7 +440,44 @@
               </div>
             </div>
             <div id="messages" class="weui-cells contents-box messages">
-              <div class="no_message"> 暂时还没有未读消息 </div>
+              <div class="messages-top">
+                <div class="messages-header">
+                  <button :class="[selectedTab == 'checkin_notice' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']" data-tippy-content="签到记录" data-type="checkin_notice" type="button" @click="selectType('checkin_notice')">
+                    <span class="checkin"></span>
+                  </button>
+                  <button :class="[selectedTab == 'notice' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']" data-tippy-content="价保记录" data-type="notice" type="button" @click="selectType('notice')">
+                    <span class="notice"></span>
+                  </button>
+                  <button :class="[selectedTab == 'coupon' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']" data-tippy-content="领券记录"  data-type="coupon" type="button" @click="selectType('coupon')">
+                    <span class="coupon"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="message-items" v-if="messages && messages.length > 0">
+                <li v-for="message in messages">
+                  <div :class="`weui-panel__bd message-item type-${message.type}`" v-show="!selectedTab || selectedTab == message.type">
+                    <div class="weui-media-box weui-media-box_text">
+                      <h4 class="weui-media-box__title message">
+                        <i :class="`${message.type} ${message.batch}`"></i>
+                        {{message.title}}
+                      </h4>
+                      <div class="coupon-box" v-if="message.coupon">
+                        <p>
+                          <span class="price"> {{message.coupon.price}} </span>
+                        </p>
+                        <a v-if="message.coupon.batch == 'baitiao'" href="https://vip.jr.jd.com/coupon/myCoupons?default=IOU" target="_blank">{{message.coupon.name}}</a>
+                        <a v-else-if="message.coupon.batch" :href="`https://search.jd.com/Search?coupon_batch=${message.coupon.batch}`" target="_blank">{{message.coupon.name}}</a>
+                        <a v-else href="https://jjb.zaoshu.so/event/jdc?e=0&p=AyIPZRprFDJWWA1FBCVbV0IUWVALHFRBEwQAQB1AWQkrW1N8UGM3WyZ1VmxSCHMIE1dEbytsKxkOfARUG1IJAhMbVR5KFQsZBFUQWhAyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1cTXxUBFwBQG1McMhU3F18ES1kiN2UrayUCEjdVKwRRX08%3D&t=W1dCFFlQCxxUQRMEAEAdQFkJ" target="_blank">{{message.coupon.name}}</a>
+                      </div>
+                      <p v-else class="weui-media-box__desc">{{message.content}}</p>
+                      <ul class="weui-media-box__info">
+                        <li class="weui-media-box__info__meta">时间: {{message.time}}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              </div>
+              <div class="no_message" v-else> 暂时还没有未读消息 </div>
             </div>
           </div>
         </div>
@@ -459,7 +496,6 @@
               <p class="weui-tabbar__label">源代码</p>
             </a>
           </div>
-          <iframe id="renderFrame"  frameborder="0"></iframe>
         </div>
       </div>
 

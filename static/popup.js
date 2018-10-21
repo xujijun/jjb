@@ -122,6 +122,23 @@ var ordersVM = new Vue({
     disabled_link: getSetting('disabled_link') == 'checked' ? true : false
   },
   methods: {
+    backup_picture: function (e) {
+      e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png"
+    }
+  }
+})
+
+// 通知消息
+var messagesVM = new Vue({
+  el: '#messages',
+  data: {
+    selectedTab: null,
+    messages: [],
+  },
+  methods: {
+    selectType: function (type) {
+      this.selectedTab = type
+    }
   }
 })
 
@@ -139,24 +156,16 @@ function readableTime(datetime) {
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   switch (message.action) {
     case 'orders_updated':
-      let disabled_link = getSetting('disabled_link');
       let orders = JSON.parse(message.data).map(function (order) {
         order.time = readableTime(DateTime.fromISO(order.time))
         return order
       })
-      htmlRender({
-        name: 'orders',
-        orders: orders,
-        disabled_link: disabled_link == 'checked' ? true : false
-      })
+      ordersVM.orders = orders
       break;
     case 'new_message':
       let lastUnreadCount = $("#unreadCount").text()
       $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
-      htmlRender({
-        name: 'messages',
-        messages: makeupMessages(JSON.parse(message.data))
-      })
+      messagesVM.messages = makeupMessages(JSON.parse(message.data))
       break;
     case 'loginState_updated':
       dealWithLoginState()
@@ -364,40 +373,6 @@ function showJEvent() {
   $("#jEventDialags").show()
 }
 
-
-function bindMessageAction() {
-  $('.messages-header .Button').on('click', function () {
-    let type = $(this).data('type')
-    $('.messages-header .Button').removeClass('selectedTab')
-    $(this).addClass('selectedTab')
-    $('.message-items .message-item').hide()
-    $('.message-items').find('.type-' + type).show()
-  });
-}
-
-
-
-function receiveMessage(event) {
-  if (event.data.html) {
-    switch (event.data.name) {
-      case 'orders':
-        $('#orders').html(event.data.html)     
-        $(".backup_picture").on("error", function(){
-          $(this).attr('src', 'https://jjbcdn.zaoshu.so/web/img_error.png');
-        });
-        tippy(".tippy")
-        break;
-      case 'messages':
-        $('#messages').html(event.data.html)
-        bindMessageAction()
-        tippy(".tippy")
-        break;
-      default:
-        break;
-    }
-  }
-}
-
 // 标记任务状态
 function markJobStatus() {
   // 标记上次运行时间
@@ -523,8 +498,13 @@ function getOrders() {
   ordersVM.orders = orders
 }
 
+function getMessages() {
+  let messages = JSON.parse(localStorage.getItem('jjb_messages'))
+  messages = makeupMessages(messages)
+  messagesVM.messages = messages
+}
+
 $( document ).ready(function() {
-  var messages = JSON.parse(localStorage.getItem('jjb_messages'))
   var paid = localStorage.getItem('jjb_paid');
   var account = localStorage.getItem('jjb_account');
   var admission_test = localStorage.getItem('jjb_admission-test')
@@ -544,6 +524,9 @@ $( document ).ready(function() {
 
   // 渲染订单
   getOrders()
+
+  // 渲染通知
+  getMessages()
   
   // tippy
   tippy('.tippy')
@@ -711,19 +694,6 @@ $( document ).ready(function() {
     $('.contents-box').hide()
     $('.contents-box.' + type).show()
   });
-
-  messages = makeupMessages(messages)
-
-  if (messages && messages.length > 0) {
-    setTimeout(() => {
-      htmlRender({
-        name: 'messages',
-        messages: messages
-      });
-    }, 1200);
-  }
-
-  window.addEventListener('message', receiveMessage, false)
 
   $("#recommendCardDialags .weui-dialog .switch-cardbank").click(function () {
     var bank = $(this).data('bank')

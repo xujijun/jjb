@@ -314,7 +314,7 @@ function rand(n){
 
 function log(type, message, details) {
   if (logger[type]) {
-    logger[type](message, details)
+    logger[type].info(message, details)
   } else {
     logger[type] = new Logline(type)
     console.log(type, message, details)
@@ -694,6 +694,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (!msg.action) {
     msg.action = msg.text
   }
+  let loginState = getLoginState()
   switch(msg.action){
     // 获取移动页商品价格
     case 'getProductPrice':
@@ -735,7 +736,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       return sendResponse("done")
       break;
     case 'getLoginState': 
-      loginState = getLoginState()
       return sendResponse(loginState)
       break;
     case 'isPlus':
@@ -807,7 +807,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       })
       break;
     case 'openLogin':
-      loginState = getLoginState()
       if (loginState.class == 'failed') {
         openWebPageAsMoblie(mLoginUrl)
       } else {

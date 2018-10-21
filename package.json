@@ -10,7 +10,6 @@
   "dependencies": {
     "@antv/g2": "^3.2.8",
     "@sunoj/touchemulator": "^0.0.1",
-    "art-template": "^4.12.2",
     "dialog-polyfill": "^0.4.10",
     "garlicjs": "^1.4.2",
     "gulp": "^3.9.1",
