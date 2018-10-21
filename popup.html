@@ -425,9 +425,11 @@
                     </div>
                     <div class="weui-cell__ft" v-if="good">
                       <span class="order_price">￥{{good.order_price}}</span>
-                      <span class="new_price down" v-if="good.order_price > good.new_price">￥{{good.new_price}}</span>
-                      <span class="new_price up" v-else-if="good.order_price < good.new_price">￥{{good.new_price}}</span>
-                      <span class="new_price" v-else>￥{{good.new_price}}</span>
+                      <div class="sku_price" v-if="skuPriceList[good.sku]">
+                        <span class="new_price down" v-if="good.order_price > skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
+                        <span class="new_price up" v-else-if="good.order_price < skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
+                        <span class="new_price" v-else>￥{{skuPriceList[good.sku].price}}</span>
+                      </div>
                     </div>
                     <p class="success_log" v-for="log in good.success_log">{{log}}</p>
                   </div>

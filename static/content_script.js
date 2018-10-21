@@ -76,46 +76,49 @@ async function fetchProductPage(sku) {
 // 当个商品价保申请
 async function dealProduct(product, order_info, setting) {
   let success_logs = []
-  let product_name = product.find('.item-name .name').text()
-  let order_price = Number(product.find('.item-opt .price').text().replace(/[^0-9\.-]+/g, ""))
-  let order_sku = product.find('.item-opt .apply').attr('id').split('_')
-  let order_quantity =  Number(product.find('.item-name .count').text().trim().replace(/[^0-9\.-]+/g, ""))
-  let order_success_logs = product.next().find('.ajaxFecthState .jb-has-succ').text()
-  let product_img =  product.find('.img img').attr('src')
+  let product_name = product.find('.p-name a').text() || product.find('.item-name .name').text()
+  let orderPriceDom = product.find('.price-count .price').text() ? product.find('.price-count .price') : product.find('.item-opt .price')
+  let order_price = Number(orderPriceDom.text().replace(/[^0-9\.-]+/g, ""))
+
+  let applyBtn = product.find('.item-opt .apply').text() ? product.find('.item-opt .apply') : product.find('.btn a')
+  let orderId = applyBtn.attr('id').split('_')
+
+  let orderCountDom = product.find('.price-count .count').text() ? product.find('.price-count .count') : product.find('.item-name .count')
+  let order_quantity =  Number(orderCountDom.text().trim().replace(/[^0-9\.-]+/g, ""))
+
+  let order_success_logs = product.find('.show-detail').text() ? product.find('.show-detail td') : product.next().next().find('.jb-has-succ')
+
+  let product_img = product.find('a img').attr('src') ? product.find('a img').attr('src') : product.find('.img img').attr('src')
+
   console.log('发现有效的订单：', product_name, " 下单价格：", order_price)
 
-  if (order_success_logs && typeof order_success_logs == "object") {
-    order_success_logs.forEach(function(log) {
-      if (log) {
-        success_logs.push(log.trim())
+  if (order_success_logs && order_success_logs.length > 0) {
+    order_success_logs.each(function() {
+      let log = $(this).text().trim()
+      if (log && log.indexOf("成功") > -1) {
+        success_logs.push(log)
       }
     });
   }
-
-  if (typeof order_success_logs == "string") {
-    success_logs.push(order_success_logs.trim())
-  }
-
   // 请求价格
   chrome.runtime.sendMessage({
     action: "getProductPrice",
-    sku: order_sku[2],
+    sku: orderId[2],
     setting: setting
   }, function(response) {
     console.log("getProductPrice Response: ", response);
   });
 
   order_info.goods.push({
-    sku: order_sku[2],
+    sku: orderId[2],
     name: product_name,
     img: product_img,
     order_price: order_price,
     success_log: success_logs,
     quantity: order_quantity
   })
-  var applyBtn = $(product).find('.item-opt .apply')
   // 记录订单信息
-  applyBtn.attr('sku', order_sku[2])
+  applyBtn.attr('sku', orderId[2])
   applyBtn.attr('order_price', order_price)
   applyBtn.attr('product_name', product_name)
 }
@@ -193,7 +196,7 @@ function seekPriceInfo() {
 
   let plus_price = ($('.vip_price #priceSaleChoice1').text() ? $('.vip_price #priceSaleChoice1').text().replace(/[^0-9\.-]+/g, "") : null) || $('#specPlusPrice').text()
 
-  let price = normal_price || spec_price || plus_price
+  let price = normal_price || spec_price
 
   let pingou_price = ($('#tuanDecoration .price_warp .price').text() ? $('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
   
@@ -223,12 +226,13 @@ function findOrderBySkuAndApply(priceInfo, setting) {
 }
 
 async function dealOrder(order, orders, setting) {
-  var dealgoods = []
-  var order_time = new Date(order.find('.title span').last().text().trim().split('：')[1])
-  var order_id = order.find('.title .order-code').text().trim().split('：')[1]
+  let dealgoods = []
+  let order_time = order.find('.tr-th span.time').text() ? new Date(order.find('.tr-th span.time').text()) : new Date(order.find('.title span').last().text().trim().split('：')[1])
+  let order_id = order.find('.tr-th span.order').text() ? order.find('.tr-th span.order').text().replace(/[^0-9\.-]+/g, "") : order.find('.title .order-code').text().trim().split('：')[1]
+
   console.log('订单:', order_id, order_time, setting)
 
-  var proTime = 15 * 24 * 3600 * 1000
+  let proTime = 15 * 24 * 3600 * 1000
   if (setting.pro_days == '7') {
     proTime = 7 * 24 * 3600 * 1000
   }
@@ -243,7 +247,9 @@ async function dealOrder(order, orders, setting) {
       goods: []
     }
 
-    order.find('.product-item').each(function() {
+    let productList = order.find('.product-item').length > 0 ? order.find('.product-item') : order.filter( ".co-th" )
+
+    productList.each(function() {
       dealgoods.push(dealProduct($(this), order_info, setting))
     })
 
@@ -257,9 +263,25 @@ async function getAllOrders(setting) {
   console.log('京价保开始自动检查订单')
   let orders = []
   let dealorders = []
-  $( "#dataList0 li" ).each(function() {
-    dealorders.push(dealOrder($(this), orders, setting))
-  });
+  // 移动价保
+  if ($( "#dataList0 li").length > 0) {
+    $( "#dataList0 li").each(function() {
+      dealorders.push(dealOrder($(this), orders, setting))
+    });
+  }
+  // PC价保
+  if ($( "#dataList .tr-th").length > 0) {
+    $( "#dataList .tr-th").each(function() {
+      let orderDom = $(this)
+      let product = $(this).next()
+      orderDom = orderDom.add(product)
+      while (product.next().hasClass('co-th')) {
+        orderDom = orderDom.add(product.next())
+        product = product.next()
+      }
+      dealorders.push(dealOrder(orderDom, orders, setting))
+    });
+  }  
   try {
     await Promise.all(dealorders)
   } catch (error) {
@@ -633,13 +655,23 @@ function getCoin(setting) {
 // 1: 价格保护
 function priceProtect(setting) {
   if (setting != 'never') {
-    // try getListData
-    var objDiv = document.getElementById("mescroll0");
-    objDiv.scrollTop = (objDiv.scrollHeight * 2);
-
     weui.toast('京价保运行中', 1000);
 
-    if ($(".bd-product-list li").length > 0) {
+    // 加载第二页
+    if (document.getElementById("mescroll0")) {
+      document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
+      setTimeout(() => {
+        document.getElementById("mescroll0").scrollTop =0
+      }, 500);
+    }
+    if (document.getElementById("dataList")) {
+      $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
+      setTimeout(() => {
+        $(window).scrollTop(0)
+      }, 500);
+    }
+
+    if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
       console.log('成功获取价格保护商品列表', new Date())
       chrome.runtime.sendMessage({
         text: "run_status",
@@ -650,7 +682,7 @@ function priceProtect(setting) {
       }, function (response) {
         setTimeout(function () {
           getAllOrders(response)
-        }, 5000)
+        }, 3000)
         console.log("getPriceProtectionSetting Response: ", response);
       });
     } else {
@@ -1152,6 +1184,11 @@ function CheckDom() {
   if (window.location.host == 'item.m.jd.com') {
     seekPriceInfo();
   }
+
+  // PC价保
+  if (window.location.host == 'pcsitepp-fm.jd.com' || window.location.host == 'msitepp-fm.jd.com') {
+    getSetting('job1_frequency', priceProtect)
+  }
   
   // 移动页增加滑动支持
   if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com') {
@@ -1467,11 +1504,6 @@ function CheckDom() {
   // 自动跳转至商品页面
   if ($(".shop_intro .gobuy").length > 0) {
     getSetting('auto_gobuy', autoGobuy)
-  };
-  
-  // 价格保护（1）
-  if ($(".bd-product-list ").size() > 0 && $("#jb-product").text() == "价保申请") {
-    getSetting('job1_frequency', priceProtect)
   };
 
   // 手机验证码

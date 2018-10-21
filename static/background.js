@@ -312,6 +312,13 @@ function rand(n){
   return (Math.floor(Math.random() * n + 1));
 }
 
+function savePrice(price) {
+  let skuPriceList = localStorage.getItem('skuPriceList') ? JSON.parse(localStorage.getItem('skuPriceList')) : {}
+  skuPriceList[price.sku] = price
+  localStorage.setItem('skuPriceList', JSON.stringify(skuPriceList));
+  return skuPriceList
+}
+
 function log(type, message, details) {
   if (logger[type]) {
     logger[type].info(message, details)
@@ -645,10 +652,9 @@ function sendChromeNotification(id, content) {
 }
 
 function getPriceProtectionSetting() {
-  let isPlus = getSetting('jjb_plus');
   let pro_min = getSetting('price_pro_min');
   let days = getSetting('price_pro_days')
-  let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (isPlus == 'Y')
+  let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (getSetting('jjb_plus') == 'Y')
   let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
   return {
     pro_days: days ? Number(days) : 15,
@@ -673,16 +679,16 @@ chrome.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse
 
 
 // 报告价格
-function reportPrice(sku, price, plus_price, pingou_price) {
+function reportPrice(priceInfo) {
   $.ajax({
     method: "POST",
     type: "POST",
     url: "https://jjb.zaoshu.so/price",
     data: {
-      sku: sku,
-      price: Number(price),
-      plus_price: plus_price ? Number(plus_price) : null,
-      pingou_price: pingou_price ? Number(pingou_price) : null,
+      sku: priceInfo.sku,
+      price: normal_price ? Number(priceInfo.normal_price) : null,
+      plus_price: priceInfo.plus_price ? Number(priceInfo.plus_price) : null,
+      pingou_price: priceInfo.pingou_price ? Number(priceInfo.pingou_price) : null,
     },
     timeout: 3000,
     dataType: "json"
@@ -700,19 +706,32 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'getProductPrice':
       let url = `https://item.m.jd.com/product/${msg.sku}.html`
       priceProPage = sender
-      openByIframe(url, 'temporary')
+
+      setTimeout(() => {
+        openByIframe(url, 'temporary')
+      }, rand(20) * 1000);
+
       sendResponse({
         working: true
       })
       break;
     // 通知商品价格
     case 'productPrice':
+      let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (getSetting('jjb_plus') == 'Y')
+      let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
+      let priceInfo = {
+        sku: msg.sku, 
+        price: is_plus ? (msg.plus_price || msg.normal_price) : msg.normal_price,
+        normal_price: msg.normal_price,
+        plus_price: msg.plus_price,
+        pingou_price: msg.pingou_price
+      }
       // 当前有价保页面
       if (priceProPage && priceProPage.tab) {
         chrome.tabs.sendMessage(priceProPage.tab.id, {
           action: 'productPrice',
           setting: getPriceProtectionSetting(),
-          ...msg
+          ...priceInfo
         }, {
           frameId: priceProPage.frameId
         }, function (response) {
@@ -720,13 +739,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         })
       }
       // 价格追踪
-      let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
-      if (disable_pricechart && msg.sku && msg.price) {
-        reportPrice(msg.sku, msg.price, msg.plus_price, msg.pingou_price)
+      savePrice(priceInfo)
+      if (disable_pricechart && priceInfo.sku) {
+        reportPrice(priceInfo)
       }
-      sendResponse({
-        done: true
-      })
+      sendResponse(priceInfo)
       break;
     case 'loginState':
       saveLoginState(msg)

@@ -119,6 +119,7 @@ var ordersVM = new Vue({
   el: '#orders',
   data: {
     orders: [],
+    skuPriceList: {},
     disabled_link: getSetting('disabled_link') == 'checked' ? true : false
   },
   methods: {
@@ -487,6 +488,7 @@ function makeupMessages(messages) {
 
 function getOrders() {
   let orders = JSON.parse(localStorage.getItem('jjb_orders'))
+  let skuPriceList = localStorage.getItem('skuPriceList') ? JSON.parse(localStorage.getItem('skuPriceList')) :{}
   if (orders) {
     orders = orders.map(function (order) {
       order.time = readableTime(DateTime.fromISO(order.time))
@@ -496,6 +498,7 @@ function getOrders() {
     orders = []
   }
   ordersVM.orders = orders
+  ordersVM.skuPriceList = skuPriceList
 }
 
 function getMessages() {
