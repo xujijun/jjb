@@ -94,7 +94,7 @@ async function dealProduct(product, order_info, setting) {
 
   if (order_success_logs && order_success_logs.length > 0) {
     order_success_logs.each(function() {
-      let log = $(this).text().trim()
+      let log = $(this).text().trim().replace('查看退款详情','')
       if (log && log.indexOf("成功") > -1) {
         success_logs.push(log)
       }
@@ -118,6 +118,7 @@ async function dealProduct(product, order_info, setting) {
     quantity: order_quantity
   })
   // 记录订单信息
+  applyBtn.addClass('applyBtn')
   applyBtn.attr('sku', orderId[2])
   applyBtn.attr('order_price', order_price)
   applyBtn.attr('product_name', product_name)
@@ -128,61 +129,82 @@ function apply(applyBtn, priceInfo, setting) {
   let order_price = applyBtn.attr('order_price')
   let product_name = applyBtn.attr('product_name')
   let applyId = applyBtn.attr('id')
-  let lastApplyPrice = localStorage.getItem('jjb_order_' + applyId)
-  let new_price = Number(priceInfo.normal_price)
-  if (Number(priceInfo.plus_price) > 0 && setting.is_plus) {
-    new_price =  Number(priceInfo.plus_price)
-  }
-  if (new_price > 0 && new_price < order_price && (order_price - new_price) > setting.pro_min ) {
-    if (lastApplyPrice && Number(lastApplyPrice) <= new_price) {
-      console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', new_price, ' Vs ', lastApplyPrice)
-      return 
-    }
-    // 如果禁止了自动申请
-    if (setting.prompt_only) {
-      localStorage.setItem('jjb_order_' + applyId, new_price)
-      chrome.runtime.sendMessage({
-        text: "notice",
-        batch: 'jiabao',
-        title: '报告老板，发现价格保护机会！',
-        product_name: product_name,
-        content: '购买价：'+ order_price + ' 现价：' + new_price + '，请手动提交价保申请。'
-      }, function(response) {
-        console.log("Response: ", response);
-      });
-    } else {
-      // 申请
-      applyBtn.trigger( "click" )
-      localStorage.setItem('jjb_order_' + applyId, new_price)
-      chrome.runtime.sendMessage({
-        text: "notice",
-        batch: 'jiabao',
-        title: '报告老板，发现价格保护机会！',
-        product_name: product_name,
-        content: '购买价：'+ order_price + ' 现价：' + new_price + '，已经自动提交价保申请，正在等待申请结果。'
-      }, function(response) {
-        console.log("Response: ", response);
-      });
-      // 等待15秒后检查申请结果
-      var resultId = "applyResult_" + applyId.substr(8)
-      setTimeout(function () {
-        observeDOM(document.getElementById(resultId), function () {
-          let resultText = $("#" + resultId).text()
-          if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
-            chrome.runtime.sendMessage({
-              batch: 'jiabao',
-              text: "notice",
-              title: "报告老板，价保申请有结果了",
-              product_name: product_name,
-              content: "价保结果：" + resultText
-            }, function (response) {
-              console.log("Response: ", response);
-            });
+  // 获取上次申请价保的价格
+  getSetting('last_apply_price' + applyId, (lastApply) => {
+    let lastApplyPrice = lastApply ? lastApply.price : localStorage.getItem('jjb_order_' + applyId)
+    if (priceInfo.price > 0 && priceInfo.price < order_price && (order_price - priceInfo.price) > setting.pro_min ) {
+      if (lastApplyPrice && Number(lastApplyPrice) <= priceInfo.price) {
+        console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', priceInfo.price, ' Vs ', lastApplyPrice)
+        return 
+      }
+      // 如果禁止了自动申请
+      if (setting.prompt_only) {
+        localStorage.setItem('jjb_order_' + applyId, priceInfo.price)
+        chrome.runtime.sendMessage({
+          action: "setVariable",
+          key: 'last_apply_price' + applyId,
+          value: {
+            price: priceInfo.price,
+            submitted: false,
+            time: new Date()
           }
+        }, function (response) {
+          console.log("Response: ", response);
         });
-      }, 5000)
+        chrome.runtime.sendMessage({
+          text: "notice",
+          batch: 'jiabao',
+          title: '报告老板，发现价格保护机会！',
+          product_name: product_name,
+          content: '购买价：'+ order_price + ' 现价：' + priceInfo.price + '，请手动提交价保申请。'
+        }, function(response) {
+          console.log("Response: ", response);
+        });
+      } else {
+        // 申请
+        applyBtn.trigger( "click" )
+        localStorage.setItem('jjb_order_' + applyId, priceInfo.price)
+        chrome.runtime.sendMessage({
+          action: "setVariable",
+          key: 'last_apply_price' + applyId,
+          value: {
+            price: priceInfo.price,
+            submitted: true,
+            time: new Date()
+          }
+        }, function (response) {
+          console.log("Response: ", response);
+        });
+        chrome.runtime.sendMessage({
+          text: "notice",
+          batch: 'jiabao',
+          title: '报告老板，发现价格保护机会！',
+          product_name: product_name,
+          content: '购买价：'+ order_price + ' 现价：' + priceInfo.price + '，已经自动提交价保申请，正在等待申请结果。'
+        }, function(response) {
+          console.log("Response: ", response);
+        });
+        // 等待15秒后检查申请结果
+        var resultId = "applyResult_" + applyId.substr(8)
+        setTimeout(function () {
+          observeDOM(document.getElementById(resultId), function () {
+            let resultText = $("#" + resultId).text()
+            if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
+              chrome.runtime.sendMessage({
+                batch: 'jiabao',
+                text: "notice",
+                title: "报告老板，价保申请有结果了",
+                product_name: product_name,
+                content: "价保结果：" + resultText
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          });
+        }, 5000)
+      }
     }
-  }
+  });
 }
 
 // 提取价格信息
@@ -217,7 +239,7 @@ function seekPriceInfo() {
 // 查找订单并对比
 function findOrderBySkuAndApply(priceInfo, setting) {
   console.log('findOrderBySkuAndApply', priceInfo)
-  $( ".item-opt a.apply" ).each(function() {
+  $( ".applyBtn" ).each(function() {
     let skuid = $(this).attr('sku')
     if (skuid && skuid == priceInfo.sku) {
       apply($(this), priceInfo, setting)
@@ -259,8 +281,8 @@ async function dealOrder(order, orders, setting) {
   }
 }
 
-async function getAllOrders(setting) {
-  console.log('京价保开始自动检查订单')
+async function getAllOrders(mode, setting) {
+  console.log('京价保开始自动检查订单', mode)
   let orders = []
   let dealorders = []
   // 移动价保
@@ -346,7 +368,8 @@ function CheckBaitiaoCouponDom(setting) {
   if (setting != 'never') {
     console.log('开始领取白条券')
     chrome.runtime.sendMessage({
-      text: "run_status",
+      action: "run_status",
+      mode: 'm',
       jobId: "4"
     })
     var time = 0;
@@ -656,7 +679,7 @@ function getCoin(setting) {
 function priceProtect(setting) {
   if (setting != 'never') {
     weui.toast('京价保运行中', 1000);
-
+    let mode = "m"
     // 加载第二页
     if (document.getElementById("mescroll0")) {
       document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
@@ -665,6 +688,7 @@ function priceProtect(setting) {
       }, 500);
     }
     if (document.getElementById("dataList")) {
+      mode = "pc"
       $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
       setTimeout(() => {
         $(window).scrollTop(0)
@@ -674,14 +698,15 @@ function priceProtect(setting) {
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
       console.log('成功获取价格保护商品列表', new Date())
       chrome.runtime.sendMessage({
-        text: "run_status",
-        jobId: "1"
+        action: "run_status",
+        jobId: "1",
+        mode: mode
       })
       chrome.runtime.sendMessage({
         text: "getPriceProtectionSetting"
       }, function (response) {
         setTimeout(function () {
-          getAllOrders(response)
+          getAllOrders(mode, response)
         }, 3000)
         console.log("getPriceProtectionSetting Response: ", response);
       });
@@ -722,9 +747,11 @@ function showPriceChart(disable) {
     window.addEventListener("message", function (event) {
       if (event.source != window)
         return;
-      if (event.data.type && (event.data.type == "FROM_PAGE")) {
+      if (event.data.type && (event.data.type == "FROM_PAGE") && (event.data.text == "disablePriceChart")) {
         chrome.runtime.sendMessage({
-          text: event.data.text,
+          action: "setVariable",
+          key: "disable_pricechart",
+          value: "checked"
         },
         function (response) {
           weui.toast('停用成功', 1000);
@@ -864,7 +891,7 @@ function getAccount(type) {
       }, 50);
     } else {
       chrome.runtime.sendMessage({
-        text: "loginState",
+        action: "loginState",
         state: "failed",
         message: "由于账号未保存无法自动登录",
         type: type
@@ -1161,7 +1188,9 @@ function CheckDom() {
   // 是否是PLUS会员
   if ($(".cw-user .fm-icon").size() > 0 && $(".cw-user .fm-icon").text() == '正式会员') {
     chrome.runtime.sendMessage({
-      text: "isPlus",
+      action: "setVariable",
+      key: "jjb_plus",
+      value: "Y"
     }, function (response) {
       console.log("Response: ", response);
     });

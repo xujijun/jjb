@@ -114,6 +114,24 @@ function getSetting(settingKey) {
   return setting
 }
 
+// 设置模块
+var settingsVM = new Vue({
+  el: '#settings',
+  data: {
+    loginState: {
+      m: {
+        state: "unknown"
+      },
+      pc: {
+        state: "unknown"
+      }
+    }
+  },
+  methods: {
+  }
+})
+
+
 // 处理订单
 var ordersVM = new Vue({
   el: '#orders',
@@ -428,18 +446,14 @@ function dealWithLoginState() {
     loginTypeNoticeDom[0]._tippy.setContent(stateDescription)
     $('.login-type_' + type + ' .status-text').text(stateText[loginState[type].state])
     if (!loginState[type] || loginState[type].state != "alive") {
-      $('.frequency_settings .job-' + type + ' .reload').removeClass('show').hide()
-      $('.frequency_settings .job-' + type + ' .job-state').addClass('show')
-
       if (loginUrl && type != 'm') {
         loginTypeNoticeDom.attr("href", loginUrl)
         loginTypeNoticeDom.attr("target", "_blank")
       }
-    } else {
-      $('.frequency_settings .job-' + type + ' .job-state').removeClass('show')
-    }
+    } 
   }
   function dealResponse(loginState) {
+    settingsVM.loginState = loginState
     dealWithLoginNotice(loginState, 'pc')
     dealWithLoginNotice(loginState, 'm')
     $("#loginState")[0]._tippy.setContent("PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))

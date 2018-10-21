@@ -27,7 +27,7 @@
                     <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="价格保护默认只申请15天内下单的商品" title="价格保护默认只申请15天内下单的商品">价格保护</span>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行" title="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive' && loginState['pc'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行" title="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job1_frequency">
@@ -42,7 +42,7 @@
                     <div class="weui-cell__bd job-pc">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="只领取全平台的券">全品类券</span>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['pc'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job15_frequency">
@@ -57,7 +57,7 @@
                     <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="当然啦，你得先是PLUS会员才能领到">PLUS券</span>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['pc'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job3_frequency">
@@ -72,7 +72,7 @@
                     <div class="weui-cell__bd job-m">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="白条券是个好东西啊">白条券</span>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job4_frequency">
@@ -88,7 +88,7 @@
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="京东会员移动页每日签到">京东会员签到</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job5_frequency">
@@ -102,7 +102,7 @@
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="京东金融钢镚签到">钢镚每日签到</span>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
                       <i class="today tippy weui-icon-success-circle reload"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job14_frequency">
@@ -116,7 +116,7 @@
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="京东金融惠赚钱每日签到有钢镚奖励">金融钢镚签到</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job6_frequency">
@@ -128,9 +128,10 @@
                   <div id="job9" class="weui-cell weui-cell_select weui-cell_select-after">
                     <div class="weui-cell__bd job-pc checkin-jr-index">
                       <span data-tippy-placement="top-start" class="tippy"  data-tippy-content="金融会员每日签到，也会开标签页">金融会员签到</span>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
+                      <i v-show="loginState['pc'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job9_frequency">
@@ -144,7 +145,7 @@
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="移动端京豆签到">每日京豆签到</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job11_frequency">
@@ -158,7 +159,7 @@
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="完成京豆和京东金融签到有一个双签奖励">领取双签奖励</span>
                       <i class="today tippy weui-icon-success-circle reload"></i>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['m'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job12_frequency">
@@ -171,7 +172,7 @@
                     <div class="weui-cell__bd job-pc">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="这个功能是自动浏览店铺签到得京豆，会开一些隐藏标签。">浏览店铺签到</span>
                       <i class="reload-icon reload tippy" data-tippy-content="手动运行" data-tippy-placement="top-start" data-theme="light"></i>
-                      <i class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
+                      <i v-show="loginState['pc'].state != 'alive'" class="job-state tippy weui-icon-waiting-circle showLoginState" data-tippy-content="因账号未登录任务已暂停运行"></i>
                     </div>
                     <div class="weui-cell__bd">
                       <select class="weui-select" name="job7_frequency">
@@ -412,23 +413,25 @@
               <div class="orders" v-if="orders && orders.length > 0">
                 <li v-for="order in orders">
                   <div class="order_time"> 下单时间： {{order.time}}</div>
-                  <div class="weui-cell good" v-for="good in order.goods" >
-                    <div class="weui-cell__bd" v-if="good">
-                      <div class="good_title">
-                        <a :href="`https://jjb.zaoshu.so/good/${good.sku}`" v-if="good.sku && !disabled_link" target="_blank">
-                          <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
-                          <p>{{good.name}}</p>
-                          <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
-                        </a>
-                        <p v-else>{{good.name}}</p>
+                  <div v-for="good in order.goods">
+                    <div class="weui-cell good">
+                      <div class="weui-cell__bd" v-if="good">
+                        <div class="good_title">
+                          <a :href="`https://jjb.zaoshu.so/good/${good.sku}`" v-if="good.sku && !disabled_link" target="_blank">
+                            <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
+                            <p>{{good.name}}</p>
+                            <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
+                          </a>
+                          <p v-else>{{good.name}}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div class="weui-cell__ft" v-if="good">
-                      <span class="order_price">￥{{good.order_price}}</span>
-                      <div class="sku_price" v-if="skuPriceList[good.sku]">
-                        <span class="new_price down" v-if="good.order_price > skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
-                        <span class="new_price up" v-else-if="good.order_price < skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
-                        <span class="new_price" v-else>￥{{skuPriceList[good.sku].price}}</span>
+                      <div class="weui-cell__ft" v-if="good">
+                        <span class="order_price">￥{{good.order_price}}</span>
+                        <div class="sku_price" v-if="skuPriceList[good.sku]">
+                          <span class="new_price down" v-if="good.order_price > skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
+                          <span class="new_price up" v-else-if="good.order_price < skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
+                          <span class="new_price" v-else>￥{{skuPriceList[good.sku].price}}</span>
+                        </div>
                       </div>
                     </div>
                     <p class="success_log" v-for="log in good.success_log">{{log}}</p>

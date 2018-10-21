@@ -9,117 +9,141 @@ var logger = {}
 
 var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
 var priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
+var priceProUrlPC = "https://pcsitepp-fm.jd.com/rest/pricepro/priceapply"
 var priceProPage = null
 
 let jobs = [
   {
     id: '1',
-    src: priceProUrl,
+    src: {
+      m: priceProUrl,
+      pc: priceProUrlPC
+    },
     title: '价格保护',
     mode: 'iframe',
-    type: 'm',
+    type: ['m', 'pc'],
     frequency: '5h'
   },
   {
     id: '3',
-    src: 'https://plus.m.jd.com/index',
+    src: {
+      m: 'https://plus.m.jd.com/index',
+    },
     title: 'PLUS券',
     mode: 'iframe',
-    type: 'm',
+    type: ['m'],
     frequency: '5h'
   },
   {
     id: '4',
-    src: 'https://m.jr.jd.com/mjractivity/rn/couponCenter/index.html?RN=couponCenter&tab=20',
+    src: {
+      m: 'https://m.jr.jd.com/mjractivity/rn/couponCenter/index.html?RN=couponCenter&tab=20',
+    },
     title: '领白条券',
     mode: 'iframe',
-    type: 'm',
+    type: ['m'],
     frequency: '5h'
   },
   {
     id: '5',
-    src: 'https://vip.m.jd.com/page/signin',
+    src: {
+      m: 'https://vip.m.jd.com/page/signin',
+    },
     title: '京东会员签到',
     mode: 'iframe',
     key: "vip",
-    type: 'm',
+    type: ['m'],
     checkin: true,
     frequency: 'daily'
   },
   {
     id: '6',
-    src: 'https://m.jr.jd.com/spe/qyy/main/index.html?userType=41',
+    src: {
+      m: 'https://m.jr.jd.com/spe/qyy/main/index.html?userType=41',
+    },
     title: '金融钢镚签到',
     key: "jr-qyy",
     mode: 'iframe',
-    type: 'm',
+    type: ['m'],
     checkin: true,
     frequency: 'daily'
   },
   {
     id: '7',
-    src: 'https://bean.jd.com/myJingBean/list',
+    src: {
+      pc: 'https://bean.jd.com/myJingBean/list',
+    },
     title: '店铺签到',
     mode: 'tab',
-    type: 'pc',
+    type: ['pc'],
     frequency: 'never'
   },
   {
     id: '9',
-    src: 'https://vip.jr.jd.com',
+    src: {
+      pc: 'https://vip.jr.jd.com',
+    },
     title: '京东金融会员签到',
     key: "jr-index",
     checkin: true,
     mode: 'iframe',
-    type: 'pc',
+    type: ['pc'],
     frequency: 'daily'
   },
   {
     id: '11',
-    src: 'https://bean.m.jd.com',
+    src: {
+      m: 'https://bean.m.jd.com',
+    },
     title: '移动端京豆签到',
     key: "bean",
     checkin: true,
     mode: 'iframe',
-    type: 'm',
+    type: ['m'],
     frequency: 'daily'
   },
   {
     id: '12',
-    src: 'https://ljd.m.jd.com/countersign/index.action',
+    src: {
+      m: 'https://ljd.m.jd.com/countersign/index.action',
+    },
     title: '双签礼包',
     key: "double_check",
     mode: 'iframe',
-    type: 'm',
+    type: ['m'],
     frequency: 'daily'
   },
   {
     id: '14',
-    src: 'https://coin.jd.com/m/gb/index.html',
+    src: {
+      m: 'https://coin.jd.com/m/gb/index.html',
+    },
     title: '钢镚签到',
     key: "coin",
     checkin: true,
     mode: 'iframe',
-    type: 'm',
+    type: ['m'],
     frequency: 'daily'
   },
   {
     id: '15',
-    src: 'https://jjb.zaoshu.so/event/coupon',
+    src: {
+      pc: 'https://jjb.zaoshu.so/event/coupon',
+    },
     title: '全品类券',
     schedule: [10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
     mode: 'iframe',
-    type: 'pc',
+    type: ['pc'],
     frequency: '2h'
   },
 ]
 
-function getSetting(settingKey) {
+function getSetting(settingKey, defaultValue) {
   let setting = localStorage.getItem(settingKey)
   try {
     setting = JSON.parse(setting)
   } catch (error) {}
-  return setting
+  return setting ? setting : defaultValue
 }
 
 // 会员礼包
@@ -277,9 +301,9 @@ function getJobs() {
 function findJobs() {
   let jobStack = localStorage.getItem('jobStack') ? JSON.parse(localStorage.getItem('jobStack')) : []
   let jobList = getJobs()
-  let loginState = getLoginState()
   jobList.forEach(function(job) {
-    if (loginState[job.type].state != 'alive') {
+    let mode = findJobMode(job)
+    if (!mode) {
       return console.log(job.title, '由于账号未登录已暂停运行')
     }
     switch(job.frequency){
@@ -334,6 +358,19 @@ function resetIframe(domId) {
   $('body').append(iframeDom);
 }
 
+// 根据登录状态选择任务模式
+function findJobMode(job) {
+  let loginState = getLoginState()
+  let type = null
+  for (var i = 0; i < job.type.length; i++) {
+    if (loginState[job.type[i]].state == 'alive') {
+      type = job.type[i];
+      break;
+    }
+  }
+  return type
+}
+
 // 执行组织交给我的任务
 function runJob(jobId, force = false) {
   // 不在凌晨阶段运行非强制任务
@@ -356,9 +393,10 @@ function runJob(jobId, force = false) {
   }
   var jobList = getJobs()
   var job = _.find(jobList, {id: jobId})
-  // 检查登录状态
-  let loginState = getLoginState()
-  if (loginState[job.type].state != 'alive' && !force) {
+
+  let mode = findJobMode(job)
+  
+  if (!mode && !force) {
     return log('job', job.title, '由于账号未登录已暂停运行')
   }
   if (job && (job.frequency != 'never' || force)) {
@@ -390,7 +428,7 @@ function runJob(jobId, force = false) {
     }
     log('background', "run", job)
     if (job.mode == 'iframe') {
-      openByIframe(job.src, 'job')
+      openByIframe(job.src[mode], 'job')
     } else {
       chrome.tabs.create({
         index: 1,
@@ -404,9 +442,6 @@ function runJob(jobId, force = false) {
         }, function (result) {
           log('background', "muted tab", result)
         })
-        // if (job.touch) {
-        //   attachDebugger(tab)
-        // }
         chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
       })
     }
@@ -593,22 +628,21 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
 
 function getLoginState() {
   let loginState = {
-    pc: localStorage.getItem('jjb_login-state_pc') ? JSON.parse(localStorage.getItem('jjb_login-state_pc')) : {
+    pc: getSetting('jjb_login-state_pc', {
       state: "unknown"
-    },
-    m: localStorage.getItem('jjb_login-state_m') ? JSON.parse(localStorage.getItem('jjb_login-state_m')) : {
+    }),
+    m: getSetting('jjb_login-state_m', {
       state: "unknown"
-    },
+    }),
     class: "unknown"
   }
   // 处理登录状态
-  if (loginState.m.state == 'alive') {
+  if (loginState.m.state == 'alive' && loginState.pc.state == 'alive') {
     loginState.class = "alive"
-    if (loginState.pc.state != 'alive') {
-      loginState.class = "warning"
-    }
-  } else {
+  } else if (loginState.pc.state == 'failed' && loginState.pc.state == 'failed') {
     loginState.class = "failed"
+  } else if (loginState.pc.state == 'failed' || loginState.pc.state == 'failed') {
+    loginState.class = "warning"
   }
   return loginState
 }
@@ -634,7 +668,7 @@ function saveLoginState(state) {
   }));
   chrome.runtime.sendMessage({
     action: "loginState_updated",
-    data:state
+    data: state
   });
 }
 
@@ -663,19 +697,6 @@ function getPriceProtectionSetting() {
     is_plus
   }
 }
-
-// 外部消息
-chrome.runtime.onMessageExternal.addListener(function (msg, sender, sendResponse) {
-  console.log('onMessageExternal', msg)
-  switch (msg.text) {
-    case 'disablePriceChart':
-      localStorage.setItem('disable_pricechart', JSON.stringify("checked"));
-      return sendResponse("done")
-      break;
-  }
-  // 如果消息 300ms 未被回复
-  return true
-});
 
 
 // 报告价格
@@ -748,37 +769,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'loginState':
       saveLoginState(msg)
       break;
-    case 'disablePriceChart':
-      localStorage.setItem('disable_pricechart', JSON.stringify("checked"));
-      return sendResponse("done")
-      break;
-    case 'getLoginState': 
+    case 'getLoginState':
       return sendResponse(loginState)
-      break;
-    case 'isPlus':
-      localStorage.setItem('jjb_plus', 'Y');
-      break;
-    case 'disablePriceChart':
-      localStorage.setItem('disable_pricechart', JSON.stringify("checked"));
-      return sendResponse("done")
-      break;
-    case 'checkPermissions':
-      chrome.permissions.contains({
-        permissions: [msg.permissions],
-      }, function (result) {
-        return sendResponse({
-          granted: result
-        });
-      });
-      break;
-    case 'requestPermissions':
-      chrome.permissions.request({
-        permissions: [msg.permissions],
-      },  function (granted) {
-        return sendResponse({
-          granted: granted
-        })
-      });
       break;
     case 'getPriceProtectionSetting':
       let priceProtectionSetting = getPriceProtectionSetting()
@@ -789,6 +781,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       if (content.username && content.password) {
         localStorage.setItem('jjb_account', msg.content);
       }
+      break;
+    // 保存变量值
+    case 'setVariable':
+      localStorage.setItem(msg.key, JSON.stringify(msg.value));
       break;
     // 获取设置
     case 'getSetting':
@@ -967,14 +963,13 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 运行状态
     case 'run_status':
-      console.log('run_status', msg)
       var jobList = getJobs()
       var job = _.find(jobList, { id: msg.jobId })
       localStorage.setItem('job' + job.id + '_lasttime', new Date().getTime())
       saveLoginState({
         content: job.title + "成功运行",
         state: "alive",
-        type: job.type
+        type: msg.mode || job.type[0]
       })
       // 如果任务周期小于10小时，且不是计划任务，则安排下一次运行
       if (mapFrequency[job.frequency] < 600 && !job.schedule) {
@@ -1104,7 +1099,5 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   // 如果消息 300ms 未被回复
   return true
 });
-
-
 
 Logline.keep(3);

@@ -146,8 +146,8 @@ a:hover {
     line-height: 35px;
 }
 
-.frequency_settings .weui-cell__bd i.job-state {
-    display: none;
+.frequency_settings .weui-icon-waiting-circle{
+    font-size: 19px;
 }
 
 .switch-paymethod{
@@ -173,11 +173,12 @@ a:hover {
 }
 
 .reload-icon {
-    background: url(../image/reload.svg) no-repeat 1px 5px;
+    background: url(../image/reload.svg) no-repeat 1px 1px;
     width: 20px;
     height: 21px;
     color: #dcdcdc;
     display: inline-block;
+    vertical-align: middle;
     background-size: 17px;
 }
 
