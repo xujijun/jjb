@@ -12,11 +12,6 @@
     "default_icon": "static/image/jjb.png",
     "default_popup": "popup.html"
   },
-  "sandbox": {
-    "pages": [
-      "render.html"
-    ]
-  },
   "content_scripts": [
     {
       "matches": ["*://*.jd.com/*", "*://*.jd.hk/*"],

@@ -73,7 +73,7 @@ async function fetchProductPage(sku) {
   }
 }
 
-// 当个商品价保申请
+// 单个商品价保申请
 async function dealProduct(product, order_info, setting) {
   let success_logs = []
   let product_name = product.find('.p-name a').text() || product.find('.item-name .name').text()
@@ -235,7 +235,6 @@ function seekPriceInfo() {
   
 }
 
-
 // 查找订单并对比
 function findOrderBySkuAndApply(priceInfo, setting) {
   console.log('findOrderBySkuAndApply', priceInfo)
@@ -361,7 +360,6 @@ function sendTouchEvent(x, y, element, eventType) {
   }
 
 }
-
 
 // 4：领取白条券
 function CheckBaitiaoCouponDom(setting) {
@@ -771,8 +769,17 @@ function showPriceChart(disable) {
           pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || price
           price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
         }
-        if (price) {
-          reportPrice(sku, price, plus_price, pingou_price)
+        if (sku && (price || plus_price)) {
+          // 通知价格
+          chrome.runtime.sendMessage({
+            action: 'productPrice',
+            sku: sku,
+            normal_price: price,
+            plus_price: plus_price,
+            pingou_price: pingou_price
+          }, function (response) {
+            console.log("productPrice Response: ", response);
+          });
         }
       } catch (error) {
         console.log('reportPrice error', error)
@@ -945,7 +952,24 @@ function getBase64Image(img) {
 
 // 自动登录
 function autoLogin(account, type) {
+  if (account.autoLoginQuota && account.autoLoginQuota < 1) {
+    return console.log('当前时段无可用自动登录配额，暂不运行自动登录', type)
+  }
   console.log('京价保正在为您自动登录', type)
+  function login(type) {
+    chrome.runtime.sendMessage({
+      action: "autoLogin",
+      type: type
+    }, function (response) {
+      console.log("autoLogin Response: ", response);
+    });  
+    if (type == 'pc') {
+      mockClick($(".login-btn a")[0])
+    } else {
+      mockClick($("#loginBtn")[0])
+    }
+  }
+
   if (type == 'pc') {
     // 切换到账号登录
     mockClick($(".login-tab-r a")[0])
@@ -958,7 +982,7 @@ function autoLogin(account, type) {
       observeDOM(authcodeDom, function () {
         let resultText = $("#s-authcode .authcode-btn").text()
         if (resultText && resultText == "验证成功") {
-          mockClick($(".login-btn a")[0])
+          login('pc')
         }
       });
     }
@@ -982,7 +1006,7 @@ function autoLogin(account, type) {
         dealLoginFailed("pc", "需要完成登录验证")
       } else {
         setTimeout(function () {
-          mockClick($(".login-btn a")[0])
+          login('pc')
         }, 500)
         // 是否需要滑动验证
         setTimeout(function () {
@@ -1019,7 +1043,7 @@ function autoLogin(account, type) {
     function mLogin() {
       setTimeout(function () {
         if ($("#username").val() && $("#password").val()) {
-          mockClick($("#loginBtn")[0])
+          login('m')
           // 是否需要滑动验证
           setTimeout(function () {
             let slidemsg = $("#captcha_body .sp_msg").text()

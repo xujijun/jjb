@@ -6,6 +6,7 @@ $ = window.$ = window.jQuery = require('jquery')
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
 var logger = {}
+var autoLoginQuota = {}
 
 var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
 var priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
@@ -734,6 +735,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     msg.action = msg.text
   }
   let loginState = getLoginState()
+  let hourInYear = DateTime.local().toFormat("oHH")
   switch(msg.action){
     // 获取移动页商品价格
     case 'getProductPrice':
@@ -794,6 +796,17 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         localStorage.setItem('jjb_account', msg.content);
       }
       break;
+    // 自动登录
+    case 'autoLogin':
+      if (autoLoginQuota[hourInYear]) {
+        autoLoginQuota[hourInYear][msg.type] = 0
+      } else {
+        autoLoginQuota[hourInYear] = {
+          [msg.type]: 0
+        }
+      }
+      sendResponse(autoLoginQuota[hourInYear])
+      break;
     // 保存变量值
     case 'setVariable':
       localStorage.setItem(msg.key, JSON.stringify(msg.value));
@@ -813,12 +826,16 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       return sendResponse(setting)
       break;
     case 'getAccount':
-      let account = localStorage.getItem('jjb_account') ? JSON.parse(localStorage.getItem('jjb_account')) : null
-      let loginTypeState = localStorage.getItem('jjb_login-state_' + msg.type) ? JSON.parse(localStorage.getItem('jjb_login-state_' + msg.type)) : {}
+      let account = getSetting('jjb_account', null)
+      let loginTypeState = getSetting('jjb_login-state_' + msg.type, {})
       // 如果有 loginTypeState
       if (account && loginTypeState && loginTypeState.time) {
         loginTypeState.displayTime = DateTime.fromISO(loginTypeState.time).setLocale('zh-cn').toFormat('f')
         account.loginState = loginTypeState
+      }
+      // 如果有自动登录次数配额限制
+      if (account && autoLoginQuota[hourInYear]) {
+        account.autoLoginQuota = autoLoginQuota[hourInYear][msg.type]
       }
       return sendResponse(account)
       break;
