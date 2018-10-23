@@ -227,7 +227,9 @@ a:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
+    height: 38px;
     -webkit-line-clamp: 2;
+    -moz-box-orient: vertical;
     -webkit-box-orient: vertical;
     line-height: 18px;
 }
@@ -396,7 +398,7 @@ a:hover {
     cursor: pointer;
 }
 
-#recommendedLink p{
+.recommendedLink p{
     text-align: center;
     margin-top: 5px;
 }

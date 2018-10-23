@@ -5,6 +5,10 @@ import tippy from 'tippy.js'
 import weui from 'weui.js'
 import Vue from '../node_modules/vue/dist/vue.esm.js'
 
+import {tasks, frequencyOptionText, findJobPlatform} from './tasks'
+import {getSetting, versionCompare, readableTime} from './utils'
+import {getLoginState} from './account'
+
 Vue.directive('tippy', {
   inserted(el) {
     let title = el.getAttribute('title')
@@ -16,9 +20,31 @@ Vue.directive('tippy', {
   }
 })
 
-import {tasks, frequencyOptionText} from './tasks'
-import {getSetting, versionCompare, readableTime} from './utils'
-import {getLoginState} from './account'
+Vue.directive('autoSave', {
+  bind(el) {
+    let current = getSetting(el.name, null);
+    if (el.type == 'checkbox' && current == "checked") {
+      el.checked = true
+    } else if (el.type == 'select-one'){
+      el.value = current || el.options[0].value
+    } else {
+      el.value = current
+    }
+
+    el.addEventListener('change', function() {
+      if (el.type == 'checkbox') {
+        if (el.checked) {
+          localStorage.setItem(el.name, "checked")
+        } else {
+          localStorage.removeItem(el.name)
+        }
+      } else {
+        localStorage.setItem(el.name, el.value)
+      }
+      weui.toast("设置已保存", 500)
+    });
+  }
+})
 
 $.each(['show', 'hide'], function (i, ev) {
   var el = $.fn[ev];
@@ -125,6 +151,7 @@ var settingsVM = new Vue({
   data: {
     tasks: [],
     frequencyOptionText: frequencyOptionText,
+    recommendedLinks: [],
     loginState: {
       m: {
         state: "unknown"
@@ -312,30 +339,6 @@ function changeTips() {
   }
 }
 
-
-function buildLinkDom(link){
-  if (link.moblie) {
-    return `
-      <p>
-        <a class="openMobliePage" style="${link.style}" data-url="${link.url}">${link.title}</a>
-      </p>
-    `
-  }
-  return `
-    <p>
-      <a href="${link.url}" style="${link.style}" class="weui-form-preview__btn weui-form-preview__btn_primary" target="_blank">${link.title}</a>
-    </p>
-  `
-}
-
-// show recommendedLink
-function showRecommendedLinks() {
-  let recommendedLinks = localStorage.getItem('recommendedLinks') ? JSON.parse(localStorage.getItem('recommendedLinks')) : []
-  $.each(recommendedLinks, function (i, link) {
-    $("#recommendedLink").append(buildLinkDom(link))
-  })
-}
-
 function showJEvent() {
   // 加载反馈
   if (!$("#jEventIframe").attr('src') || $("#jEventIframe").attr('src') == '') {
@@ -347,18 +350,7 @@ function showJEvent() {
   $("#jEventDialags").show()
 }
 
-// 判断登录状态
-function detectTaskState(task) {
-  let loginState = getLoginState()
-  let suspended = true
-  for (var i = 0; i < task.type.length; i++) {
-    if (loginState[task.type[i]].state == 'alive') {
-      suspended = false
-      break;
-    }
-  }
-  return suspended
-}
+ 
 
 // 任务列表
 function getTasks() {
@@ -374,9 +366,13 @@ function getTasks() {
         task.checkin_description = '完成于：' + readableTime(DateTime.fromISO(checkinRecord.time)) + ( checkinRecord.value ? '，领到：' + checkinRecord.value : '')
       }
     }
-    // 判断是否挂起
-    task.suspended = detectTaskState(task)
-    console.log('task', task)
+    // 选择运行平台
+    task.platform = findJobPlatform(task)
+    if (task.platform) {
+      task.url = task.src[task.platform]
+    } else {
+      task.suspended = true
+    }
     return task
   })
 }
@@ -483,18 +479,15 @@ $( document ).ready(function() {
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
   
-  // 设置保存
-  $('#settings').garlic({
-    getPath: function ($elem) {
-      return $elem.attr('name');
-    }
-  });
-
   // 渲染订单
   getOrders()
 
   // 渲染通知
   getMessages()
+
+  // 渲染设置
+  settingsVM.tasks = getTasks()
+  settingsVM.recommendedLinks = getSetting("recommendedLinks", [])
   
   // tippy
   tippy('.tippy')
@@ -504,9 +497,6 @@ $( document ).ready(function() {
 
   // 随机显示 Tips
   changeTips()
-
-  // 推荐链接
-  showRecommendedLinks()
 
   $('body').width(windowWidth-1)
   // 窗口 resize

@@ -2,7 +2,7 @@ $ = window.$ = window.jQuery = require('jquery')
 import * as _ from "lodash"
 import Logline from 'logline'
 import {DateTime} from 'luxon'
-import {priceProUrl, tasks, mapFrequency} from './tasks'
+import {priceProUrl, tasks, mapFrequency, findJobPlatform} from './tasks'
 import {rand, getSetting} from './utils'
 import {getLoginState} from './account'
 
@@ -212,19 +212,6 @@ function resetIframe(domId) {
   $("#" + domId).remove();
   let iframeDom = `<iframe id="${domId}" width="400 px" height="600 px" src=""></iframe>`;
   $('body').append(iframeDom);
-}
-
-// 根据登录状态选择任务模式
-function findJobPlatform(job) {
-  let loginState = getLoginState()
-  let platform = null
-  for (var i = 0; i < job.type.length; i++) {
-    if (loginState[job.type[i]].state == 'alive') {
-      platform = job.type[i];
-      break;
-    }
-  }
-  return platform
 }
 
 // 执行组织交给我的任务

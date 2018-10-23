@@ -6,9 +6,11 @@ module.exports = {
   },
   getSetting: function (settingKey, defaultValue) {
     let setting = localStorage.getItem(settingKey)
-    try {
-      setting = JSON.parse(setting)
-    } catch (error) {}
+    if (setting) {
+      try {
+        setting = JSON.parse(setting)
+      } catch (error) {}
+    }
     return setting ? setting : defaultValue
   },
   readableTime: function (datetime) {

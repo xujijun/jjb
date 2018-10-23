@@ -92,7 +92,6 @@ gulp.task('move-js', [], function () {
   gulp.src([
     'static/start.js',
     'node_modules/zepto/dist/zepto.min.js',
-    'node_modules/garlicjs/dist/garlic.min.js',
     'node_modules/dialog-polyfill/dialog-polyfill.js',
     'node_modules/@sunoj/touchemulator/touch-emulator.js',
   ])

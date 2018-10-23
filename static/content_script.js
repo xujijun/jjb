@@ -450,6 +450,7 @@ function getCommonUseCoupon(setting) {
   if (setting != 'never') {
     var time = 0;
     console.log('开始领取全品类券')
+    weui.toast('京价保运行中', 1000);
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "15"
@@ -487,6 +488,7 @@ function getCommonUseCoupon(setting) {
 // 自动浏览店铺（7：店铺签到）
 function autoVisitShop(setting) {
   if (setting != 'never') {
+    weui.toast('京价保运行中', 1000);
     console.log('开始自动访问店铺领京豆')
     chrome.runtime.sendMessage({
       text: "run_status",
@@ -542,6 +544,8 @@ function doShopSign(setting) {
 function getRebate(setting) {
   if (setting != 'never') {
     console.log('京东金融铂金会员返利')
+    weui.toast('京价保运行中', 1000);
+
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "10"
@@ -735,7 +739,6 @@ function autoGobuy(setting) {
 }
 
 
-
 // 价格历史
 function showPriceChart(disable) {
   if (disable == "checked") {
@@ -792,7 +795,9 @@ function showPriceChart(disable) {
 function handProtection(setting) {
   if (setting == "checked") {
     injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
-    let url = $("#InitCartUrl").attr("href")
+    console.log('剁手保护模式')
+    let buyDom = $("#btn-reservation")
+    let url = buyDom.attr("href")
     let item = $(".ellipsis").text()
     let price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
     // 拼接提示
@@ -802,9 +807,9 @@ function handProtection(setting) {
     // 写入提示消息
     $("body").append(dialogMsgDOM);
 
-    $("#InitCartUrl").data("url", url)
-    $("#InitCartUrl").removeAttr("clstag")
-    $("#InitCartUrl").on("click", function () {
+    buyDom.data("url", url)
+    buyDom.removeAttr("clstag")
+    buyDom.on("click", function () {
       let count = $('#buy-num').val()
       // 移除此前的提示
       if ($("#dialog").size() > 0) {
@@ -955,7 +960,7 @@ function autoLogin(account, type) {
   if (account.autoLoginQuota && account.autoLoginQuota < 1) {
     return console.log('当前时段无可用自动登录配额，暂不运行自动登录', type)
   }
-  console.log('京价保正在为您自动登录', type)
+  weui.toast('京价保正在自动登录', 1000);
   function login(type) {
     chrome.runtime.sendMessage({
       action: "autoLogin",
@@ -1183,6 +1188,7 @@ function dealLoginPage() {
 function vipCheckin(setting) {
   if (setting != 'never') {
     console.log('签到领京豆（vip）')
+    weui.toast('京价保运行中', 1000);
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "5"
@@ -1217,6 +1223,8 @@ function vipCheckin(setting) {
 function baitiaoLottery(setting) {
   if (setting != 'never') {
     console.log('白条签到（baitiao）')
+    weui.toast('京价保运行中', 1000);
+
     chrome.runtime.sendMessage({
       text: "run_status",
       jobId: "16"
@@ -1245,7 +1253,168 @@ function baitiaoLottery(setting) {
     })
   }
 }
+
+// 12: 双签奖励（double_check）
+function doubleCheck(setting) {
+  if (setting != 'never') {
+    console.log('双签奖励（double_check）')
+    weui.toast('京价保运行中', 1000);
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "12"
+    })
+    if ($("#JGiftDialog .gift-dialog-btn").text() == '立即领取') {
+      $("#JGiftDialog .gift-dialog-btn").trigger("tap")
+      $("#JGiftDialog .gift-dialog-btn").trigger("click")
+      setTimeout(function () {
+        if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
+          let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
+          markCheckinStatus('double_check', value + '京豆', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              batch: "bean",
+              value: value,
+              unit: 'bean',
+              title: "京价保自动为您领取双签礼包",
+              content: "恭喜您获得了" + value + '个京豆奖励'
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 2000)
+    } else {
+      if ($("#receiveAward .link-gift").text() == "今天已领点击查看礼包"){
+        markCheckinStatus('double_check')
+      }
+    }
+  }
+}
+
+// 11: 每日京豆签到（bean）
+function beanCheckin(setting) {
+  if (setting != 'never') {
+    console.log('京豆签到（bean）')
+    weui.toast('京价保运行中', 1000);
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "11"
+    })
+    var beanbtn = null
+    $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
+      let targetEle = $(this)
+      if (targetEle.text() == '签到领京豆') {
+        mockClick(targetEle[0])
+        setTimeout(() => {
+          if ($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0]) {
+            mockClick($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0])
+            markCheckinStatus('bean', null, () => {
+              chrome.runtime.sendMessage({
+                text: "checkin_notice",
+                batch: "bean",
+                unit: 'bean',
+                title: "京价保自动为您签到领京豆",
+                content: "恭喜您获得了一两个京豆奖励"
+              }, function (response) {
+                console.log("Response: ", response);
+              })
+            })
+          }
+        }, 500);
+      }
+    })
+
+    $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
+      if ($(this).text() == '已连续签到') {
+        markCheckinStatus('bean')
+      }
+    })
+  }
+}
+
+// 6: 金融钢镚签到
+function guangbeng(setting) {
+  if (setting != 'never') {
+    console.log('签到领京豆（jr-qyy）')
+    weui.toast('京价保运行中', 1000);
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "6"
+    })
+    if ($(".gangbeng .btn").text() == "签到") {
+      $(".gangbeng .btn").trigger( "tap" )
+      $(".gangbeng .btn").trigger( "click" )
+      // 监控结果
+      setTimeout(function () {
+        if (($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
+          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
+          let rawValue = $(".am-modal-body .title").text()
+          let value = re.exec(rawValue)
+          markCheckinStatus('jr-qyy', (value ? value[1] : '～0.01') + '个钢镚', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              title: "京价保自动为您签到抢钢镚",
+              value: value ? value[1] : 0.01,
+              unit: 'coin',
+              content: "恭喜您领到了" + (value ? value[1] : '～0.01') + "个钢镚"
+            }, function(response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 1000)
+    } else {
+      if ($(".gangbeng .btn").text() == "已签到") {
+        markCheckinStatus('jr-qyy')
+      }
+    }
+  }
+}
+
+// 9: 金融会员签到
+function jrIndex(setting) {
+  if (setting != 'never') {
+    console.log('签到领京豆（jr-index)')
+    weui.toast('京价保运行中', 1000);
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "9"
+    })
+    if ($(".ban-center .m-qian").length > 0 && $(".ban-center .m-qian .qian-text").text() == '签到') {
+      $(".ban-center .m-qian .qian-text").trigger("tap")
+      $(".ban-center .m-qian .qian-text").trigger("click")
+      // 监控结果
+      setTimeout(function () {
+        if ($(".ban-center .m-qian .qian-text").text() == '已签到' || $("#signFlag").text() == '签到成功' ) {
+          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
+          let rawValue = $("#getRewardText").text()
+          let value = re.exec(rawValue)
+          markCheckinStatus('jr-index', rawValue, () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              title: "京价保自动为您签到京东金融",
+              value: value[1],
+              unit: 'coin',
+              content: "恭喜您！领到了" + value[1] + "个钢镚"
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 1000)
+    } else {
+      if ($(".ban-center .m-qian .qian-text").text() == '已签到') {
+        markCheckinStatus('jr-index')
+      }
+    }
+  }
+}
+
+
+// ************
 // 主体任务
+// ************
+
 function CheckDom() {
   // 转存账号
   resaveAccount()
@@ -1332,128 +1501,18 @@ function CheckDom() {
 
   // 双签奖励 (12:双签奖励)
   if ($("#receiveAward .link-gift").length) {
-    console.log('双签奖励（double_check）')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "12"
-    })
-    if ($("#JGiftDialog .gift-dialog-btn").text() == '立即领取') {
-      $("#JGiftDialog .gift-dialog-btn").trigger("tap")
-      $("#JGiftDialog .gift-dialog-btn").trigger("click")
-      setTimeout(function () {
-        if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
-          let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
-          markCheckinStatus('double_check', value + '京豆', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              batch: "bean",
-              value: value,
-              unit: 'bean',
-              title: "京价保自动为您领取双签礼包",
-              content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 2000)
-    } else {
-      if ($("#receiveAward .link-gift").text() == "今天已领点击查看礼包"){
-        markCheckinStatus('double_check')
-      }
-    }
+    getSetting('job12_frequency', doubleCheck)
   };
-
 
   // 京豆签到 (11:京豆签到)
   if (window.location.host == 'bean.m.jd.com') {
-    console.log('京豆签到（bean）')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "11"
-    })
-    var beanbtn = null
-    $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
-      let targetEle = $(this)
-      if (targetEle.text() == '签到领京豆') {
-        mockClick(targetEle[0])
-        setTimeout(() => {
-          if ($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0]) {
-            mockClick($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0])
-            markCheckinStatus('bean', null, () => {
-              chrome.runtime.sendMessage({
-                text: "checkin_notice",
-                batch: "bean",
-                unit: 'bean',
-                title: "京价保自动为您签到领京豆",
-                content: "恭喜您获得了一两个京豆奖励"
-              }, function (response) {
-                console.log("Response: ", response);
-              })
-            })
-          }
-        }, 500);
-      }
-    })
-
-
-    $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
-      if ($(this).text() == '已连续签到') {
-        markCheckinStatus('bean')
-      }
-    })
+    getSetting('job11_frequency', beanCheckin)
+    ()
   };
-
-  if ( $(".signin-desc em").text() ) {
-    let value = $(".signin-desc em").text()
-    markCheckinStatus('vip', value + '京豆', () => {
-      chrome.runtime.sendMessage({
-        text: "checkin_notice",
-        batch: "bean",
-        value: value,
-        unit: 'bean',
-        title: "京价保自动为您签到领京豆",
-        content: "恭喜您获得了" + value + '个京豆奖励'
-      }, function (response) {
-        console.log("Response: ", response);
-      })
-    })
-  }
 
   // 京东金融慧赚钱签到 (6:金融慧赚钱签到)
   if ($(".assets-wrap .gangbeng").size() > 0) {
-    console.log('签到领京豆（jr-qyy）')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "6"
-    })
-    if ($(".gangbeng .btn").text() == "签到") {
-      $(".gangbeng .btn").trigger( "tap" )
-      $(".gangbeng .btn").trigger( "click" )
-      // 监控结果
-      setTimeout(function () {
-        if (($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
-          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
-          let rawValue = $(".am-modal-body .title").text()
-          let value = re.exec(rawValue)
-          markCheckinStatus('jr-qyy', (value ? value[1] : '～0.01') + '个钢镚', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              title: "京价保自动为您签到抢钢镚",
-              value: value ? value[1] : 0.01,
-              unit: 'coin',
-              content: "恭喜您领到了" + (value ? value[1] : '～0.01') + "个钢镚"
-            }, function(response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 1000)
-    } else {
-      if ($(".gangbeng .btn").text() == "已签到") {
-        markCheckinStatus('jr-qyy')
-      }
-    }
+    getSetting('job6_frequency', guangbeng)
   };
 
   // 钢镚签到 (14:钢镚签到)
@@ -1472,71 +1531,9 @@ function CheckDom() {
     }, 1000);
   };
 
-  // 京东支付签到
-  if ( $(".signIn .signInBtn").size() > 0) {
-    console.log('签到领京豆（jdpay)')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "8"
-    })
-    if (!$(".signInBtn").hasClass('clicked')) {
-      $(".signInBtn").trigger("tap")
-      $(".signInBtn").trigger("click")
-      setTimeout(function () {
-        if ($(".signInBtn").hasClass('clicked')) {
-          let value = $("#rewardTotal").text()
-          markCheckinStatus('jdpay', $("#rewardTotal").text() + '个钢镚', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              unit: 'coin',
-              value: value,
-              title: "京价保自动为您签到京东支付",
-              content: "恭喜您领到了" + value + "个钢镚"
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 1000)
-    } else {
-      markCheckinStatus('jdpay', $("#rewardTotal").text() + '个钢镚')
-    }
-  };
-
   // 京东金融首页签到（9： 金融会员签到）
   if ($(".ban-center .m-qian").size() > 0) {
-    console.log('签到领京豆（jr-index)')
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "9"
-    })
-    if ($(".ban-center .m-qian").length > 0 && $(".ban-center .m-qian .qian-text").text() == '签到') {
-      $(".ban-center .m-qian .qian-text").trigger("tap")
-      $(".ban-center .m-qian .qian-text").trigger("click")
-      // 监控结果
-      setTimeout(function () {
-        if ($(".ban-center .m-qian .qian-text").text() == '已签到' || $("#signFlag").text() == '签到成功' ) {
-          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
-          let rawValue = $("#getRewardText").text()
-          let value = re.exec(rawValue)
-          markCheckinStatus('jr-index', rawValue, () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              title: "京价保自动为您签到京东金融",
-              value: value[1],
-              unit: 'coin',
-              content: "恭喜您！领到了" + value[1] + "个钢镚"
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 1000)
-    } else {
-      if ($(".ban-center .m-qian .qian-text").text() == '已签到') {
-        markCheckinStatus('jr-index')
-      }
-    }
+    getSetting('job9_frequency', jrIndex);
   };
 
   // 领取 PLUS 券（3： PLUS券）
@@ -1594,11 +1591,10 @@ function CheckDom() {
   }
 
   // 剁手保护
-  if ($("#InitCartUrl").size() > 0) {
+  if (window.location.host == 'item.jd.com') {
     getSetting('hand_protection', handProtection)
   }
   
-
   // 自动跳转至商品页面
   if ($(".shop_intro .gobuy").length > 0) {
     getSetting('auto_gobuy', autoGobuy)
@@ -1622,8 +1618,6 @@ function CheckDom() {
   if ($('.page-notice .txt-end').size() > 0 && $('.page-notice .txt-end').text().indexOf("账户存在风险") > -1) {
     dealLoginFailed("m", "需要手机验证码")
   }
-
-
 }
 
 $( document ).ready(function() {

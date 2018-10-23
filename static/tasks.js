@@ -1,3 +1,5 @@
+import {getLoginState} from './account'
+
 module.exports = {
   priceProUrl: "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu",
   frequencyOptionText: {
@@ -170,6 +172,18 @@ module.exports = {
       frequencyOption: ['daily', 'never'],
       frequency: 'never'
     },
-  ]
+  ],
+  // 根据登录状态选择任务模式
+  findJobPlatform: function (job) {
+    let loginState = getLoginState()
+    let platform = null
+    for (var i = 0; i < job.type.length; i++) {
+      if (loginState[job.type[i]].state == 'alive') {
+        platform = job.type[i];
+        break;
+      }
+    }
+    return platform
+  }
   
 };
