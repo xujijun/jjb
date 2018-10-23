@@ -1,9 +1,24 @@
-import {DateTime} from 'luxon'
 import * as _ from "lodash"
+$ = window.$ = window.jQuery = require('jquery')
+import {DateTime} from 'luxon'
 import tippy from 'tippy.js'
 import weui from 'weui.js'
 import Vue from '../node_modules/vue/dist/vue.esm.js'
-$ = window.$ = window.jQuery = require('jquery')
+
+Vue.directive('tippy', {
+  inserted(el) {
+    let title = el.getAttribute('title')
+    if (title) {
+      tippy(el, {
+        content: title
+      })
+    }
+  }
+})
+
+import {tasks, frequencyOptionText} from './tasks'
+import {getSetting, versionCompare, readableTime} from './utils'
+import {getLoginState} from './account'
 
 $.each(['show', 'hide'], function (i, ev) {
   var el = $.fn[ev];
@@ -12,8 +27,6 @@ $.each(['show', 'hide'], function (i, ev) {
     return el.apply(this, arguments);
   };
 });
-
-let checkinTasks = ['jr-index', 'jr-qyy', 'vip', 'jdpay', 'bean', 'double_check', 'm_welfare', 'coin', 'baitiao']
 
 let rewards = [
   '给开发者加个鸡腿',
@@ -106,18 +119,12 @@ let notices = [
   }
 ]
 
-function getSetting(settingKey) {
-  let setting = localStorage.getItem(settingKey)
-  try {
-    setting = JSON.parse(setting)
-  } catch (error) {}
-  return setting
-}
-
 // 设置模块
 var settingsVM = new Vue({
   el: '#settings',
   data: {
+    tasks: [],
+    frequencyOptionText: frequencyOptionText,
     loginState: {
       m: {
         state: "unknown"
@@ -128,9 +135,25 @@ var settingsVM = new Vue({
     }
   },
   methods: {
+    saveFrequencySetting: function (task) {
+      localStorage.setItem("job" + task.id + "_frequency", task.frequencySetting)
+      weui.toast("设置已保存", 500)
+    },
+    showLoginState: function () {
+      $("#loginNotice").show()
+    },
+    retryTask: function (task) {
+      console.log('retryTask', task)
+      chrome.runtime.sendMessage({
+        action: "runTask",
+        taskId: task.id
+      }, function(response) {
+        weui.toast('手动运行成功', 3000);
+        console.log("runJob Response: ", response);
+      });
+    }
   }
 })
-
 
 // 处理订单
 var ordersVM = new Vue({
@@ -160,16 +183,6 @@ var messagesVM = new Vue({
     }
   }
 })
-
-function readableTime(datetime) {
-  if (DateTime.local().hasSame(datetime, 'day')) {
-    return '今天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
-  }
-  if (DateTime.local().hasSame(datetime.plus({ days: 1 }), 'day')){
-    return '昨天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
-  }
-  return datetime.setLocale('zh-cn').toFormat('f')
-}
 
 // 接收消息
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -228,15 +241,6 @@ function showReward() {
   }
 }
 
-function htmlRender(data) {
-  let renderFrame = document.getElementById('renderFrame');
-  setTimeout(() => {
-    renderFrame.contentWindow.postMessage({
-      command: 'render',
-      context: data
-    }, '*');
-  }, 500);
-}
 
 function switchPayMethod(payMethod, target) {
   $("#dialogs").show()
@@ -332,58 +336,9 @@ function showRecommendedLinks() {
   })
 }
 
-
-// 对比版本
-function versionCompare(v1, v2, options) {
-  var lexicographical = options && options.lexicographical,
-      zeroExtend = options && options.zeroExtend,
-      v1parts = v1.split('.'),
-      v2parts = v2.split('.');
-
-  function isValidPart(x) {
-      return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x);
-  }
-
-  if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
-      return NaN;
-  }
-
-  if (zeroExtend) {
-      while (v1parts.length < v2parts.length) v1parts.push("0");
-      while (v2parts.length < v1parts.length) v2parts.push("0");
-  }
-
-  if (!lexicographical) {
-      v1parts = v1parts.map(Number);
-      v2parts = v2parts.map(Number);
-  }
-
-  for (var i = 0; i < v1parts.length; ++i) {
-      if (v2parts.length == i) {
-          return 1;
-      }
-
-      if (v1parts[i] == v2parts[i]) {
-          continue;
-      }
-      else if (v1parts[i] > v2parts[i]) {
-          return 1;
-      }
-      else {
-          return -1;
-      }
-  }
-
-  if (v1parts.length != v2parts.length) {
-      return -1;
-  }
-
-  return 0;
-}
-
 function showJEvent() {
   // 加载反馈
-  if ($("#jEventIframe").attr('src') == '') {
+  if (!$("#jEventIframe").attr('src') || $("#jEventIframe").attr('src') == '') {
     $("#jEventIframe").attr('src', "https://jjb.zaoshu.so/recommend")
     setTimeout(function () {
       $('.iframe-loading').hide()
@@ -392,38 +347,39 @@ function showJEvent() {
   $("#jEventDialags").show()
 }
 
-// 标记任务状态
-function markJobStatus() {
-  // 标记上次运行时间
-  $(".weui-cell_select").each(function () {
-    var job_elem = $(this)
-    if (job_elem) {
-      var jobId = job_elem.attr('id')
-      if (jobId) {
-        var last_run_time = localStorage.getItem(jobId + '_lasttime')
-        if (last_run_time) {
-          job_elem.find('.reload-icon')[0]._tippy.setContent('上次运行： ' + readableTime(DateTime.fromMillis(Number(last_run_time))))
-        } else {
-          job_elem.find('.reload-icon')[0]._tippy.setContent('从未执行')
-        }
-      }
+// 判断登录状态
+function detectTaskState(task) {
+  let loginState = getLoginState()
+  let suspended = true
+  for (var i = 0; i < task.type.length; i++) {
+    if (loginState[task.type[i]].state == 'alive') {
+      suspended = false
+      break;
     }
-  })
-
-  // 标记签到状态
-  checkinTasks.forEach(task => {
-    let record = localStorage.getItem('jjb_checkin_' + task) ? JSON.parse(localStorage.getItem('jjb_checkin_' + task)) : null
-    if (record && record.date == DateTime.local().toFormat("o")) {
-      let title = '完成于：' + readableTime(DateTime.fromISO(record.time))
-      if (record.value) {
-        title = title + '，领到：' + record.value
-      }
-      $(".checkin-" + task).find('.reload').removeClass('show').hide()
-      $(".checkin-" + task).find('.today').addClass('show')[0]._tippy.setContent(title)
-    }
-  });
+  }
+  return suspended
 }
 
+// 任务列表
+function getTasks() {
+  return _.map(tasks, (task) => {
+    task.last_run_at = getSetting('job' + task.id + '_lasttime', null)
+    task.frequencySetting = getSetting('job' + task.id + '_frequency', task.frequency)
+    task.last_run_description = task.last_run_at ?'上次运行： ' + readableTime(DateTime.fromMillis(Number(task.last_run_at))) : '从未执行'
+    // 如果是签到任务，则读取签到状态
+    if (task.checkin) {
+      let checkinRecord = getSetting('jjb_checkin_' + task.key, null)
+      if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
+        task.checked = true
+        task.checkin_description = '完成于：' + readableTime(DateTime.fromISO(checkinRecord.time)) + ( checkinRecord.value ? '，领到：' + checkinRecord.value : '')
+      }
+    }
+    // 判断是否挂起
+    task.suspended = detectTaskState(task)
+    console.log('task', task)
+    return task
+  })
+}
 
 // 处理登录状态
 function dealWithLoginState() {
@@ -452,37 +408,32 @@ function dealWithLoginState() {
       }
     } 
   }
-  function dealResponse(loginState) {
-    settingsVM.loginState = loginState
-    dealWithLoginNotice(loginState, 'pc')
-    dealWithLoginNotice(loginState, 'm')
-    $("#loginState")[0]._tippy.setContent("PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))
-    $("#loginState").removeClass("alive").removeClass("failed").removeClass("warning")
-    $("#loginState").addClass(loginState.class)
-    $("#loginNotice").addClass('state-' + loginState.class)
-    // 登录提醒
-    switch (loginState.class) {
-      case "alive":
-        $("#loginNotice").hide()
-        $("#login").hide()
-        $("#loginNotice .title strong").text("太好了，账号登录状态有效")
-        break;
-      case "warning":
-        $("#loginNotice").hide()
-        break;
-      case "failed":
-        $("#loginNotice").show()
-        break;
-      default:
-        break;
-    }
+  let loginState = getLoginState()
+  settingsVM.loginState = loginState
+  settingsVM.tasks = getTasks()
+
+  dealWithLoginNotice(loginState, 'pc')
+  dealWithLoginNotice(loginState, 'm')
+  $("#loginState")[0]._tippy.setContent("PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm'))
+  $("#loginState").removeClass("alive").removeClass("failed").removeClass("warning")
+  $("#loginState").addClass(loginState.class)
+  $("#loginNotice").addClass('state-' + loginState.class)
+  // 登录提醒
+  switch (loginState.class) {
+    case "alive":
+      $("#loginNotice").hide()
+      $("#login").hide()
+      $("#loginNotice .title strong").text("太好了，账号登录状态有效")
+      break;
+    case "warning":
+      $("#loginNotice").hide()
+      break;
+    case "failed":
+      $("#loginNotice").show()
+      break;
+    default:
+      break;
   }
-  // 获取当前登录状态
-  chrome.runtime.sendMessage({
-    text: "getLoginState"
-  }, function (response) {
-    dealResponse(response)
-  });
 }
 
 function makeupMessages(messages) {
@@ -551,11 +502,6 @@ $( document ).ready(function() {
   // 处理登录状态
   dealWithLoginState()
 
-  // 标记任务状态
-  setTimeout(() => {
-    markJobStatus()
-  }, 50);
-
   // 随机显示 Tips
   changeTips()
 
@@ -571,8 +517,6 @@ $( document ).ready(function() {
   if (unreadCount > 0) {
     $("#unreadCount").text(unreadCount).fadeIn()
   }
-
-  $("#renderFrame").attr('src', '/render.html')
 
   // 查询推荐设置
   $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
@@ -597,19 +541,19 @@ $( document ).ready(function() {
         content: json.changelog || '一系列改进',
         className: 'update',
         buttons: [{
-            label: '不再提醒',
-            type: 'default',
-            onClick: function () {
-              localStorage.setItem('skipVerison', json.lastVerison)
-            }
+          label: '不再提醒',
+          type: 'default',
+          onClick: function () {
+            localStorage.setItem('skipVerison', json.lastVerison)
+          }
         }, {
-            label: '下载更新',
-            type: 'primary',
-            onClick: function () {
-              chrome.tabs.create({
-                url: json.url || "https://jjb.zaoshu.so/updates/latest"
-              })
-            }
+          label: '下载更新',
+          type: 'primary',
+          onClick: function () {
+            chrome.tabs.create({
+              url: json.url || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
+            })
+          }
         }]
       });
     }
@@ -852,20 +796,6 @@ $( document ).ready(function() {
 
   $("#wechatDialags .js-close").on("click", function () {
     $("#wechatDialags").hide()
-  })
-  
-
-  $(".reload").on("click", function () {
-    var job_elem = $(this).parent().parent()
-    if (job_elem) {
-      chrome.runtime.sendMessage({
-        text: "runJob",
-        content: job_elem.attr('id')
-      }, function(response) {
-        weui.toast('手动运行成功', 3000);
-        console.log("Response: ", response);
-      });
-    }
   })
 
   $("#clearAccount").on("click", function () {

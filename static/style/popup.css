@@ -138,8 +138,8 @@ a:hover {
     height: 0px;
 }
 
-.frequency_settings .weui-cell__bd i.today{
-    display: none;
+.reload-icon{
+    cursor: pointer;
 }
 
 .frequency_settings .weui-cell__bd{
