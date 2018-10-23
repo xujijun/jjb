@@ -162,10 +162,6 @@ var settingsVM = new Vue({
     }
   },
   methods: {
-    saveFrequencySetting: function (task) {
-      localStorage.setItem("job" + task.id + "_frequency", task.frequencySetting)
-      weui.toast("设置已保存", 500)
-    },
     showLoginState: function () {
       $("#loginNotice").show()
     },
@@ -350,10 +346,8 @@ function showJEvent() {
   $("#jEventDialags").show()
 }
 
- 
-
 // 任务列表
-function getTasks() {
+function getTaskList() {
   return _.map(tasks, (task) => {
     task.last_run_at = getSetting('job' + task.id + '_lasttime', null)
     task.frequencySetting = getSetting('job' + task.id + '_frequency', task.frequency)
@@ -368,9 +362,10 @@ function getTasks() {
     }
     // 选择运行平台
     task.platform = findJobPlatform(task)
-    if (task.platform) {
-      task.url = task.src[task.platform]
-    } else {
+    if (!task.url) {
+      task.url = task.platform ? task.src[task.platform] : task.src[task.type[0]]
+    }
+    if (!task.platform) {
       task.suspended = true
     }
     return task
@@ -406,7 +401,7 @@ function dealWithLoginState() {
   }
   let loginState = getLoginState()
   settingsVM.loginState = loginState
-  settingsVM.tasks = getTasks()
+  settingsVM.tasks = getTaskList()
 
   dealWithLoginNotice(loginState, 'pc')
   dealWithLoginNotice(loginState, 'm')
@@ -486,7 +481,7 @@ $( document ).ready(function() {
   getMessages()
 
   // 渲染设置
-  settingsVM.tasks = getTasks()
+  settingsVM.tasks = getTaskList()
   settingsVM.recommendedLinks = getSetting("recommendedLinks", [])
   
   // tippy

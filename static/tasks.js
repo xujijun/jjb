@@ -33,6 +33,7 @@ module.exports = {
       src: {
         pc: 'https://jjb.zaoshu.so/event/coupon',
       },
+      url: 'https://a.jd.com',
       title: '全品类券',
       description: "每天整天领取全平台通用券（105减5/500减20/1000减30）",
       schedule: [10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],

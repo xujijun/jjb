@@ -36,7 +36,7 @@
                       <i v-show="!task.checked && !task.suspended" @click="retryTask(task)" class="reload-icon" v-tippy :title="task.last_run_description" ></i>
                     </div>
                     <div class="weui-cell__bd">
-                      <select class="weui-select" v-model="task.frequencySetting" @change="saveFrequencySetting(task)">
+                      <select class="weui-select" v-auto-save :name="`job${task.id}_frequency`">
                         <option v-for="option in task.frequencyOption" :value="option">
                           {{ frequencyOptionText[option] }}
                         </option>
@@ -377,6 +377,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>2.1.2 改善任务频率设置和商品价格获取</p>
               <p>2.1.1 优化任务设置；改善任务运行状态显示；</p>
               <p>2.1.0 支持PC价保页面；优化价格获取方法；增加白条每日抽奖任务；增加自动登录时段次数控制；</p>
               <p>2.0.11 更新价保页面地址；修复增加了滑动支持后无法键盘输入的问题；</p>

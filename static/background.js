@@ -226,16 +226,16 @@ function runJob(jobId, force = false) {
   })
   // 如果没有指定任务ID 就从任务栈里面找一个
   if (!jobId) {
-    var jobStack = localStorage.getItem('jobStack') ? JSON.parse(localStorage.getItem('jobStack')) : []
+    let jobStack = getSetting('jobStack', [])
     if (jobStack && jobStack.length > 0) {
-      var jobId = jobStack.shift();
+      jobId = jobStack.shift();
       saveJobStack(jobStack)
     } else {
       return log('info', '好像没有什么事需要我做...')
     }
   }
-  var jobList = getTasks()
-  var job = _.find(jobList, {id: jobId})
+  let jobList = getTasks()
+  let job = _.find(jobList, {id: jobId})
 
   let platform = findJobPlatform(job)
   

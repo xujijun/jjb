@@ -208,31 +208,53 @@ function apply(applyBtn, priceInfo, setting) {
 }
 
 // 提取价格信息
-function seekPriceInfo() {
-  let urlInfo = /(https|http):\/\/item.m.jd.com\/product\/([0-9]*).html/g.exec(window.location.href);
-  let sku = urlInfo[2]
+function seekPriceInfo(platform) {
+  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price
+  if (platform == 'pc') {
+    urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
+    sku = urlInfo[2]
+    normal_price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
+    presale_price = $('.J-presale-price').text() ? $('.J-presale-price').text() : null
+    plus_price = $('.p-price-plus .price').text() ? $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "") : null
+    pingou_price = null
+    if ($('#pingou-banner-new') && $('#pingou-banner-new').length > 0 && ($('#pingou-banner-new').css('display') !== 'none')) {
+      pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || normal_price
+      normal_price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
+    }
+    price = normal_price || presale_price
+  } else {
+    urlInfo = /(https|http):\/\/item.m.jd.com\/product\/([0-9]*).html/g.exec(window.location.href);
+    sku = urlInfo[2]
 
-  let normal_price =($('#priceSaleChoice').text() ? $('#priceSaleChoice').text().replace(/[^0-9\.-]+/g, "") : null) || $('#jdPrice').val() || ($('#specJdPrice').text() ? $('#specJdPrice').text().replace(/[^0-9\.-]+/g, "") : null)
+    normal_price =($('#priceSaleChoice').text() ? $('#priceSaleChoice').text().replace(/[^0-9\.-]+/g, "") : null) || $('#jdPrice').val() || ($('#specJdPrice').text() ? $('#specJdPrice').text().replace(/[^0-9\.-]+/g, "") : null)
 
-  let spec_price = ($('#priceSale').text() ? $('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $('#spec_price').text() || ($('#specPrice').text() ? $('#specPrice').text().replace(/[^0-9\.-]+/g, "") : null)
+    spec_price = ($('#priceSale').text() ? $('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $('#spec_price').text() || ($('#specPrice').text() ? $('#specPrice').text().replace(/[^0-9\.-]+/g, "") : null)
 
-  let plus_price = ($('.vip_price #priceSaleChoice1').text() ? $('.vip_price #priceSaleChoice1').text().replace(/[^0-9\.-]+/g, "") : null) || $('#specPlusPrice').text()
+    plus_price = ($('.vip_price #priceSaleChoice1').text() ? $('.vip_price #priceSaleChoice1').text().replace(/[^0-9\.-]+/g, "") : null) || $('#specPlusPrice').text()
 
-  let price = normal_price || spec_price
+    price = normal_price || spec_price
 
-  let pingou_price = ($('#tuanDecoration .price_warp .price').text() ? $('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
-  
-  // 通知价格
-  chrome.runtime.sendMessage({
-    action: 'productPrice',
+    pingou_price = ($('#tuanDecoration .price_warp .price').text() ? $('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
+  }
+
+  let priceInfo = {
     sku: sku,
     normal_price: price,
     plus_price: plus_price,
     pingou_price: pingou_price
+  }
+
+  console.log(platform, priceInfo)
+
+  // 通知价格
+  chrome.runtime.sendMessage({
+    action: 'productPrice',
+    ...priceInfo
   }, function (response) {
     console.log("productPrice Response: ", response);
   });
   
+  return priceInfo
 }
 
 // 查找订单并对比
@@ -720,20 +742,8 @@ function priceProtect(setting) {
 
 // 从京东热卖自动跳转到商品页面
 function autoGobuy(setting) {
-  injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
-  // 拼接提示
-  let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
-    `<p class="green-text">京价保已自动为你跳转到商品页面</p>` +
-    `<p class="tips">打开京价保进入其他设置可关闭此功能</p>` +
-    `</dialog>`
-  // 写入提示消息
-  $("body").append(dialogMsgDOM);
-
   if (setting == "checked") {
-    setTimeout(() => {
-      let dialogMsg = document.getElementById('dialogMsg');
-      dialogMsg.showModal();
-    }, 50);
+    weui.toast('京价保自动跳转', 3000);
     mockClick($(".shop_intro .gobuy a")[0])
   }  
 }
@@ -761,45 +771,18 @@ function showPriceChart(disable) {
         });
       }
     });
-    setTimeout(() => {
-      try {
-        let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
-        let sku = urlInfo[2]
-        let price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
-        let plus_price = $('.p-price-plus .price').text() ? $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "") : null
-        let pingou_price = null
-        if ($('#pingou-banner-new') && $('#pingou-banner-new').length > 0 && ($('#pingou-banner-new').css('display') !== 'none')) {
-          pingou_price = ($(".btn-pingou span").first().text() ? $(".btn-pingou span").first().text().replace(/[^0-9\.-]+/g, "") : null) || price
-          price = $("#InitCartUrl span").text() ? $("#InitCartUrl span").text().replace(/[^0-9\.-]+/g, "") : price
-        }
-        if (sku && (price || plus_price)) {
-          // 通知价格
-          chrome.runtime.sendMessage({
-            action: 'productPrice',
-            sku: sku,
-            normal_price: price,
-            plus_price: plus_price,
-            pingou_price: pingou_price
-          }, function (response) {
-            console.log("productPrice Response: ", response);
-          });
-        }
-      } catch (error) {
-        console.log('reportPrice error', error)
-      }
-    }, 1500);
   }
 }
 
 // 剁手保护模式
-function handProtection(setting) {
+function handProtection(setting, priceInfo) {
   if (setting == "checked") {
     injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
     console.log('剁手保护模式')
-    let buyDom = $("#btn-reservation")
+    let buyDom = $("#InitCartUrl").length > 0 ? $("#InitCartUrl") : $("#btn-reservation")
     let url = buyDom.attr("href")
     let item = $(".ellipsis").text()
-    let price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
+    let price = priceInfo ? (priceInfo.normal_price || priceInfo.plus_price) : ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
     // 拼接提示
     let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
       `<p class="green-text">恭喜你省下了 ` + price + ` ！</p>` +
@@ -1467,11 +1450,21 @@ function CheckDom() {
   // 商品页
   if (window.location.host == 'item.jd.com' || window.location.host == 're.jd.com') {
     getSetting('disable_pricechart', showPriceChart);
+    if (window.location.host == 'item.jd.com') {
+      setTimeout(() => {
+        let priceInfo = seekPriceInfo('pc');
+        getSetting('hand_protection', (setting) => {
+          handProtection(setting, priceInfo)
+        })
+      }, 500);
+    }
   }
 
   // 移动商品页
   if (window.location.host == 'item.m.jd.com') {
-    seekPriceInfo();
+    setTimeout(() => {
+      seekPriceInfo();
+    }, 500);
   }
 
   // PC价保
@@ -1507,7 +1500,6 @@ function CheckDom() {
   // 京豆签到 (11:京豆签到)
   if (window.location.host == 'bean.m.jd.com') {
     getSetting('job11_frequency', beanCheckin)
-    ()
   };
 
   // 京东金融慧赚钱签到 (6:金融慧赚钱签到)
@@ -1588,11 +1580,6 @@ function CheckDom() {
   // 自动领取京东金融铂金会员京东支付返利（10：金融铂金会员支付返利）
   if ($("#react-root .react-root .react-view").length > 0 && window.location.host == 'm.jr.jd.com' && document.title == "返现明细") {
     getSetting('job10_frequency', getRebate)
-  }
-
-  // 剁手保护
-  if (window.location.host == 'item.jd.com') {
-    getSetting('hand_protection', handProtection)
   }
   
   // 自动跳转至商品页面
