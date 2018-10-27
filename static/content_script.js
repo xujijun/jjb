@@ -184,24 +184,22 @@ function apply(applyBtn, priceInfo, setting) {
         }, function(response) {
           console.log("Response: ", response);
         });
-        // 等待15秒后检查申请结果
+        // 等待申请结果
         var resultId = "applyResult_" + applyId.substr(8)
-        setTimeout(function () {
-          observeDOM(document.getElementById(resultId), function () {
-            let resultText = $("#" + resultId).text()
-            if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
-              chrome.runtime.sendMessage({
-                batch: 'jiabao',
-                text: "notice",
-                title: "报告老板，价保申请有结果了",
-                product_name: product_name,
-                content: "价保结果：" + resultText
-              }, function (response) {
-                console.log("Response: ", response);
-              });
-            }
-          });
-        }, 5000)
+        observeDOM(document.getElementById(resultId), function () {
+          let resultText = $("#" + resultId).text()
+          if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
+            chrome.runtime.sendMessage({
+              batch: 'jiabao',
+              text: "notice",
+              title: "报告老板，价保申请有结果了",
+              product_name: product_name,
+              content: "价保结果：" + resultText
+            }, function (response) {
+              console.log("Response: ", response);
+            });
+          }
+        });
       }
     }
   });
@@ -1035,7 +1033,7 @@ function autoLogin(account, type) {
           // 是否需要滑动验证
           setTimeout(function () {
             let slidemsg = $("#captcha_body .sp_msg").text()
-            if (slidemsg == '请按照箭头路线滑动手指') {
+            if (slidemsg) {
               dealLoginFailed("m", "需要完成登录验证")
             }
           }, 1000)

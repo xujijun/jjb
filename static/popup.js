@@ -21,17 +21,22 @@ Vue.directive('tippy', {
 })
 
 Vue.directive('autoSave', {
-  bind(el) {
-    let current = getSetting(el.name, null);
-    if (el.type == 'checkbox' && current == "checked") {
-      el.checked = true
-    } else if (el.type == 'select-one'){
-      el.value = current || el.options[0].value
-    } else {
-      el.value = current
+  bind(el, binding) {
+    function revertValue(el) {
+      let current = getSetting(el.name, null);
+      if (el.type == 'checkbox') {
+        if (current == "checked") {
+          el.checked = true
+        } else {
+          el.checked = false
+        }
+      } else if (el.type == 'select-one'){
+        el.value = current || el.options[0].value
+      } else {
+        el.value = current
+      }
     }
-
-    el.addEventListener('change', function() {
+    function saveToLocalStorage(el) {
       if (el.type == 'checkbox') {
         if (el.checked) {
           localStorage.setItem(el.name, "checked")
@@ -42,6 +47,23 @@ Vue.directive('autoSave', {
         localStorage.setItem(el.name, el.value)
       }
       weui.toast("设置已保存", 500)
+    }
+    revertValue(el)
+    el.addEventListener('change', function(event) {
+      if (binding.value && binding.value.notice && el.checked) {
+        weui.confirm(binding.value.notice, function(){
+          saveToLocalStorage(el)
+        }, function(){
+          event.preventDefault();
+          setTimeout(() => {
+            revertValue(el)
+          }, 50);
+        }, {
+          title: '选项确认'
+        });
+      } else {
+        saveToLocalStorage(el)
+      }
     });
   }
 })
@@ -189,7 +211,12 @@ var ordersVM = new Vue({
   methods: {
     backup_picture: function (e) {
       e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png"
-    }
+    },
+    toggleOrder: function (order) {
+      order.hide = order.hide ? false : true
+      localStorage.setItem('jjb_orders', JSON.stringify(this.orders))
+      this.$forceUpdate()
+    },
   }
 })
 
@@ -212,7 +239,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   switch (message.action) {
     case 'orders_updated':
       let orders = JSON.parse(message.data).map(function (order) {
-        order.time = readableTime(DateTime.fromISO(order.time))
+        order.displayTime = readableTime(DateTime.fromISO(order.time))
         return order
       })
       ordersVM.orders = orders

@@ -192,6 +192,38 @@ a:hover {
     display: block;
 }
 
+.orders .order_time{
+    position: relative;
+}
+
+.orders .show-order{
+    -webkit-mask: url(../image/show.svg) no-repeat center;
+    mask: url(../image/show.svg) no-repeat center;
+    -webkit-mask-size: 16px;
+    mask-size: 16px;
+}
+
+.orders .show-order, .orders .hide-order{
+    width: 20px;
+    height: 21px;
+    color: #dcdcdc;
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 16px;
+    cursor: pointer;
+    background-color: #ccc;
+    position: absolute;
+    right: 5px;
+    top: 1px;
+}
+
+.orders .hide-order{
+    -webkit-mask: url(../image/hide.svg) no-repeat center;
+    mask: url(../image/hide.svg) no-repeat center;
+    -webkit-mask-size: 16px;
+    mask-size: 16px;
+}
+
 .messages{
     display: none;
 }
@@ -232,11 +264,14 @@ a:hover {
     -moz-box-orient: vertical;
     -webkit-box-orient: vertical;
     line-height: 18px;
+    margin-left: 65px;
 }
 
 .good_title img{
     display: inline-block;
-    float: left;
+    position: absolute;
+    left: 15px;
+    top: 10px;
     padding-right: 10px;
     width: 55px;
     height: 55px;

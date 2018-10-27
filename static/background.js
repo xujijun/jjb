@@ -531,7 +531,8 @@ function reportPrice(priceInfo) {
     url: "https://jjb.zaoshu.so/price",
     data: {
       sku: priceInfo.sku,
-      price: normal_price ? Number(priceInfo.normal_price) : null,
+      price: priceInfo.normal_price ? Number(priceInfo.normal_price) : null,
+      normal_price: priceInfo.normal_price ? Number(priceInfo.normal_price) : null,
       plus_price: priceInfo.plus_price ? Number(priceInfo.plus_price) : null,
       pingou_price: priceInfo.pingou_price ? Number(priceInfo.pingou_price) : null,
     },
