@@ -206,6 +206,7 @@ var ordersVM = new Vue({
   data: {
     orders: [],
     skuPriceList: {},
+    hiddenOrderIds: getSetting('hiddenOrderIds', []),
     disabled_link: getSetting('disabled_link') == 'checked' ? true : false
   },
   methods: {
@@ -213,8 +214,12 @@ var ordersVM = new Vue({
       e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png"
     },
     toggleOrder: function (order) {
-      order.hide = order.hide ? false : true
-      localStorage.setItem('jjb_orders', JSON.stringify(this.orders))
+      if (_.indexOf(this.hiddenOrderIds, order.id) > -1) {
+        this.hiddenOrderIds = _.pull(this.hiddenOrderIds, order.id);
+      } else {
+        this.hiddenOrderIds.push(order.id)
+      }
+      localStorage.setItem('hiddenOrderIds', JSON.stringify(this.hiddenOrderIds))
       this.$forceUpdate()
     },
   }
@@ -471,10 +476,10 @@ function makeupMessages(messages) {
 
 function getOrders() {
   let orders = JSON.parse(localStorage.getItem('jjb_orders'))
-  let skuPriceList = localStorage.getItem('skuPriceList') ? JSON.parse(localStorage.getItem('skuPriceList')) :{}
+  let skuPriceList = getSetting('skuPriceList', {})
   if (orders) {
     orders = orders.map(function (order) {
-      order.time = readableTime(DateTime.fromISO(order.time))
+      order.displayTime = readableTime(DateTime.fromISO(order.time))
       return order
     })
   } else {

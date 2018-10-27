@@ -12,11 +12,11 @@ module.exports = {
       class: "unknown"
     }
     // 处理登录状态
-    if (loginState.m.state == 'alive' && loginState.pc.state == 'alive') {
+    if (loginState.pc.state == 'alive' && loginState.m.state == 'alive') {
       loginState.class = "alive"
-    } else if (loginState.pc.state == 'failed' && loginState.pc.state == 'failed') {
+    } else if (loginState.pc.state == 'failed' && loginState.m.state == 'failed') {
       loginState.class = "failed"
-    } else if (loginState.pc.state == 'failed' || loginState.pc.state == 'failed') {
+    } else if (loginState.pc.state == 'failed' || loginState.m.state == 'failed') {
       loginState.class = "warning"
     }
     return loginState

@@ -29,7 +29,7 @@
                         <a v-if="task.platform == 'm'" class="openMobliePage" :data-url="task.url">{{task.title}}</a>
                         <a v-else :href="task.url" target="_blank">{{task.title}}</a>
                       </span>
-                      <span v-show="task.suspended" v-tippy  title="因账号未登录任务已暂停运行">
+                      <span v-show="task.suspended && !task.checked" v-tippy  title="因账号未登录任务已暂停运行">
                         <i class="job-state weui-icon-waiting-circle" @click="showLoginState"></i>
                       </span>
                       <i v-show="task.checked" v-tippy :title="task.checkin_description" class="today weui-icon-success-circle"></i>
@@ -278,9 +278,9 @@
               <div class="orders" v-if="orders && orders.length > 0">
                 <li v-for="order in orders">
                   <div class="order_time"> 下单时间： {{order.displayTime}}
-                    <span :class="order.hide ? 'show-order' : 'hide-order'" @click="toggleOrder(order)"></span>
+                    <span v-show="order.id" :class="hiddenOrderIds.indexOf(order.id) > -1 ? 'show-order' : 'hide-order'" @click="toggleOrder(order)"></span>
                   </div>
-                  <div v-for="good in order.goods" v-show="order.hide ? false : true">
+                  <div v-for="good in order.goods" v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true">
                     <div class="weui-cell good">
                       <div class="weui-cell__bd" v-if="good">
                         <div class="good_title">
@@ -289,7 +289,11 @@
                             <p>{{good.name}}</p>
                             <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
                           </a>
-                          <p v-else>{{good.name}}</p>
+                          <div v-else>
+                            <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
+                            <p>{{good.name}}</p>
+                          </div>
+                          
                         </div>
                       </div>
                       <div class="weui-cell__ft" v-if="good">

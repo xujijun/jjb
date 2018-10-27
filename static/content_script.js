@@ -213,6 +213,7 @@ function seekPriceInfo(platform) {
     sku = urlInfo[2]
     normal_price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
     presale_price = $('.J-presale-price').text() ? $('.J-presale-price').text() : null
+
     plus_price = $('.p-price-plus .price').text() ? $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "") : null
     pingou_price = null
     if ($('#pingou-banner-new') && $('#pingou-banner-new').length > 0 && ($('#pingou-banner-new').css('display') !== 'none')) {
@@ -285,6 +286,7 @@ async function dealOrder(order, orders, setting) {
   if (new Date().getTime() - order_time.getTime() < proTime) {
     var order_info = {
       time: order_time,
+      id: order_id,
       goods: []
     }
 
@@ -295,7 +297,6 @@ async function dealOrder(order, orders, setting) {
     })
 
     await Promise.all(dealgoods)
-    console.log('order_info', order_info)
     orders.push(order_info)
   }
 }
@@ -1454,7 +1455,7 @@ function CheckDom() {
         getSetting('hand_protection', (setting) => {
           handProtection(setting, priceInfo)
         })
-      }, 500);
+      }, 1500);
     }
   }
 
