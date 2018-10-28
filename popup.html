@@ -278,7 +278,7 @@
               <div class="orders" v-if="orders && orders.length > 0">
                 <li v-for="order in orders">
                   <div class="order_time"> 下单时间： {{order.displayTime}}
-                    <span v-show="order.id" :class="hiddenOrderIds.indexOf(order.id) > -1 ? 'show-order' : 'hide-order'" @click="toggleOrder(order)"></span>
+                    <span v-show="order.id" v-tippy :title="hiddenOrderIds.indexOf(order.id) > -1 ? '显示订单' : '隐藏订单'" :class="hiddenOrderIds.indexOf(order.id) > -1 ? 'show-order' : 'hide-order'" @click="toggleOrder(order)"></span>
                   </div>
                   <div v-for="good in order.goods" v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true">
                     <div class="weui-cell good">
@@ -383,6 +383,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>2.1.4 修复部分任务状态获取</p>
               <p>2.1.3 增加隐藏订单的选项</p>
               <p>2.1.2 改善任务频率设置和商品价格获取</p>
               <p>2.1.1 优化任务设置；改善任务运行状态显示；</p>

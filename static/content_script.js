@@ -396,7 +396,7 @@ function CheckBaitiaoCouponDom(setting) {
       let targetEle = $(this)
       if (targetEle.text() == '确定') {
         console.log('需要登录')
-        mockClick(targetEle[0])
+        simulateClick(targetEle)
       }
       if (targetEle.text() == '立即领取') {
         let couponDetails = targetEle.parent().prev().find('span').toArray()
@@ -547,11 +547,10 @@ function doShopSign(setting) {
       console.log('tab', result.tab)
       if (result.tab.pinned) {
         if ($(".j-unsigned.j-sign").length > 0 && $(".j-unsigned.j-sign").attr("status") == 'true') {
-          $('.j-unsigned.j-sign').trigger("click")
+          simulateClick($('.j-unsigned.j-sign'))
         } else {
           setTimeout(function () {
-            $('.jSign .unsigned').trigger("click")
-            $('.jSign .unsigned').trigger("tap")
+            simulateClick($('.jSign .unsigned'))
           }, 3000)
         }
       } else {
@@ -842,6 +841,14 @@ function handProtection(setting, priceInfo) {
       return false;
     })
   }
+}
+
+function simulateClick(dom) {
+  mockClick(dom[0])
+  try {
+    dom.trigger("tap")
+    dom.trigger("click")
+  } catch (error) {}
 }
 
 function markCheckinStatus(type, value, cb) {
@@ -1175,14 +1182,14 @@ function vipCheckin(setting) {
       text: "run_status",
       jobId: "5"
     })
-    if ($(".sign-pop").hasClass('signed') || $(".signin-desc").text() == '今日已签到 请明日再来') {
+    if ($(".sign-pop").hasClass('signed') || $(".signin-desc").textContent == '今日已签到 请明日再来') {
       markCheckinStatus('vip')
     } else {
-      $(".sign-pop").trigger("tap")
-      $(".sign-pop").trigger("click")
+      simulateClick($(".sign-pop"))
+      
       setTimeout(function () {
-        if ($(".sign-pop").hasClass('signed')) {
-          let value = $(".modal-sign-in .jdnum span").text()
+        if ($(".sign-pop").hasClass('signed') || $(".signin-desc").textContent == '今日已签到 请明日再来') {
+          let value = $(".modal-sign-in .jdnum span").textContent || $(".modal-sign-in .jdnum span").text() 
           markCheckinStatus('vip', value + '京豆', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
@@ -1211,8 +1218,7 @@ function baitiaoLottery(setting) {
       text: "run_status",
       jobId: "16"
     })
-    $("#lottery .mark_btn_start").trigger("tap")
-    $("#lottery .mark_btn_start").trigger("click")
+    simulateClick($("#lottery .mark_btn_start"))
     observeDOM(document.body, function () {
       if ($(".layer_wrap_header").text() == '恭喜你获得') {
         let value = $(".layer_wrap_gold_text").text().replace(/[^0-9\.-]+/g, "")
@@ -1236,6 +1242,7 @@ function baitiaoLottery(setting) {
   }
 }
 
+
 // 12: 双签奖励（double_check）
 function doubleCheck(setting) {
   if (setting != 'never') {
@@ -1246,8 +1253,7 @@ function doubleCheck(setting) {
       jobId: "12"
     })
     if ($("#JGiftDialog .gift-dialog-btn").text() == '立即领取') {
-      $("#JGiftDialog .gift-dialog-btn").trigger("tap")
-      $("#JGiftDialog .gift-dialog-btn").trigger("click")
+      simulateClick($("#JGiftDialog .gift-dialog-btn"))
       setTimeout(function () {
         if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
           let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
@@ -1306,6 +1312,10 @@ function beanCheckin(setting) {
       }
     })
 
+    if ($(".gradBackground").textContent && $(".gradBackground").textContent.indexOf("恭喜您获得") > -1){
+      markCheckinStatus('bean')
+    }
+
     $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
       if ($(this).text() == '已连续签到') {
         markCheckinStatus('bean')
@@ -1324,8 +1334,7 @@ function guangbeng(setting) {
       jobId: "6"
     })
     if ($(".gangbeng .btn").text() == "签到") {
-      $(".gangbeng .btn").trigger( "tap" )
-      $(".gangbeng .btn").trigger( "click" )
+      simulateClick($(".gangbeng .btn"))
       // 监控结果
       setTimeout(function () {
         if (($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
@@ -1363,8 +1372,7 @@ function jrIndex(setting) {
       jobId: "9"
     })
     if ($(".ban-center .m-qian").length > 0 && $(".ban-center .m-qian .qian-text").text() == '签到') {
-      $(".ban-center .m-qian .qian-text").trigger("tap")
-      $(".ban-center .m-qian .qian-text").trigger("click")
+      simulateClick($(".ban-center .m-qian .qian-text"))
       // 监控结果
       setTimeout(function () {
         if ($(".ban-center .m-qian .qian-text").text() == '已签到' || $("#signFlag").text() == '签到成功' ) {

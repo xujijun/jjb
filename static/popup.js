@@ -10,7 +10,7 @@ import {getSetting, versionCompare, readableTime} from './utils'
 import {getLoginState} from './account'
 
 Vue.directive('tippy', {
-  inserted(el) {
+  bind(el) {
     let title = el.getAttribute('title')
     if (title) {
       tippy(el, {

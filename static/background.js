@@ -525,6 +525,7 @@ function getPriceProtectionSetting() {
 
 // 报告价格
 function reportPrice(priceInfo) {
+  log('background', 'reportPrice', priceInfo)
   $.ajax({
     method: "POST",
     type: "POST",
@@ -587,7 +588,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       // 价格追踪
       savePrice(priceInfo)
-      if (disable_pricechart && priceInfo.sku) {
+      if (!disable_pricechart && priceInfo.sku) {
         reportPrice(priceInfo)
       }
       sendResponse(priceInfo)
