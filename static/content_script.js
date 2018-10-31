@@ -347,10 +347,12 @@ function mockClick(element) {
     e.initEvent.apply(e, Array.prototype.slice.call(arguments, 1));
     target.dispatchEvent(e);
   };
-  dispatchMouseEvent(element, 'mouseover', true, true);
-  dispatchMouseEvent(element, 'mousedown', true, true);
-  dispatchMouseEvent(element, 'click', true, true);
-  dispatchMouseEvent(element, 'mouseup', true, true);
+  if (element) {
+    dispatchMouseEvent(element, 'mouseover', true, true);
+    dispatchMouseEvent(element, 'mousedown', true, true);
+    dispatchMouseEvent(element, 'click', true, true);
+    dispatchMouseEvent(element, 'mouseup', true, true);
+  }
 }
 
 /* eventType is 'touchstart', 'touchmove', 'touchend'... */
@@ -478,7 +480,7 @@ function getCommonUseCoupon(setting) {
     })
     $("#quanlist .quan-item").each(function () {
       var that = $(this)
-      if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类通用") > -1) {
+      if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类") > -1) {
         var coupon_name = that.find('.q-range').text()
         var coupon_price = that.find('.q-price strong').text() + '元 (' + that.find('.q-limit').text() + ')'
         setTimeout(function () {
@@ -1182,14 +1184,13 @@ function vipCheckin(setting) {
       text: "run_status",
       jobId: "5"
     })
-    if ($(".sign-pop").hasClass('signed') || $(".signin-desc").textContent == '今日已签到 请明日再来') {
+    const signRes = $(".signin-desc").textContent || $(".signin-desc").text()
+    if (signRes.indexOf("已签到") > -1) {
       markCheckinStatus('vip')
     } else {
-      simulateClick($(".sign-pop"))
-      
       setTimeout(function () {
-        if ($(".sign-pop").hasClass('signed') || $(".signin-desc").textContent == '今日已签到 请明日再来') {
-          let value = $(".modal-sign-in .jdnum span").textContent || $(".modal-sign-in .jdnum span").text() 
+        if ((signRes && signRes.indexOf("获得") > -1)) {
+          let value = signRes.substring(signRes.indexOf("获得")).replace(/[^0-9\.-]+/g, "")
           markCheckinStatus('vip', value + '京豆', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
@@ -1294,8 +1295,8 @@ function beanCheckin(setting) {
       if (targetEle.text() == '签到领京豆') {
         mockClick(targetEle[0])
         setTimeout(() => {
-          if ($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0]) {
-            mockClick($("img[src='https://m.360buyimg.com/mobilecms/jfs/t8899/48/1832651162/9481/95d84514/59bfb1c5N176f3f20.png']")[0])
+          let beanCheckinRes = $(".gradBackground").textContent || $(".gradBackground").text()
+          if (beanCheckinRes && beanCheckinRes.indexOf("恭喜您获得") > -1){
             markCheckinStatus('bean', null, () => {
               chrome.runtime.sendMessage({
                 text: "checkin_notice",
@@ -1312,7 +1313,8 @@ function beanCheckin(setting) {
       }
     })
 
-    if ($(".gradBackground").textContent && $(".gradBackground").textContent.indexOf("恭喜您获得") > -1){
+    const beanCheckinRes = $(".gradBackground").textContent || $(".gradBackground").text()
+    if (beanCheckinRes && beanCheckinRes.indexOf("恭喜您获得") > -1){
       markCheckinStatus('bean')
     }
 

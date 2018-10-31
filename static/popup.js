@@ -367,7 +367,25 @@ function changeTips() {
   }
 }
 
-function showJEvent() {
+function showJEvent(rateLimit) {
+  if (rateLimit) {
+    let today = DateTime.local().toFormat("o")
+    let showRecommendState = getSetting('showRecommendState', {
+      date: today,
+      times: 0
+    })
+    if (showRecommendState.date == today) {
+      if (showRecommendState.times > rateLimit.limit) {
+        return console.log('展示次数超限')
+      } else {
+        showRecommendState.times = showRecommendState.times + 1
+      }
+    } else {
+      showRecommendState.date = today
+      showRecommendState.times = 1
+    }
+    localStorage.setItem('showRecommendState', JSON.stringify(showRecommendState))
+  }
   // 加载反馈
   if (!$("#jEventIframe").attr('src') || $("#jEventIframe").attr('src') == '') {
     $("#jEventIframe").attr('src', "https://jjb.zaoshu.so/recommend")
@@ -500,9 +518,13 @@ $( document ).ready(function() {
   var account = localStorage.getItem('jjb_account');
   var admission_test = localStorage.getItem('jjb_admission-test')
   var unreadCount = localStorage.getItem('unreadCount') || 0
-  var changelog_version = localStorage.getItem('changelog_version')
-  var displayRecommend = localStorage.getItem('displayRecommend')
-  var current_version = "{{version}}"
+  const changelog_version = localStorage.getItem('changelog_version')
+  const displayRecommend = localStorage.getItem('displayRecommend')
+  const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
+    rate: 7,
+    limit: 1
+  })
+  const current_version = "{{version}}"
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
   
@@ -539,6 +561,9 @@ $( document ).ready(function() {
   $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
     if (json.display) {
       localStorage.setItem('displayRecommend', json.display)
+    }
+    if (json.ratelimit) {
+      localStorage.setItem('displayRecommendRateLimit', JSON.stringify(json.ratelimit))
     }
     if (json.announcements && json.announcements.length > 0) {
       localStorage.setItem('announcements', JSON.stringify(json.announcements))
@@ -619,8 +644,8 @@ $( document ).ready(function() {
       }
     }
     // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
-    if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > 7) {
-      showJEvent()
+    if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > displayRecommendRateLimit.rate) {
+      showJEvent(displayRecommendRateLimit)
     }
     // 如果当前没有弹框 且 需要展示changelog
     if (isNoDialog() && changelog_version != current_version) {
