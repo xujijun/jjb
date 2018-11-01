@@ -10,10 +10,9 @@ Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
 var logger = {}
 var autoLoginQuota = {}
-
 var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
-
 var priceProPage = null
+var mobileUAType = getSetting('uaType', 1)
 
 // 设置默认频率
 _.forEach(tasks, (job) => {
@@ -43,25 +42,35 @@ chrome.webRequest.onHeadersReceived.addListener(
 );
 
 chrome.runtime.onInstalled.addListener(function (object) {
-  var installed = localStorage.getItem('jjb_installed')
+  let installed = localStorage.getItem('jjb_installed')
+  let uaType = localStorage.getItem('uaType')
   if (installed) {
+    if (!uaType) {
+      localStorage.setItem('uaType', 1);
+    }
     console.log("已经安装")
   } else {
     localStorage.setItem('jjb_installed', 'Y');
     localStorage.setItem('jjb_admission-test', 'N');
+    localStorage.setItem('uaType', rand(3));
     chrome.tabs.create({url: "/start.html"}, function (tab) {
       console.log("京价保安装成功！");
     });
   }
 });
 
-// use iPhone as USER AGENT
-var iPhone_USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1';
+
+var popularPhoneUA = [
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1',
+  'Mozilla/5.0 (iPhone9,4; U; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 Safari/602.1',
+  'Mozilla/5.0 (Linux; Android 6.0.1; SM-G920V Build/MMB29K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.98 Mobile Safari/537.36'
+];
 chrome.webRequest.onBeforeSendHeaders.addListener(
   function (details) {
     for (var i = 0; i < details.requestHeaders.length; ++i) {
       if (details.requestHeaders[i].name === 'User-Agent') {
-        details.requestHeaders[i].value = iPhone_USER_AGENT;
+        details.requestHeaders[i].value = popularPhoneUA[mobileUAType];
         break;
       }
     }
@@ -111,9 +120,10 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       runJob()
       break;
     case alarm.name.startsWith('clearIframe'):
-      let iframeId = jobId || 'iframe'
-      // 销毁掉 
-      resetIframe(iframeId)
+      resetIframe(jobId || 'iframe')
+      break;
+    case alarm.name.startsWith('destroyIframe'):
+      $("#" + jobId).remove();
       break;
     case alarm.name.startsWith('closeTab'):
       try {
@@ -289,20 +299,29 @@ function runJob(jobId, force = false) {
       })
     }
   }
-
 }
 
-function openByIframe(src, type) {
+function openByIframe(src, type, delayTimes = 0) {
   // 加载新的任务
   let iframeId = "iframe"
+  let keepMinutes = 5
   if (type == 'temporary') {
-    iframeId = 'iframe_' + rand(10241024)
+    iframeId = 'iframe' + rand(10241024)
+    keepMinutes = 1
   }
+  // 当前任务过多则等待
+  if ($('iframe').length > 10 && delayTimes < 6) {
+    setTimeout(() => {
+      openByIframe(src, type, delayTimes + 1)
+    }, (10 + rand(10)) * 1000);
+    return console.log('too many iframe pages', src, delayTimes)
+  }
+  // 运行
   resetIframe(iframeId)
   $("#" + iframeId).attr('src', src)
-  // 5 分钟后清理 iframe
-  chrome.alarms.create('clearIframe_' + iframeId, {
-    delayInMinutes: 5
+  // 设置重置任务
+  chrome.alarms.create((type == 'temporary' ? 'destroyIframe_' : 'clearIframe_') + iframeId, {
+    delayInMinutes: keepMinutes
   })
 }
 

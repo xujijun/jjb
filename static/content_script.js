@@ -90,6 +90,10 @@ async function dealProduct(product, order_info, setting) {
 
   let product_img = product.find('a img').attr('src') ? product.find('a img').attr('src') : product.find('.img img').attr('src')
 
+  if (order_price < 0.01) {
+    return console.log('忽略免费的商品')
+  }
+
   console.log('发现有效的订单：', product_name, " 下单价格：", order_price)
 
   if (order_success_logs && order_success_logs.length > 0) {
@@ -207,7 +211,7 @@ function apply(applyBtn, priceInfo, setting) {
 
 // 提取价格信息
 function seekPriceInfo(platform) {
-  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price
+  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price
   if (platform == 'pc') {
     urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
     sku = urlInfo[2]
@@ -231,7 +235,9 @@ function seekPriceInfo(platform) {
 
     plus_price = ($('.vip_price #priceSaleChoice1').text() ? $('.vip_price #priceSaleChoice1').text().replace(/[^0-9\.-]+/g, "") : null) || $('#specPlusPrice').text()
 
-    price = normal_price || spec_price
+    orgin_price = $("#orginBuyBtn span").text() ? $("#orginBuyBtn span").text().replace(/[^0-9\.-]+/g, "") : null
+
+    price = normal_price || spec_price || orgin_price
 
     pingou_price = ($('#tuanDecoration .price_warp .price').text() ? $('#tuanDecoration .price_warp .price').text().replace(/[^0-9\.-]+/g, "") : null || null)
   }
@@ -295,9 +301,11 @@ async function dealOrder(order, orders, setting) {
     productList.each(function() {
       dealgoods.push(dealProduct($(this), order_info, setting))
     })
-
     await Promise.all(dealgoods)
-    orders.push(order_info)
+
+    if (order_info.goods.length > 0) {
+      orders.push(order_info)
+    }
   }
 }
 
@@ -702,21 +710,33 @@ function getCoin(setting) {
 // 1: 价格保护
 function priceProtect(setting) {
   if (setting != 'never') {
-    weui.toast('京价保运行中', 1000);
+    weui.toast('京价保运行中', 1500);
     let mode = "m"
     // 加载第二页
     if (document.getElementById("mescroll0")) {
       document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
       setTimeout(() => {
+        document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
+      }, 300);
+      setTimeout(() => {
+        document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
+      }, 600);
+      setTimeout(() => {
         document.getElementById("mescroll0").scrollTop =0
-      }, 500);
+      }, 1000);
     }
     if (document.getElementById("dataList")) {
       mode = "pc"
       $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
       setTimeout(() => {
+        $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
+      }, 300);
+      setTimeout(() => {
+        $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
+      }, 600);
+      setTimeout(() => {
         $(window).scrollTop(0)
-      }, 500);
+      }, 1000);
     }
 
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {

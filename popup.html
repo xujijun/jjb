@@ -276,13 +276,13 @@
           <div class="weui-tab__panel">
             <div id="orders" class="weui-cells contents-box orders">
               <div class="orders" v-if="orders && orders.length > 0">
-                <li v-for="order in orders">
+                <li v-for="order in orders" v-show="order.goods && order.goods.length > 0">
                   <div class="order_time"> 下单时间： {{order.displayTime}}
                     <span v-show="order.id" v-tippy :title="hiddenOrderIds.indexOf(order.id) > -1 ? '显示订单' : '隐藏订单'" :class="hiddenOrderIds.indexOf(order.id) > -1 ? 'show-order' : 'hide-order'" @click="toggleOrder(order)"></span>
                   </div>
                   <div v-for="good in order.goods" v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true">
-                    <div class="weui-cell good">
-                      <div class="weui-cell__bd" v-if="good">
+                    <div class="weui-cell good" v-if="good && good.order_price > 0">
+                      <div class="weui-cell__bd">
                         <div class="good_title">
                           <a :href="`https://jjb.zaoshu.so/good/${good.sku}`" v-if="good.sku && !disabled_link" target="_blank">
                             <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
@@ -296,7 +296,7 @@
                           
                         </div>
                       </div>
-                      <div class="weui-cell__ft" v-if="good">
+                      <div class="weui-cell__ft">
                         <span class="order_price">￥{{good.order_price}}</span>
                         <div class="sku_price" v-if="skuPriceList[good.sku]">
                           <span class="new_price down" v-if="good.order_price > skuPriceList[good.sku].price">￥{{skuPriceList[good.sku].price}}</span>
@@ -308,7 +308,7 @@
                     <p class="success_log" v-for="log in good.success_log">{{log}}</p>
                   </div>
                 </li>
-                <p class="text-tips">只显示在价保监控范围内且为自营的订单（默认15天内）</p>
+                <p class="text-tips"><a href="https://blog.jjb.im/price-protection-policy.html" target="_block" v-tippy title="点击了解京东价格保护政策">只显示在价保监控范围内且下单金额大于0的订单（默认15天内）</a></p>
               </div>
               <div class="no_order" v-else> 
                 <h4>暂时还没有监控到订单</h4> 
@@ -383,6 +383,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>2.1.8 对价格保护功能进行大规模改善：自动忽略0元的赠品订单；控制获取价格的并发任务；扩大扫描订单的范围；</p>
               <p>2.1.7 修复京豆任务状态显示；修复全品类券任务识别全品类券的条件；</p>
               <p>2.1.4 修复部分任务状态获取</p>
               <p>2.1.3 增加隐藏订单的选项</p>
