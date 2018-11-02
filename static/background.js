@@ -594,16 +594,23 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         pingou_price: msg.pingou_price
       }
       // 当前有价保页面
-      if (priceProPage && priceProPage.tab) {
-        chrome.tabs.sendMessage(priceProPage.tab.id, {
-          action: 'productPrice',
-          setting: getPriceProtectionSetting(),
-          ...priceInfo
-        }, {
-          frameId: priceProPage.frameId
-        }, function (response) {
-          console.log('productPrice response', response)
-        })
+      if (priceProPage) {
+        console.log('existence PriceProPage:', priceProPage)
+        if (priceProPage.tab){
+          chrome.tabs.sendMessage(priceProPage.tab.id, {
+            action: 'productPrice',
+            setting: getPriceProtectionSetting(),
+            ...priceInfo
+          }, {}, function (response) {
+            console.log('send productPrice to tabs response', response)
+          })
+        } else if (priceProPage.id) {
+          document.getElementById('iframe').contentWindow.postMessage({
+            action: 'productPrice',
+            setting: getPriceProtectionSetting(),
+            ...priceInfo
+          },'*');
+        }
       }
       // 价格追踪
       savePrice(priceInfo)

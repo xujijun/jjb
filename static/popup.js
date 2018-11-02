@@ -440,7 +440,9 @@ function dealWithLoginState() {
       stateDescription = "当前登录状态" + getStateDescription(loginState, type)
     }
     loginTypeNoticeDom.removeClass("alive").removeClass("failed").addClass(loginState[type].state)
-    loginTypeNoticeDom[0]._tippy.setContent(stateDescription)
+    if (loginTypeNoticeDom[0]._tippy) {
+      loginTypeNoticeDom[0]._tippy.setContent(stateDescription)
+    }
     $('.login-type_' + type + ' .status-text').text(stateText[loginState[type].state])
     if (!loginState[type] || loginState[type].state != "alive") {
       if (loginUrl && type != 'm') {

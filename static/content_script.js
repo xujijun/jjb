@@ -1649,11 +1649,20 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   switch (message.action) {
     case 'productPrice':
       findOrderBySkuAndApply(message, message.setting)
+      sendResponse({
+        gotcha: message
+      })
       break;
     default:
       break;
   }
 });
+
+window.addEventListener("message", function(event) {
+  if (event.data && event.data.action == 'productPrice') {
+    findOrderBySkuAndApply(event.data, event.data.setting)
+  }
+}, false);
 
 
 var nodeList = document.querySelectorAll('script');
