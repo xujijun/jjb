@@ -6,7 +6,7 @@
 
 <a target='_blank' rel='nofollow' href='https://chrome.google.com/webstore/detail/gfgkebiommjpiaomalcbfefimhhanlfd'>
   <img alt='Chrome
-  web store' width='496' height='150' src='https://oi4m2ufmx.qnssl.com/jjb/cws_badge_496x150.png' />
+  web store' width='496' height='150' src='https://jjbcdn.zaoshu.so/web/cws_badge_496x150.png' />
 </a>
 
 同时提供 Firefox 版本：
