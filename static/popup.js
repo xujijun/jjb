@@ -167,12 +167,34 @@ let notices = [
   }
 ]
 
+let recommendServices = [
+  {
+    link: "https://cloud.tencent.com/redirect.php?redirect=1025&cps_key=8c3eff7793dd70781315d9b5c9727c39&from=console",
+    title: "腾讯云新客礼包",
+    description: "新客户无门槛领取2775元代金券",
+    class: "el-tag el-tag--success"
+  },
+  {
+    link: "https://www.boslife.me/aff.php?aff=435",
+    title: "科学上网服务",
+    description: "小明使用2年的科学上网服务",
+    class: "el-tag el-tag--warning"
+  },
+  {
+    link: "https://promotion.aliyun.com/ntms/yunparter/invite.html?userCode=sqj7d3bm",
+    title: "阿里云优惠券",
+    description: "领取阿里云全品类优惠券",
+    class: "el-tag"
+  },
+]
+
 // 设置模块
 var settingsVM = new Vue({
   el: '#settings',
   data: {
     tasks: [],
     frequencyOptionText: frequencyOptionText,
+    recommendServices: getSetting('recommendServices', recommendServices),
     recommendedLinks: [],
     loginState: {
       m: {
@@ -356,14 +378,14 @@ function changeTips() {
   if (tip.type == "link" && tip.mode == "mobliepage") {
     if (tip.button) {
       $(".tips .weui-btn").removeClass("switch-paymethod")
-      $(".tips .weui-btn").addClass("openMobliePage")
+      $(".tips .weui-btn").addClass("openMobilePage")
       $(".tips .weui-btn").attr("data-url", tip.url)
       $(".tips .weui-btn").removeAttr("href")
       $(".tips .weui-btn").removeAttr("target")
     }
     $("#notice").removeAttr("href")
     $("#notice").attr("data-url", tip.url)
-    $("#notice").addClass("openMobliePage")
+    $("#notice").addClass("openMobilePage")
   }
 }
 
@@ -573,6 +595,9 @@ $( document ).ready(function() {
     if (json.recommendedLinks && json.recommendedLinks.length > 0) {
       localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
     }
+    if (json.recommendServices && json.recommendServices.length > 0) {
+      localStorage.setItem('recommendServices', JSON.stringify(json.recommendServices))
+    }
   });
 
   // 查询最新版本
@@ -700,18 +725,7 @@ $( document ).ready(function() {
     $('.contents-box.' + type).show()
   });
 
-  $("#recommendCardDialags .weui-dialog .switch-cardbank").click(function () {
-    var bank = $(this).data('bank')
-    $('#recommendCardDialags .segmented-control__item').removeClass('checked')
-    $(this).parent().addClass('checked')
-    $('.card-box').each(function () {
-      if ($(this).hasClass(bank)){
-        $(this).show()
-      } else {
-        $(this).hide()
-      }
-    });
-  });
+
 
   $(".weui-dialog__ft a").on("click", function () {
     $("#dialogs").hide()
@@ -753,9 +767,7 @@ $( document ).ready(function() {
     $("#changeLogs").show()
   })
 
-  $("#openRecommendCard").on("click", function () {
-    $("#recommendCardDialags").show()
-  })
+
 
   $("#openWechatCard").on("click", function () {
     $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")
@@ -766,7 +778,7 @@ $( document ).ready(function() {
     showJEvent()
   })
 
-  $(document).on("click", ".openMobliePage", function () {
+  $(document).on("click", ".openMobilePage", function () {
     chrome.runtime.sendMessage({
       text: "openUrlAsMoblie",
       url: $(this).data('url')
@@ -828,10 +840,6 @@ $( document ).ready(function() {
 
   $("#jEventDialags .js-close").on("click", function () {
     $("#jEventDialags").hide()
-  })
-
-  $("#recommendCardDialags .js-close").on("click", function () {
-    $("#recommendCardDialags").hide()
   })
 
   $("#dialogs .js-close").on("click", function () {

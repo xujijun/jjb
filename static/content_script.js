@@ -987,8 +987,6 @@ function autoLogin(account, type) {
   }
 
   if (type == 'pc') {
-    // 切换到账号登录
-    mockClick($(".login-tab-r a")[0])
     // 自动补全填入
     $("#loginname").val(account.username)
     $("#nloginpwd").val(account.password)
@@ -1178,6 +1176,9 @@ function dealLoginPage() {
   };
   // PC版登录页
   if ($(".login-tab-r").length > 0) {
+    // 切换到账号登录
+    mockClick($(".login-tab-r a")[0])
+    // 获取账号
     getAccount('pc')
     $(auto_login_html).insertAfter("#formlogin")
     $('.login-box').on('click', '.jjb-login', function (e) {
@@ -1432,7 +1433,7 @@ function CheckDom() {
   resaveAccount()
   
   // PC 是否登录
-  if ($("#ttbar-login .nickname") && $("#ttbar-login .nickname").length > 0) {
+  if ($("#ttbar-login .nickname") && $("#ttbar-login .nickname").length > 0 || $("#J_user .user_show .user_logout").length > 0) {
     console.log('PC 已经登录')
     chrome.runtime.sendMessage({
       text: "loginState",

@@ -793,60 +793,19 @@ button.Button.messages-tab.Button--plain:focus {
     padding-bottom: 10px;
 }
 
-#recommendCardDialags .segmented-control__item {
-    width: 33%;
+
+.recommendServices{
+    text-align: center;
+
+}
+.recommendServices .el-tag {
+   margin-right: 2px;
 }
 
-.openMobliePage{
+.openMobilePage{
     cursor: pointer;
 }
 
-#openRecommendCard {
-  color: #2196F3;
-}
-
-.spd, .bankcomm{
-    display: none;
-}
-
-.bankcard{
-    margin-top: 10px;
-    max-width: 310px;
-    padding: 8px;
-    position: relative;
-    margin: 0 auto;
-}
-.bankcard h4{
-    color: #333;
-}
-
-.bankcard img{
-    width: 100%;
-}
-
-.bankcard .qrcode,
-#recommendCardDialags {
-    display: none;
-}
-
-.bankcard:hover .qrcode {
-    display: block;
-    position: absolute;
-    width: 130px;
-    left: 50%;
-    margin-left: -65px;
-    top: 50%;
-    margin-top: -75px;
-}
-
-.bankcard:hover .card {
-    opacity: 0.2;
-}
-.card-name h3{
-    color: #6f6f6f;
-    padding: 5px;
-    font-size: 19px;
-}
 
 .el-tag {
     background-color: rgba(64, 158, 255, .1);

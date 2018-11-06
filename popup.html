@@ -26,7 +26,7 @@
                   <div class="weui-cell weui-cell_select weui-cell_select-after" v-for="task in tasks">
                     <div class="weui-cell__bd job-m">
                       <span :title="task.description" v-tippy>
-                        <a v-if="task.platform == 'm'" class="openMobliePage" :data-url="task.url">{{task.title}}</a>
+                        <a v-if="task.platform == 'm'" class="openMobilePage" :data-url="task.url">{{task.title}}</a>
                         <a v-else :href="task.url" target="_blank">{{task.title}}</a>
                       </span>
                       <span v-show="task.suspended && !task.checked" v-tippy  title="因账号未登录任务已暂停运行">
@@ -94,22 +94,15 @@
                 <div class="other_actions">
                   <div class="recommendation">
                     <h3 style="text-align: center;color: #666;">服务推荐</h3>
-                    <p style="text-align: center;">
-                      <span class="el-tag el-tag--success">
-                        <a href="https://www.agoda.com/partners/partnersearch.aspx?cid=1809967&pcs=8" target="_blank" data-tippy-placement="top-start" class="tippy" data-tippy-content="使用 Agoda 预计全球酒店">全球特价酒店</a>
-                      </span>
-
-                      <span class="el-tag el-tag--warning">
-                        <a href="https://www.boslife.me/aff.php?aff=435" data-tippy-placement="top-start" class="tippy" data-tippy-content="小明正在使用的科学上网服务" target="_blank">科学上网服务</a>
-                      </span>
-                      <span class="el-tag">
-                        <a target="_blank" data-tippy-placement="top-start" class="tippy" data-tippy-content="虽然我是京价保，但亚马逊海外购确实比京东海外购靠谱多了" href="https://amazon.cn/%E4%BA%9A%E9%A9%AC%E9%80%8A%E6%B5%B7%E5%A4%96%E8%B4%AD/b/ref=sa_menu_top_ags_l1?ie=UTF8&amp;node=1403206071&_encoding=UTF8&tag=zaoshu-23&linkCode=ur2&linkId=9ab69334b125fbabd8452894820cad91&camp=536&creative=3200">亚马逊海外购</a>
+                    <p class="recommendServices">
+                      <span :class="service.class"  v-for="service in recommendServices">
+                        <a target="_blank" :title="service.description" :href="service.link">{{service.title}}</a>
                       </span>
                     </p>
                     
                     <div class="recommendedLink">
                       <p v-for="link in recommendedLinks">
-                        <a v-if="link.moblie" class="openMobliePage" :style="link.style" :data-url="link.url">{{link.title}}</a>
+                        <a v-if="link.mobile" class="openMobilePage" :style="link.style" :data-url="link.url">{{link.title}}</a>
                         <a v-else :href="link.url" :style="link.style" class="weui-form-preview__btn weui-form-preview__btn_primary" target="_blank">{{link.title}}</a>
                       </p>
                     </div>
@@ -513,79 +506,6 @@
         </div>
       </div>
 
-      <!-- 信用卡推荐 -->
-      <div id="recommendCardDialags">
-        <div class="js_dialog" style="opacity: 1;">
-          <div class="weui-mask"></div>
-          <div class="weui-dialog">
-            <div class="weui-dialog__hd">
-              <strong class="weui-dialog__title">信用卡推荐</strong>
-            </div>
-            <span class="js-close">x</span>
-
-            <ul class="segmented-control">
-              <li class="segmented-control__item checked">
-                <span class="segmented-control__label switch-cardbank" data-bank="citic">中信</span>
-              </li>
-              <li class="segmented-control__item">
-                <span class="segmented-control__label switch-cardbank" data-bank="spd">浦发</span>
-              </li>
-              
-              <li class="segmented-control__item">
-                <span class="segmented-control__label switch-cardbank" data-bank="bankcomm">交行</span>
-              </li>
-            </ul>
-            <div class="weui-dialog__bd">
-              <div class="card-box spd">
-                <div class="card-name">
-                  <h3>浦发简约白金卡</h3>
-                  <p class="sub-title">白金卡，免年费，受邀奖励50元刷卡金</p>
-                </div>
-                <div class="bankcard">
-                  <div class="qrcode">
-                    <h4>办卡扫码</h4>
-                    <img src="static/image/spd_qrcode.png" >
-                  </div>
-                  <img src="static/image/spd.png" class="card">
-                </div>
-                <a class="weui-btn weui-btn_plain-primary openMobliePage" style=" width: 80%;" data-url="https://ecentre.spdbccc.com.cn/entry_cobber_union/pageController/myStickerLink.htm?cid=2353994">去申请</a>
-              </div>
-
-              <div class="card-box citic">
-                <div class="card-name">
-                  <h3>中信i白金</h3>
-                  <p class="sub-title">白金卡，刷卡免年费，网络交易双倍积分</p>
-                </div>
-                <div class="bankcard">
-                  <div class="qrcode">
-                    <h4>办卡扫码</h4>
-                    <img src="static/image/citic_qrcode.png">
-                  </div>
-                  <img src="static/image/citic.png" class="card">
-                </div>
-                <a class="weui-btn weui-btn_plain-primary openMobliePage" style=" width: 80%;" data-url="https://creditcard.ecitic.com/m/tjbk/card_list.html?uid=TJ56429635&sid=SJTJBK">去申请</a>
-              </div>
-
-              <div class="card-box bankcomm">
-                <div class="card-name">
-                  <h3>交行Y-Power卡</h3>
-                  <p class="sub-title">算了，这张卡不怎么样，你还是看看其他卡吧</p>
-                </div>
-                <div class="bankcard">
-                  <div class="qrcode">
-                    <h4>办卡扫码</h4>
-                    <img src="static/image/bankcomm_qrcode.png">
-                  </div>
-                  <img src="static/image/bankcomm.png" class="card">
-                  
-                </div>
-              </div>
-              <p class="text-tips"> 注意部分卡片可能有年费，建议申卡的时候了解清楚年费政策 </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 支持开发者 -->
       <div id="dialogs">
         <!--BEGIN dialog1-->
@@ -690,7 +610,7 @@
                       </div>
                     </div>
                   </a>
-                  <a data-url="https://wqs.jd.com/my/indexv2.shtml" class="tippy login-type_m openMobliePage" data-tippy-content="未知状态">
+                  <a data-url="https://wqs.jd.com/my/indexv2.shtml" class="tippy login-type_m openMobilePage" data-tippy-content="未知状态">
                     <div class="weui-cell">
                       <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
                         <img src="static/image/m.png" style="width: 30px;display: block">
