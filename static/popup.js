@@ -891,3 +891,13 @@ $( document ).ready(function() {
     listenVoice($(this).data('type'), $(this).data('batch'))
   })
 })
+
+// 防止缩放
+chrome.tabs.getZoomSettings(function (zoomSettings) {
+  console.log('zoomSettings', zoomSettings)
+  if (zoomSettings.defaultZoomFactor > 1 && zoomSettings.scope == 'per-origin' && zoomSettings.mode == 'automatic') {
+    let zoomPercent = (100 / (zoomSettings.defaultZoomFactor * 100)) * 100;
+    console.log('zoomPercent', zoomPercent)
+    document.body.style.zoom = zoomPercent + '%'
+  }
+})

@@ -211,11 +211,23 @@ function apply(applyBtn, priceInfo, setting) {
 
 // 提取价格信息
 function seekPriceInfo(platform) {
-  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price
+  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price, earnest_price
   if (platform == 'pc') {
     urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
     sku = urlInfo[2]
-    normal_price = ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
+    // 需要对预售定金进行区分
+    if ($('span.p-price').length > 1) {
+      $('span.p-price').each(function (priceDom) {
+        if ($(priceDom).hasClass('J-earnest')) {
+          earnest_price = $(priceDom).find('.price').text() ? $(priceDom).find('.price').text().replace(/[^0-9\.-]+/g, "") : null
+        } else {
+          normal_price = $(priceDom).find('.price').text() ? $(priceDom).find('.price').text().replace(/[^0-9\.-]+/g, "") : null
+        }
+      })
+    } else {
+      normal_price = ($('span.p-price .price').text() ? $('span.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
+    }
+
     presale_price = $('.J-presale-price').text() ? $('.J-presale-price').text() : null
 
     plus_price = $('.p-price-plus .price').text() ? $('.p-price-plus .price').text().replace(/[^0-9\.-]+/g, "") : null
@@ -231,11 +243,11 @@ function seekPriceInfo(platform) {
 
     normal_price =($('#priceSaleChoice').text() ? $('#priceSaleChoice').text().replace(/[^0-9\.-]+/g, "") : null) || $('#jdPrice').val() || ($('#specJdPrice').text() ? $('#specJdPrice').text().replace(/[^0-9\.-]+/g, "") : null)
 
-    spec_price = ($('#priceSale').text() ? $('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $('#spec_price').text() || ($('#specPrice').text() ? $('#specPrice').text().replace(/[^0-9\.-]+/g, "") : null)
+    spec_price = ($('#priceSale').text() && $('#priceSale').height() > 0 ? $('#priceSale').text().replace(/[^0-9\.-]+/g, "") : null) || $('#spec_price').text() && $('#spec_price').height() > 0|| ($('#specPrice').text() ? $('#specPrice').text().replace(/[^0-9\.-]+/g, "") : null)
 
     plus_price = ($('.vip_price #priceSaleChoice1').text() ? $('.vip_price #priceSaleChoice1').text().replace(/[^0-9\.-]+/g, "") : null) || $('#specPlusPrice').text()
 
-    orgin_price = $("#orginBuyBtn span").text() ? $("#orginBuyBtn span").text().replace(/[^0-9\.-]+/g, "") : null
+    orgin_price = $("#orginBuyBtn span").text() ? $("#orginBuyBtn span").text().replace(/[^0-9\.-]+/g, "") : null || $("#ysOriPrice").text() ? $("#ysOriPrice").text().replace(/[^0-9\.-]+/g, "") : null
 
     price = normal_price || spec_price || orgin_price
 
@@ -244,9 +256,9 @@ function seekPriceInfo(platform) {
 
   let priceInfo = {
     sku: sku,
-    normal_price: price,
-    plus_price: plus_price,
-    pingou_price: pingou_price
+    normal_price: price ? Number(price) : null,
+    plus_price: plus_price ? Number(plus_price) : null,
+    pingou_price: pingou_price? Number(pingou_price) : null
   }
 
   console.log(platform, priceInfo)
@@ -347,11 +359,8 @@ async function getAllOrders(mode, setting) {
 }
 
 function mockClick(element) {
-  // DOM 2 Events
   var dispatchMouseEvent = function (target, var_args) {
     var e = document.createEvent("MouseEvents");
-    // If you need clientX, clientY, etc., you can call
-    // initMouseEvent instead of initEvent
     e.initEvent.apply(e, Array.prototype.slice.call(arguments, 1));
     target.dispatchEvent(e);
   };
@@ -413,7 +422,7 @@ function CheckBaitiaoCouponDom(setting) {
         var coupon_name = couponDetails[2] ? $(couponDetails[2]).text().trim() : '未知白条券'
         var coupon_price = couponDetails[0] ? $(couponDetails[0]).text().trim(): '？' + (couponDetails[1] ? (' (' + $(couponDetails[1]).text() + ')') : '')
         setTimeout(function () {
-          mockClick(targetEle[0])
+          simulateClick(targetEle)
           setTimeout(function () {
             if (targetEle.text() == '去查看') {
               chrome.runtime.sendMessage({
@@ -570,59 +579,6 @@ function doShopSign(setting) {
   }
 }
 
-// 10：金融铂金会员返利
-function getRebate(setting) {
-  if (setting != 'never') {
-    console.log('京东金融铂金会员返利')
-    weui.toast('京价保运行中', 1000);
-
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "10"
-    })
-    // 切换到支付返现视图
-    $("#react-root .react-root .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
-      let targetEle = $(this)
-      if (targetEle.text() == '支付返现') {
-        mockClick(targetEle[0])
-        setTimeout(() => {
-          getPlatinumRebate()
-        }, 500);
-      }
-    })
-    // 领取返利
-    function getPlatinumRebate() {
-      let time = 0;
-      $("#react-root .react-root .react-view img").each(function () {
-        let that = $(this)
-        if (that.attr("src") && that.width() > 40) {
-          setTimeout(function () {
-            mockClick(that[0])
-            let amount = that.parent().parent().prev().find('span').last().text()
-            if (amount && amount > 0.1) {
-              let content = "应该是领到了" + amount + '元的返利。'
-              if (amount > 5) {
-                content += "求打赏"
-              }
-              chrome.runtime.sendMessage({
-                text: "notice",
-                batch: "rebate",
-                value: amount,
-                unit: 'cash',
-                title: "京价保自动为您领取铂金会员支付返利",
-                content: content
-              }, function (response) {
-                console.log("Response: ", response);
-              });
-            }
-          }, time)
-          time += 5000;
-        }
-      })
-    }
-  }
-}
-
 // 移动页领取优惠券（2：领精选券）
 function pickupCoupon(setting) {
   if (setting != 'never') {
@@ -642,7 +598,7 @@ function pickupCoupon(setting) {
       }
       if ($(this).find('.coupon_default_status_icon').text() == '立即领取') {
         setTimeout(function () {
-          mockClick($(that).find('.coupon_default_status_icon')[0])
+          simulateClick($(that).find('.coupon_default_status_icon'))
           setTimeout(function () {
             if ($(that).find('.coupon_default_status_icon').text() == '立即使用') {
               chrome.runtime.sendMessage({
@@ -764,7 +720,7 @@ function priceProtect(setting) {
 function autoGobuy(setting) {
   if (setting == "checked") {
     weui.toast('京价保自动跳转', 3000);
-    mockClick($(".shop_intro .gobuy a")[0])
+    simulateClick($(".shop_intro .gobuy a"))
   }  
 }
 
@@ -865,12 +821,21 @@ function handProtection(setting, priceInfo) {
   }
 }
 
-function simulateClick(dom) {
-  mockClick(dom[0])
+// 模拟点击
+function simulateClick(dom, mouseEvent) {
+  if (mouseEvent) {
+    return mockClick(dom[0])
+  }
   try {
     dom.trigger("tap")
     dom.trigger("click")
-  } catch (error) {}
+  } catch (error) {
+    try {
+      mockClick(dom[0])
+    } catch (err) {
+      console.log('fullback to mockClick', err)
+    }
+  }
 }
 
 function markCheckinStatus(type, value, cb) {
@@ -980,9 +945,9 @@ function autoLogin(account, type) {
       console.log("autoLogin Response: ", response);
     });  
     if (type == 'pc') {
-      mockClick($(".login-btn a")[0])
+      simulateClick($(".login-btn a"))
     } else {
-      mockClick($("#loginBtn")[0])
+      simulateClick($("#loginBtn"))
     }
   }
 
@@ -1171,13 +1136,13 @@ function dealLoginPage() {
           password: password
         })
       }
-      mockClick($("#loginBtn")[0])
+      simulateClick($("#loginBtn"))
     })
   };
   // PC版登录页
   if ($(".login-tab-r").length > 0) {
     // 切换到账号登录
-    mockClick($(".login-tab-r a")[0])
+    simulateClick($(".login-tab-r a"))
     // 获取账号
     getAccount('pc')
     $(auto_login_html).insertAfter("#formlogin")
@@ -1192,7 +1157,7 @@ function dealLoginPage() {
           password: password
         })
       }
-      mockClick($(".login-btn a")[0])
+      simulateClick($(".login-btn a"))
     })
   };
 }
@@ -1205,7 +1170,7 @@ function vipCheckin(setting) {
       text: "run_status",
       jobId: "5"
     })
-    const signRes = $(".signin-desc").textContent || $(".signin-desc").text()
+    const signRes = $(".signin-desc").text()
     if (signRes.indexOf("已签到") > -1) {
       markCheckinStatus('vip')
     } else {
@@ -1314,9 +1279,9 @@ function beanCheckin(setting) {
     $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
       let targetEle = $(this)
       if (targetEle.text() == '签到领京豆') {
-        mockClick(targetEle[0])
+        simulateClick(targetEle, true)
         setTimeout(() => {
-          let beanCheckinRes = $(".gradBackground").textContent || $(".gradBackground").text()
+          let beanCheckinRes = $(".gradBackground").text()
           if (beanCheckinRes && beanCheckinRes.indexOf("恭喜您获得") > -1){
             markCheckinStatus('bean', null, () => {
               chrome.runtime.sendMessage({
@@ -1334,7 +1299,7 @@ function beanCheckin(setting) {
       }
     })
 
-    const beanCheckinRes = $(".gradBackground").textContent || $(".gradBackground").text()
+    const beanCheckinRes = $(".gradBackground").text()
     if (beanCheckinRes && beanCheckinRes.indexOf("恭喜您获得") > -1){
       markCheckinStatus('bean')
     }
@@ -1474,7 +1439,7 @@ function CheckDom() {
 
   // 移除遮罩
   if ($("#pcprompt-viewpc").size() > 0) {
-    mockClick($("#pcprompt-viewpc")[0])
+    simulateClick($("#pcprompt-viewpc"))
   }
 
   // 商品页
@@ -1607,11 +1572,6 @@ function CheckDom() {
     getSetting('job2_frequency', pickupCoupon)
   };
 
-  // 自动领取京东金融铂金会员京东支付返利（10：金融铂金会员支付返利）
-  if ($("#react-root .react-root .react-view").length > 0 && window.location.host == 'm.jr.jd.com' && document.title == "返现明细") {
-    getSetting('job10_frequency', getRebate)
-  }
-  
   // 自动跳转至商品页面
   if ($(".shop_intro .gobuy").length > 0) {
     getSetting('auto_gobuy', autoGobuy)
@@ -1659,11 +1619,24 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
   }
 });
 
+var passiveSupported = false;
+try {
+  var options = Object.defineProperty({}, "passive", {
+    get: function() {
+      passiveSupported = true;
+    }
+  });
+
+  window.addEventListener("test", null, options);
+} catch(err) {}
+
 window.addEventListener("message", function(event) {
-  if (event.data && event.data.action == 'productPrice') {
-    findOrderBySkuAndApply(event.data, event.data.setting)
-  }
-}, false);
+    if (event.data && event.data.action == 'productPrice') {
+      findOrderBySkuAndApply(event.data, event.data.setting)
+    }
+  },
+  passiveSupported ? { passive: true } : false
+);
 
 
 var nodeList = document.querySelectorAll('script');
