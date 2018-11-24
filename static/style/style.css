@@ -208,3 +208,7 @@ dialog .close {
 .first_area_md .jjbPriceChart{
     margin-top: 20px;
 }
+
+.price_notice{
+    display: none;
+}

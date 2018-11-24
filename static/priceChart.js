@@ -16,6 +16,10 @@ $( document ).ready(function() {
       <span class="provider"><a href="https://blog.jjb.im/price-chart.html" target="_blank">由京价保提供</a></span>
     </div>
   `;
+  let priceNoticeDom = `
+    <div class="price_notice low-price" style="text-align: right; background: #70a20b;color: #fff;padding-right: 2em; ">低于均价</div>
+    <div class="price_notice high-price" style="text-align: right; background: #cf0400;color: #fff;padding-right: 2em; ">高于均价</div>
+  `
   if ($(".product-intro").length > 0) {
     $(".product-intro").append(priceChartDOM);
   }
@@ -23,7 +27,7 @@ $( document ).ready(function() {
   if ($(".first_area_md").length > 0) {
     $(".first_area_md").append(priceChartDOM);
   }
-  
+
   setTimeout( function(){
     $('#disablePriceChart').bind('click', () => {
       weui.confirm('停用此功能后京价保将不再在商品页展示价格走势图，同时也将停止上报获取到的商品价格', function () {
@@ -41,10 +45,10 @@ $( document ).ready(function() {
     $.ajax({
       method: "GET",
       type: "GET",
-      url: "https://jjb.zaoshu.so/price/" + sku,
+      url: `https://jjb.zaoshu.so/price/${sku}/detail`,
       timeout: 3000,
       success: function(data){
-        if (data.length > 2) {
+        if (data.chart.length > 2) {
           $("#jjbPriceChart .ELazy-loading").hide()
           var chart = new G2.Chart({
             container: 'jjbPriceChart',
@@ -52,7 +56,7 @@ $( document ).ready(function() {
             padding: [50, '5%', 80, '6%'],
             height: 300
           });
-          chart.source(data, {
+          chart.source(data.chart, {
             timestamp: {
               type: 'time',
               mask: 'MM-DD HH:mm',

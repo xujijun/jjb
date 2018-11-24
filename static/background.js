@@ -544,12 +544,14 @@ function getPriceProtectionSetting() {
 
 // 报告价格
 function reportPrice(priceInfo) {
+  if (!priceInfo.sku) return
   log('background', 'reportPrice', priceInfo)
   $.ajax({
     method: "POST",
     type: "POST",
-    url: "https://jjb.zaoshu.so/price",
+    url: `https://jjb.zaoshu.so/price/${priceInfo.sku}`,
     data: {
+      name: priceInfo.name,
       sku: priceInfo.sku,
       price: priceInfo.normal_price ? Number(priceInfo.normal_price) : null,
       normal_price: priceInfo.normal_price ? Number(priceInfo.normal_price) : null,
@@ -587,7 +589,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (getSetting('jjb_plus') == 'Y')
       let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
       let priceInfo = {
-        sku: msg.sku, 
+        sku: msg.sku,
+        name: msg.name,
         price: is_plus ? (msg.plus_price || msg.normal_price) : msg.normal_price,
         normal_price: msg.normal_price,
         plus_price: msg.plus_price,

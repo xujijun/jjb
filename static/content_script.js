@@ -211,9 +211,10 @@ function apply(applyBtn, priceInfo, setting) {
 
 // 提取价格信息
 function seekPriceInfo(platform) {
-  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price, earnest_price
+  let urlInfo, sku, price, normal_price, presale_price, plus_price, pingou_price, spec_price, orgin_price, earnest_price, skuName
   if (platform == 'pc') {
     urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
+    skuName = $(".sku-name").text() ? $(".sku-name").text().trim() : null
     sku = urlInfo[2]
     // 需要对预售定金进行区分
     if ($('span.p-price').length > 1) {
@@ -240,6 +241,7 @@ function seekPriceInfo(platform) {
   } else {
     urlInfo = /(https|http):\/\/item.m.jd.com\/product\/([0-9]*).html/g.exec(window.location.href);
     sku = urlInfo[2]
+    skuName = $("#itemName").text() ? $("#itemName").text().trim() : null
 
     normal_price =($('#priceSaleChoice').text() ? $('#priceSaleChoice').text().replace(/[^0-9\.-]+/g, "") : null) || $('#jdPrice').val() || ($('#specJdPrice').text() ? $('#specJdPrice').text().replace(/[^0-9\.-]+/g, "") : null)
 
@@ -255,6 +257,7 @@ function seekPriceInfo(platform) {
   }
 
   let priceInfo = {
+    name: skuName,
     sku: sku,
     normal_price: price ? Number(price) : null,
     plus_price: plus_price ? Number(plus_price) : null,
@@ -270,7 +273,7 @@ function seekPriceInfo(platform) {
   }, function (response) {
     console.log("productPrice Response: ", response);
   });
-  
+
   return priceInfo
 }
 
@@ -321,6 +324,7 @@ async function dealOrder(order, orders, setting) {
   }
 }
 
+
 async function getAllOrders(mode, setting) {
   console.log('京价保开始自动检查订单', mode)
   let orders = []
@@ -343,7 +347,7 @@ async function getAllOrders(mode, setting) {
       }
       dealorders.push(dealOrder(orderDom, orders, setting))
     });
-  }  
+  }
   try {
     await Promise.all(dealorders)
   } catch (error) {
@@ -633,7 +637,7 @@ function getCoin(setting) {
       let canvas = $("#myCanvas")[0]
       let rect = canvas.getBoundingClientRect()
       let startX = rect.left * (canvas.width / rect.width)
-      
+
       sendTouchEvent(startX + 10, rect.y + 10, canvas, 'touchstart');
       sendTouchEvent(startX + 70, rect.y + 10, canvas, 'touchmove');
       sendTouchEvent(startX + 70, rect.y + 10, canvas, 'touchend');
@@ -721,7 +725,7 @@ function autoGobuy(setting) {
   if (setting == "checked") {
     weui.toast('京价保自动跳转', 3000);
     simulateClick($(".shop_intro .gobuy a"))
-  }  
+  }
 }
 
 
@@ -823,15 +827,16 @@ function handProtection(setting, priceInfo) {
 
 // 模拟点击
 function simulateClick(dom, mouseEvent) {
-  if (mouseEvent) {
-    return mockClick(dom[0])
+  let domNode = dom.get(0)
+  if (mouseEvent && domNode) {
+    return mockClick(domNode)
   }
   try {
     dom.trigger("tap")
     dom.trigger("click")
   } catch (error) {
     try {
-      mockClick(dom[0])
+      mockClick(domNode)
     } catch (err) {
       console.log('fullback to mockClick', err)
     }
@@ -943,7 +948,7 @@ function autoLogin(account, type) {
       type: type
     }, function (response) {
       console.log("autoLogin Response: ", response);
-    });  
+    });
     if (type == 'pc') {
       simulateClick($(".login-btn a"))
     } else {
@@ -1393,10 +1398,12 @@ function jrIndex(setting) {
 // 主体任务
 // ************
 
+var pageTaskRunning = false
+
 function CheckDom() {
+  pageTaskRunning = true
   // 转存账号
   resaveAccount()
-  
   // PC 是否登录
   if ($("#ttbar-login .nickname") && $("#ttbar-login .nickname").length > 0 || $("#J_user .user_show .user_logout").length > 0) {
     console.log('PC 已经登录')
@@ -1466,7 +1473,7 @@ function CheckDom() {
   if (window.location.host == 'pcsitepp-fm.jd.com' || window.location.host == 'msitepp-fm.jd.com') {
     getSetting('job1_frequency', priceProtect)
   }
-  
+
   // 移动页增加滑动支持
   if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com') {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
@@ -1482,7 +1489,7 @@ function CheckDom() {
     getSetting('job5_frequency', vipCheckin)
   };
 
-  // 16 白条签到 
+  // 16 白条签到
   if ($("#lottery .mark_btn_start").length || $("#lottery .mark_btn_start").length > 0) {
     getSetting('job16_frequency', baitiaoLottery)
   };
@@ -1564,7 +1571,7 @@ function CheckDom() {
       })
     }, function(response) {
       console.log("Response: ", response);
-    });  
+    });
   }
 
   // 领取精选券
@@ -1588,21 +1595,39 @@ function CheckDom() {
       })
     }, function(response) {
       console.log("Response: ", response);
-    });  
+    });
   }
 
   // 验证码
   if ($('.page-notice .txt-end').size() > 0 && $('.page-notice .txt-end').text().indexOf("账户存在风险") > -1) {
     dealLoginFailed("m", "需要手机验证码")
   }
+
+  // go to user page
+  if (window.location != window.parent.location) {
+    setTimeout(() => {
+      if ($("#mCommonCart").size() > 0) {
+        simulateClick($("#mCommonCart"), true)
+      }
+      if ($("#m_common_header_shortcut_h_home").size() > 0) {
+        simulateClick($("#m_common_header_shortcut_h_home"), true)
+      }
+      if ($("#ttbar-myjd a").size() > 0) {
+        $("#ttbar-myjd a").attr('target', '_self')
+        simulateClick($("#ttbar-myjd a"), true)
+      }
+    }, 2 * 60 * 1000);
+  }
 }
 
 $( document ).ready(function() {
   console.log('京价保注入页面成功');
-  setTimeout( function(){
-    console.log('京价保开始执行任务');
-    CheckDom()
-  }, 1000)
+  if (!pageTaskRunning) {
+    setTimeout( function(){
+      console.log('京价保开始执行任务');
+      CheckDom()
+    }, 1000)
+  }
 });
 
 // 消息
