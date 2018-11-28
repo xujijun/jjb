@@ -1418,7 +1418,7 @@ function CheckDom() {
   };
 
   // M 是否登录
-  if (($("#mCommonMy") && $("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0 )) {
+  if (($("#mCommonMy") && $("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
     console.log('M 已经登录')
     chrome.runtime.sendMessage({
       text: "loginState",

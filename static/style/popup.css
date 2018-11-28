@@ -1039,3 +1039,22 @@ button.Button.messages-tab.Button--plain:focus {
     white-space: pre-line;
     text-align: left;
 }
+
+.showApplyAlipayCode{
+    cursor: pointer;
+    margin-top: 10px;
+    color: #10aeff;
+}
+
+.apply-alipay-code .weui-dialog{
+    border: 5px solid #10aeff;
+    min-height: 400px;
+}
+
+.apply-alipay-code .weui-dialog__title{
+    color: #10aeff;
+}
+
+.reward-tips{
+    font-size: 12px;
+}

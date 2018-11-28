@@ -287,7 +287,6 @@
                             <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
                             <p>{{good.name}}</p>
                           </div>
-                          
                         </div>
                       </div>
                       <div class="weui-cell__ft">
@@ -377,6 +376,7 @@
               <strong class="weui-dialog__title">最近更新</strong>
             </div>
             <div class="weui-dialog__bd changelogs">
+              <p>2.1.12 修复由于京东网页更新导致移动版无法识别登录状态的问题</p>
               <p>2.1.11 升级价格信息获取接口；尝试改善登录有效期；</p>
               <p>2.1.10 改善浏览器兼容性；优化代码和资源；防止浏览器缩放导致界面显示不全的问题；修复预售商品的价格误判；</p>
               <p>2.1.9 重要：修复自动运行价格保护时价格变化通知</p>
@@ -542,22 +542,24 @@
                 </div>
               </div>
               <div class="weui-dialog__bd alipay_pay">
-                <div class="alipay switch-paymethod" data-to="alipay" data-target="redpack" >
+                <div class="alipay">
                   <div class="switch-paymethod" data-to="alipay" data-target="redpack">
                     <img src="static/image/alipay_pay.png" height="200px">
+                    <p class="alipay_action">
+                      <svg t="1514045821272" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6338"
+                        xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20">
+                        <path d="M60.220235 215.311059V90.413176A90.473412 90.473412 0 0 1 150.573176 0h722.82353a90.352941 90.352941 0 0 1 90.352941 90.413176v120.470589c-2.800941-0.301176-5.662118 0.903529-8.432941 3.915294-59.632941 66.710588-281.298824 159.864471-292.261647 165.827765-10.962824 5.963294 168.387765 24.003765 292.291765-54.814118a57.524706 57.524706 0 0 0 8.402823-6.475294v614.249412A90.473412 90.473412 0 0 1 873.396706 1024H150.573176a90.352941 90.352941 0 0 1-90.352941-90.413176v-607.472942c123.873882 78.456471 302.802824 60.476235 291.84 54.512942-10.932706-5.963294-231.574588-98.665412-291.84-165.345883zM511.984941 662.588235a150.588235 150.588235 0 1 0 0-301.17647 150.588235 150.588235 0 0 0 0 301.17647z"
+                          fill="#F54E4E" p-id="6339"></path>
+                      </svg>
+                      我先领个红包
+                    </p>
                   </div>
-                  <p class="alipay_action">
-                    <svg t="1514045821272" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6338"
-                      xmlns:xlink="http://www.w3.org/1999/xlink" width="20" height="20">
-                      <path d="M60.220235 215.311059V90.413176A90.473412 90.473412 0 0 1 150.573176 0h722.82353a90.352941 90.352941 0 0 1 90.352941 90.413176v120.470589c-2.800941-0.301176-5.662118 0.903529-8.432941 3.915294-59.632941 66.710588-281.298824 159.864471-292.261647 165.827765-10.962824 5.963294 168.387765 24.003765 292.291765-54.814118a57.524706 57.524706 0 0 0 8.402823-6.475294v614.249412A90.473412 90.473412 0 0 1 873.396706 1024H150.573176a90.352941 90.352941 0 0 1-90.352941-90.413176v-607.472942c123.873882 78.456471 302.802824 60.476235 291.84 54.512942-10.932706-5.963294-231.574588-98.665412-291.84-165.345883zM511.984941 662.588235a150.588235 150.588235 0 1 0 0-301.17647 150.588235 150.588235 0 0 0 0 301.17647z"
-                        fill="#F54E4E" p-id="6339"></path>
-                    </svg>
-                    我先领个红包
-                  </p>
+
+                  <p class="showApplyAlipayCode">我也想申请一个收款码</p>
                 </div>
                 <div class="redpack">
                   <div class="pay_reward switch-paymethod" data-to="alipay" data-target="alipay">
-                    <img src="static/image/alipay_redpack.jpg" height="330px">
+                    <img src="https://jjbcdn.zaoshu.so/chrome/alipayred.png" height="320px">
                     <p class="alipay_action">
                       <svg t="1514096092051" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3558"
                       xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24">
@@ -570,7 +572,7 @@
                 </div>
               </div>
               <div class="weui-dialog__bd reward_tips">
-                <p>
+                <p class="reward-tips">
                   因为你的支持，京价保才能一直保持更新，适配京东的页面修改，增加更多自动功能。
                 </p>
               </div>
@@ -755,7 +757,6 @@
       </div>
 
     </div>
-    
     <!-- body 最后 -->
     <script src="static/popup.js"></script>
   </body>

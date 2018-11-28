@@ -863,7 +863,6 @@ $( document ).ready(function() {
     }, {
       title: '清除密码确认'
     });
-    
   })
 
 
@@ -874,7 +873,7 @@ $( document ).ready(function() {
       console.log("Response: ", response);
     });
   })
-  
+
   $("#notice").on("dblclick", function () {
     changeTips()
   })
@@ -890,7 +889,22 @@ $( document ).ready(function() {
   $(".listenVoice").on("click", function () {
     listenVoice($(this).data('type'), $(this).data('batch'))
   })
+
+  $(".showApplyAlipayCode").on("click", function () {
+    weui.dialog({
+      title: '申请支付宝收款码',
+      content: `<img src="https://jjbcdn.zaoshu.so/chrome/applyAlipayCode.jpg" style="width: 270px;"></img>`,
+      className: 'apply-alipay-code',
+      buttons: [{
+        label: '完成',
+        type: 'primary'
+      }]
+    })
+  })
+
 })
+
+
 
 // 防止缩放
 chrome.tabs.getZoomSettings(function (zoomSettings) {
