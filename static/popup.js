@@ -196,6 +196,7 @@ var settingsVM = new Vue({
     frequencyOptionText: frequencyOptionText,
     recommendServices: getSetting('recommendServices', recommendServices),
     recommendedLinks: [],
+    newVersion: getSetting('newVersion', null),
     loginState: {
       m: {
         state: "unknown"
@@ -222,18 +223,24 @@ var settingsVM = new Vue({
   }
 })
 
-// 处理订单
-var ordersVM = new Vue({
-  el: '#orders',
+// 内容模块
+var contentVM = new Vue({
+  el: '#content',
   data: {
     orders: [],
     skuPriceList: {},
     hiddenOrderIds: getSetting('hiddenOrderIds', []),
-    disabled_link: getSetting('disabled_link') == 'checked' ? true : false
+    disabled_link: getSetting('disabled_link') == 'checked' ? true : false,
+    selectedTab: null,
+    newVersion: getSetting('newVersion', null),
+    messages: [],
   },
   methods: {
     backup_picture: function (e) {
       e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png"
+    },
+    selectType: function (type) {
+      this.selectedTab = type
     },
     toggleOrder: function (order) {
       if (_.indexOf(this.hiddenOrderIds, order.id) > -1) {
@@ -247,19 +254,6 @@ var ordersVM = new Vue({
   }
 })
 
-// 通知消息
-var messagesVM = new Vue({
-  el: '#messages',
-  data: {
-    selectedTab: null,
-    messages: [],
-  },
-  methods: {
-    selectType: function (type) {
-      this.selectedTab = type
-    }
-  }
-})
 
 // 接收消息
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -269,12 +263,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         order.displayTime = readableTime(DateTime.fromISO(order.time))
         return order
       })
-      ordersVM.orders = orders
+      contentVM.orders = orders
       break;
     case 'new_message':
       let lastUnreadCount = $("#unreadCount").text()
       $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
-      messagesVM.messages = makeupMessages(JSON.parse(message.data))
+      contentVM.messages = makeupMessages(JSON.parse(message.data))
       break;
     case 'loginState_updated':
       dealWithLoginState()
@@ -527,14 +521,14 @@ function getOrders() {
   } else {
     orders = []
   }
-  ordersVM.orders = orders
-  ordersVM.skuPriceList = skuPriceList
+  contentVM.orders = orders
+  contentVM.skuPriceList = skuPriceList
 }
 
 function getMessages() {
   let messages = JSON.parse(localStorage.getItem('jjb_messages'))
   messages = makeupMessages(messages)
-  messagesVM.messages = messages
+  contentVM.messages = messages
 }
 
 $( document ).ready(function() {
@@ -542,7 +536,6 @@ $( document ).ready(function() {
   var account = localStorage.getItem('jjb_account');
   var admission_test = localStorage.getItem('jjb_admission-test')
   var unreadCount = localStorage.getItem('unreadCount') || 0
-  const changelog_version = localStorage.getItem('changelog_version')
   const displayRecommend = localStorage.getItem('displayRecommend')
   const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
     rate: 7,
@@ -551,7 +544,6 @@ $( document ).ready(function() {
   const current_version = "{{version}}"
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
-  
   // 渲染订单
   getOrders()
 
@@ -561,7 +553,7 @@ $( document ).ready(function() {
   // 渲染设置
   settingsVM.tasks = getTaskList()
   settingsVM.recommendedLinks = getSetting("recommendedLinks", [])
-  
+
   // tippy
   tippy('.tippy')
 
@@ -602,29 +594,34 @@ $( document ).ready(function() {
 
   // 查询最新版本
   $.getJSON("https://jjb.zaoshu.so/updates/check?version={{version}}&browser={{browser}}", function (json) {
-    let skipVerison = localStorage.getItem('skipVerison')
-    let localVerison = skipVerison || "{{version}}"
-    if (versionCompare(localVerison, json.lastVerison) < 0  && json.notice && versionCompare(localVerison, json.noticeVerison) < 1) {
-      weui.dialog({
-        title: json.title || '京价保有版本更新',
-        content: json.changelog || '一系列改进',
-        className: 'update',
-        buttons: [{
-          label: '不再提醒',
-          type: 'default',
-          onClick: function () {
-            localStorage.setItem('skipVerison', json.lastVerison)
-          }
-        }, {
-          label: '下载更新',
-          type: 'primary',
-          onClick: function () {
-            chrome.tabs.create({
-              url: json.url || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
-            })
-          }
-        }]
-      });
+    let skipVersion = localStorage.getItem('skipVersion')
+    let localVersion = skipVersion || "{{version}}"
+    if (versionCompare(localVersion, json.lastVersion) < 0) {
+      localStorage.setItem('newVersion', json.lastVersion)
+      if (json.notice && versionCompare(localVersion, json.noticeVersion) < 1) {
+        weui.dialog({
+          title: json.title || '京价保有版本更新',
+          content: json.changelog || '一系列改进',
+          className: 'update',
+          buttons: [{
+            label: '不再提醒',
+            type: 'default',
+            onClick: function () {
+              localStorage.setItem('skipVersion', json.lastVersion)
+            }
+          }, {
+            label: '下载更新',
+            type: 'primary',
+            onClick: function () {
+              chrome.tabs.create({
+                url: json.url || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
+              })
+            }
+          }]
+        });
+      }
+    } else {
+      localStorage.removeItem('newVersion')
     }
   });
 
@@ -674,13 +671,7 @@ $( document ).ready(function() {
     if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > displayRecommendRateLimit.rate) {
       showJEvent(displayRecommendRateLimit)
     }
-    // 如果当前没有弹框 且 需要展示changelog
-    if (isNoDialog() && changelog_version != current_version) {
-      localStorage.setItem('changelog_version', $("#changeLogs").data('version'))
-      if ($("#changeLogs").data('major') == 'Y') {
-        $("#changeLogs").show()
-      }
-    }
+
 
     if (!account) {
       $("#clearAccount").addClass('weui-btn_disabled')
@@ -709,7 +700,7 @@ $( document ).ready(function() {
       }
     });
   });
-  
+
   $('.contents .weui-navbar__item').on('click', function () {
     $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
     var type = $(this).data('type')
@@ -761,12 +752,6 @@ $( document ).ready(function() {
       switchPayMethod(to, target)
     }
   })
-
-  $(".showChangeLog").on("click", function () {
-    localStorage.setItem('changelog_version', $("#changeLogs").data('version'))
-    $("#changeLogs").show()
-  })
-
 
 
   $("#openWechatCard").on("click", function () {
@@ -895,6 +880,18 @@ $( document ).ready(function() {
       title: '申请支付宝收款码',
       content: `<img src="https://jjbcdn.zaoshu.so/chrome/applyAlipayCode.jpg" style="width: 270px;"></img>`,
       className: 'apply-alipay-code',
+      buttons: [{
+        label: '完成',
+        type: 'primary'
+      }]
+    })
+  })
+
+  $(".showChangelog").on("click", function () {
+    weui.dialog({
+      title: '更新记录',
+      content: `<iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?version={{version}}" style="width: 100%;min-height: 350px;"></iframe>`,
+      className: 'changelog',
       buttons: [{
         label: '完成',
         type: 'primary'

@@ -100,7 +100,6 @@
                         <a target="_blank" :title="service.description" :href="service.link">{{service.title}}</a>
                       </span>
                     </p>
-                    
                     <div class="recommendedLink">
                       <p v-for="link in recommendedLinks">
                         <a v-if="link.mobile" class="openMobilePage" :style="link.style" :data-url="link.url">{{link.title}}</a>
@@ -108,7 +107,6 @@
                       </p>
                     </div>
                   </div>
-                   
                   <h3 style="text-align: center;color: #666;">关注京价保</h3>
                   <p style="text-align: center;margin-top: -10px;">
                     <a href="https://t.me/jingjiabao" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy-content="通过电报群接收京价保的最新消息" target="_blank">京价保@Telegram</a>
@@ -143,7 +141,6 @@
                       </select>
                     </div>
                   </div>
-                 
                   <div class="weui-cell weui-cell_switch">
                     <div class="weui-cell__bd">
                       <span data-tippy-placement="top-start" class="tippy" data-tippy-content="如果您是Plus会员，在价保时会选择使用Plus价格来做对比">我是Plus会员</span>
@@ -220,7 +217,9 @@
                     <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy-content="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
-                <p class="text-tips version showChangeLog tippy" data-tippy-content="点击查看版本更新记录"> 当前版本：{{version}} </p>
+                <p class="text-tips version showChangelog tippy" data-tippy-content="点击查看版本更新记录"> 当前版本：{{version}}
+                  <span class="weui-badge weui-badge_dot new-version" v-if="newVersion"></span>
+                </p>
               </div>
             </form>
           </div>
@@ -246,10 +245,9 @@
             </span>
           </div>
         </div>
-        
       </div>
 
-      <div class="contents">
+      <div class="contents" id="content">
         <div class="weui-tab">
           <div class="weui-navbar">
             <div class="weui-navbar__item  weui-bar__item_on" data-type="orders">
@@ -356,84 +354,16 @@
               <img src="static/image/money.png" alt="" class="weui-tabbar__icon">
               <p class="weui-tabbar__label">价保页面</p>
             </a>
-            <a class="showChangeLog weui-tabbar__item tippy" data-tippy-placement="top-start" data-tippy-content="查看京价保最近更新记录">
+            <a class="showChangelog weui-tabbar__item tippy" data-tippy-placement="top-start" data-tippy-content="查看京价保最近更新记录" style="position: relative;">
               <img src="static/image/update.png" alt="" class="weui-tabbar__icon">
-              <p class="weui-tabbar__label">最近更新</p>
+              <p class="weui-tabbar__label">最近更新
+                <span class="weui-badge" style="position: absolute;top: -.4em;right: 2em;" v-if="newVersion">有新版</span>
+              </p>
             </a>
             <a id="openGithub" class="weui-tabbar__item tippy" data-tippy-placement="top-start" href="https://github.com/sunoj/jjb" data-tippy-content="点击查看本插件的全部代码" target="_blank">
               <img src="static/image/github.png" alt="" class="weui-tabbar__icon">
               <p class="weui-tabbar__label">源代码</p>
             </a>
-          </div>
-        </div>
-      </div>
-
-      <div id="changeLogs" data-version="{{version}}" data-major="N">
-        <div class="js_dialog" style="opacity: 1;">
-          <div class="weui-mask"></div>
-          <div class="weui-dialog">
-            <div class="weui-dialog__hd">
-              <strong class="weui-dialog__title">最近更新</strong>
-            </div>
-            <div class="weui-dialog__bd changelogs">
-              <p>2.1.12 修复由于京东网页更新导致移动版无法识别登录状态的问题</p>
-              <p>2.1.11 升级价格信息获取接口；尝试改善登录有效期；</p>
-              <p>2.1.10 改善浏览器兼容性；优化代码和资源；防止浏览器缩放导致界面显示不全的问题；修复预售商品的价格误判；</p>
-              <p>2.1.9 重要：修复自动运行价格保护时价格变化通知</p>
-              <p>2.1.8 对价格保护功能进行大规模改善：自动忽略0元的赠品订单；控制获取价格的并发任务；扩大扫描订单的范围；</p>
-              <p>2.1.7 修复京豆任务状态显示；修复全品类券任务识别全品类券的条件；</p>
-              <p>2.1.4 修复部分任务状态获取</p>
-              <p>2.1.3 增加隐藏订单的选项</p>
-              <p>2.1.2 改善任务频率设置和商品价格获取</p>
-              <p>2.1.1 优化任务设置；改善任务运行状态显示；</p>
-              <p>2.1.0 支持PC价保页面；优化价格获取方法；增加白条每日抽奖任务；增加自动登录时段次数控制；</p>
-              <p>2.0.11 更新价保页面地址；修复增加了滑动支持后无法键盘输入的问题；</p>
-              <p>2.0.10 支持移动网页登录时新版的滑动手势；</p>
-              <p>2.0.9 优化订单显示；修复最小价差设置；优化移动网页版自动登录；</p>
-              <p>2.0.8 防止双签奖励等任务的误判；优化订单显示，修复时间问题；优化自动登录；</p>
-              <p>2.0.7 改善 PC 登录时需要滑动验证的提示；改善样式；</p>
-              <p>2.0.5 延长账号登录有效期；增加验证码识别；增加新版更新提示；优化价格走势图效果；</p>
-              <p>2.0.4 不在夜间（0点至6点）运行常规任务；优化处理自动登录需要手机验证码的情况的提示；</p>
-              <p><b>2.0.0</b> 增加<a href="https://blog.jjb.im/price-chart.html" target="_blank"><b>价格走势图</b></a>功能；增加“夜晚防打扰”设置项;移除已失效的金融铂金会员返利；</p>
-              <p>1.18.6 优化全品类券任务；修复PC版网页自动登录；优化消息渲染策略；浏览店铺领京豆创建的标签页静音；</p>
-              <p>1.18.5 <b>增加全品类券任务</b>；改善签到类任务的运行策略；移除京东每日福利；</p>
-              <p>1.18.3 修复登录失败情况下下次仍然重试的问题；改善重新运行任务的提示；修复新增的钢镚任务；移除 jdpay.com 的权限</p>
-              <p>1.18.2 修复了京东商品页被跳转到手机版的问题；修复移动网页首次登录显示服务出错的问题；改善登录提醒的样式；</p>
-              <p>1.18.0 <b>增加登录状态显示</b>；改善手动运行任务；<b>增加一种钢镚签到</b>；修复白条券；<b>增加有价保机会时只提醒的设置</b>；</p>
-              <p>1.17.3 修复 Firefox 62 打开“总是使用 HTTPS 访问京东”后，非 HTTPS 的京东网页循环跳转的问题；优化需要登录验证时的自动登录处理；</p>
-              <p>1.17.2 优化浏览店铺签到领京豆逻辑，在正常访问店铺时不自动签到；</p>
-              <p>1.17.1 增加新手说明；修复频率设置问题；</p>
-              <p>1.17.0 <b>增加剁手保护模式</b>；修复设置保存问题；修复京东金融签到；增加一种新的签到；</p>
-              <p>1.16.3 修复 Firefox 下的订单和消息展示问题；修复 Opera 领取白条券的提示问题; 降低活动推荐弹出的频率；</p>
-              <p>1.16.2 <b>增加领取京豆任务</b>（还可以自动帮你幸运翻牌哦）；<b>增加领取双签奖励的任务</b>；修复精选优惠券任务；</p>
-              <p>1.16.0 后台运行任务后清理页面防止由于京东网页造成的 CPU 占用;</p>
-              <p>1.15.8 <b>更新获取商品价格的方法</b>，解决部分商品无法获取价格的问题;</p>
-              <p>1.15.7 通过一项黑科技（访问京东时伪装成Firefox浏览器）尝试避免登录时需要验证码;</p>
-              <p>1.15.6 减少需要登录的次数;</p>
-              <p>1.15.5 更新京豆签到网址;<b>增加最小价差配置项</b>;</p>
-              <p>1.15.4 修复价保结果监控;</p>
-              <p>1.15.3 增加 Plus 会员的判断和开关，在价保时<b>使用 Plus 价格</b>;</p>
-              <p>1.15.2 修复京东页面更新导致的价保无法监控；</p>
-              <p>1.15.0 给任务完成<b>增加了结果回调</b>，现在大部分任务都能知道是否真正成功了；</p>
-              <p>1.14.0 <b>增加了消息模块</b>；修复了任务未自动运行的问题；增加了音效；</p>
-              <p>1.13.7 改善<b>自动登录策略</b>；修复需在标签页中完成的任务的问题；</p>
-              <p>1.13.4 优化加载速度；大幅降低展示赞赏提示的频率；</p>
-              <p>1.13.2 增加更多配置；增加建议反馈；</p>
-              <p>1.13.0 增加铂金会员支付返利自动领取；调整账号保存方式；</p>
-              <p>1.12.1 改进样式；增加最近更新；</p>
-              <p>1.12.0 增加提示音效; 增加随机提示</p> 
-              <p>1.11.1 增加京东金融会员签到；增加了查看价格保护列表的链接；</p>
-              <p>1.11.0 更严格的防重复运行规则;同一个价格不再重复提交;</p>
-              <p>1.10.1 修复从不运行的项目在手动运行后会安排1天后再运行的bug</p>
-              <p>1.10.0 修复一个重要的任务运行频率的问题</p>
-              <p>1.9.9 增加京东支付签到</p>
-              <p>1.9.8 修复按天运行的任务的运行频率</p>
-              <p>1.9.7 店铺签到换用tab的模式运行</p>
-            </div>
-            <div class="weui-dialog__ft">
-              <a class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod" data-to="weixin" data-target="ming">太好了，打赏</a>
-              <a class="weui-dialog__btn weui-dialog__btn_default" data-action="dismiss">知道了</a>
-            </div>
           </div>
         </div>
       </div>

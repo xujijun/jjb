@@ -1058,3 +1058,10 @@ button.Button.messages-tab.Button--plain:focus {
 .reward-tips{
     font-size: 12px;
 }
+
+.new-version{
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: .2em;
+    margin-top: -2px;
+}
