@@ -36,12 +36,15 @@ Vue.directive('autoSave', {
         el.value = current
       }
     }
-    function saveToLocalStorage(el) {
+    function saveToLocalStorage(el, binding) {
       if (el.type == 'checkbox') {
         if (el.checked) {
           localStorage.setItem(el.name, "checked")
         } else {
           localStorage.removeItem(el.name)
+        }
+        if (binding.value.bindData) {
+          popupVM[binding.value.bindData] = el.checked
         }
       } else {
         localStorage.setItem(el.name, el.value)
@@ -52,7 +55,7 @@ Vue.directive('autoSave', {
     el.addEventListener('change', function(event) {
       if (binding.value && binding.value.notice && el.checked) {
         weui.confirm(binding.value.notice, function(){
-          saveToLocalStorage(el)
+          saveToLocalStorage(el, binding)
         }, function(){
           event.preventDefault();
           setTimeout(() => {
@@ -62,7 +65,7 @@ Vue.directive('autoSave', {
           title: '选项确认'
         });
       } else {
-        saveToLocalStorage(el)
+        saveToLocalStorage(el, binding)
       }
     });
   }
@@ -188,14 +191,23 @@ let recommendServices = [
   },
 ]
 
-// 设置模块
-var settingsVM = new Vue({
-  el: '#settings',
+var popupVM = new Vue({
+  el: '#popup',
   data: {
     tasks: [],
+    messages: [],
+    orders: [],
+    skuPriceList: {},
+    recommendedLinks: [],
     frequencyOptionText: frequencyOptionText,
     recommendServices: getSetting('recommendServices', recommendServices),
-    recommendedLinks: [],
+    currentVersion: '{{version}}',
+    newChangelog: (versionCompare(getSetting('changelog_version', 1), '{{version}}') < 0),
+    newVersion: getSetting('newVersion', null),
+    hiddenOrderIds: getSetting('hiddenOrderIds', []),
+    hiddenPromotionIds: getSetting('hiddenPromotionIds', []),
+    disabled_link: getSetting('disabled_link') == 'checked' ? true : false,
+    selectedTab: null,
     newVersion: getSetting('newVersion', null),
     loginState: {
       m: {
@@ -219,28 +231,17 @@ var settingsVM = new Vue({
         weui.toast('手动运行成功', 3000);
         console.log("runJob Response: ", response);
       });
-    }
-  }
-})
-
-// 内容模块
-var contentVM = new Vue({
-  el: '#content',
-  data: {
-    orders: [],
-    skuPriceList: {},
-    hiddenOrderIds: getSetting('hiddenOrderIds', []),
-    disabled_link: getSetting('disabled_link') == 'checked' ? true : false,
-    selectedTab: null,
-    newVersion: getSetting('newVersion', null),
-    messages: [],
-  },
-  methods: {
+    },
     backup_picture: function (e) {
       e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png"
     },
     selectType: function (type) {
       this.selectedTab = type
+    },
+    dismiss: function (order) {
+      this.hiddenPromotionIds.push(order.id)
+      localStorage.setItem('hiddenPromotionIds', JSON.stringify(this.hiddenPromotionIds))
+      this.$forceUpdate()
     },
     toggleOrder: function (order) {
       if (_.indexOf(this.hiddenOrderIds, order.id) > -1) {
@@ -263,12 +264,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
         order.displayTime = readableTime(DateTime.fromISO(order.time))
         return order
       })
-      contentVM.orders = orders
+      popupVM.orders = orders
       break;
     case 'new_message':
       let lastUnreadCount = $("#unreadCount").text()
       $("#unreadCount").text(Number(lastUnreadCount) + 1).fadeIn()
-      contentVM.messages = makeupMessages(JSON.parse(message.data))
+      popupVM.messages = makeupMessages(JSON.parse(message.data))
       break;
     case 'loginState_updated':
       dealWithLoginState()
@@ -468,8 +469,8 @@ function dealWithLoginState() {
     } 
   }
   let loginState = getLoginState()
-  settingsVM.loginState = loginState
-  settingsVM.tasks = getTaskList()
+  popupVM.loginState = loginState
+  popupVM.tasks = getTaskList()
 
   dealWithLoginNotice(loginState, 'pc')
   dealWithLoginNotice(loginState, 'm')
@@ -510,6 +511,15 @@ function makeupMessages(messages) {
 }
 
 
+function getPromotions(){
+  let promotions = getSetting('promotions', [])
+  promotions = _.reject(promotions, (promotion) => {
+    return DateTime.fromJSDate(new Date(promotion.validDate)) < DateTime.local()
+  })
+  localStorage.setItem('promotions', JSON.stringify(promotions))
+  return promotions
+}
+
 function getOrders() {
   let orders = JSON.parse(localStorage.getItem('jjb_orders'))
   let skuPriceList = getSetting('skuPriceList', {})
@@ -521,14 +531,16 @@ function getOrders() {
   } else {
     orders = []
   }
-  contentVM.orders = orders
-  contentVM.skuPriceList = skuPriceList
+  let promotions = getPromotions()
+  orders.splice(1, 0, ...promotions);
+  popupVM.orders = orders
+  popupVM.skuPriceList = skuPriceList
 }
 
 function getMessages() {
   let messages = JSON.parse(localStorage.getItem('jjb_messages'))
   messages = makeupMessages(messages)
-  contentVM.messages = messages
+  popupVM.messages = messages
 }
 
 $( document ).ready(function() {
@@ -551,8 +563,8 @@ $( document ).ready(function() {
   getMessages()
 
   // 渲染设置
-  settingsVM.tasks = getTaskList()
-  settingsVM.recommendedLinks = getSetting("recommendedLinks", [])
+  popupVM.tasks = getTaskList()
+  popupVM.recommendedLinks = getSetting("recommendedLinks", [])
 
   // tippy
   tippy('.tippy')
@@ -583,6 +595,9 @@ $( document ).ready(function() {
     }
     if (json.announcements && json.announcements.length > 0) {
       localStorage.setItem('announcements', JSON.stringify(json.announcements))
+    }
+    if (json.promotions) {
+      localStorage.setItem('promotions', JSON.stringify(json.promotions))
     }
     if (json.recommendedLinks && json.recommendedLinks.length > 0) {
       localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
@@ -888,6 +903,7 @@ $( document ).ready(function() {
   })
 
   $(".showChangelog").on("click", function () {
+    localStorage.setItem('changelog_version', $(this).data('version'))
     weui.dialog({
       title: '更新记录',
       content: `<iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?version={{version}}" style="width: 100%;min-height: 350px;"></iframe>`,

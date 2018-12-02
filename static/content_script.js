@@ -728,6 +728,31 @@ function autoGobuy(setting) {
   }
 }
 
+// 显示引荐来源
+function showUtmSource() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const utm_source = urlParams.get('utm_source');
+  const utmSourceDom = `<div class="utm_source-notice">
+    <div class="area_md">
+      引荐来源：${utm_source}
+      <span id="reportUtmSource" class="report">举报</span>
+    </div>
+  </div>`
+  if (utm_source && utm_source.indexOf('zaoshu.so') < 0) {
+    $("body").prepend(utmSourceDom);
+  }
+  $("#reportUtmSource").on("click", function () {
+    weui.dialog({
+      title: '举报劫持',
+      content: `<iframe id="changelogIframe" frameborder="0" src="https://i.duotai.net/forms/znd7e/pliwjpzx?utm_source=${utm_source}" style="width: 100%;min-height: 385px;"></iframe>`,
+      className: 'reportUtmSource',
+      buttons: [{
+        label: '完成',
+        type: 'primary'
+      }]
+    })
+  })
+}
 
 // 价格历史
 function showPriceChart(disable) {
@@ -1581,6 +1606,7 @@ function CheckDom() {
 
   // 自动跳转至商品页面
   if ($(".shop_intro .gobuy").length > 0) {
+    showUtmSource()
     getSetting('auto_gobuy', autoGobuy)
   };
 

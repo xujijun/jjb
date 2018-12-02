@@ -212,3 +212,24 @@ dialog .close {
 .price_notice{
     display: none;
 }
+
+.utm_source-notice{
+    text-align: center;
+    background: #fdedd2;
+    color: #947219;
+    padding: 0.2em .6em;
+}
+
+.utm_source-notice .report{
+    float: right;
+    cursor: pointer;
+    color: #cc1f1f;
+    background: #fff;
+    padding: 0px 10px;
+    border-radius: 2px;
+}
+
+.reportUtmSource .weui-dialog{
+    max-width: 500px;
+    background: #f8f8f8;
+}
