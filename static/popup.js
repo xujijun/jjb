@@ -202,7 +202,7 @@ var popupVM = new Vue({
     frequencyOptionText: frequencyOptionText,
     recommendServices: getSetting('recommendServices', recommendServices),
     currentVersion: '{{version}}',
-    newChangelog: (versionCompare(getSetting('changelog_version', 1), '{{version}}') < 0),
+    newChangelog: (versionCompare(getSetting('changelog_version', '2.0'), '{{version}}') < 0),
     newVersion: getSetting('newVersion', null),
     hiddenOrderIds: getSetting('hiddenOrderIds', []),
     hiddenPromotionIds: getSetting('hiddenPromotionIds', []),
