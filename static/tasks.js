@@ -109,14 +109,14 @@ module.exports = {
     {
       id: '9',
       src: {
-        pc: 'https://vip.jr.jd.com',
+        m: 'https://m.jr.jd.com/vip/sign/html/index.html',
       },
       title: '金融会员签到',
       description: "京东金融会员签到，需要实名认证",
       key: "jr-index",
       checkin: true,
       mode: 'iframe',
-      type: ['pc'],
+      type: ['m'],
       frequencyOption: ['daily', 'never'],
       frequency: 'daily'
     },

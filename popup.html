@@ -97,7 +97,7 @@
                     <h3 style="text-align: center;color: #666;">服务推荐</h3>
                     <p class="recommendServices">
                       <span :class="service.class"  v-for="service in recommendServices">
-                        <a target="_blank" :title="service.description" :href="service.link">{{service.title}}</a>
+                        <a target="_blank" v-tippy :title="service.description" :href="service.link">{{service.title}}</a>
                       </span>
                     </p>
                     <div class="recommendedLink">
@@ -250,7 +250,6 @@
           </div>
         </div>
       </div>
-
       <div class="contents">
         <div class="weui-tab">
           <div class="weui-navbar">
@@ -289,7 +288,7 @@
                     </div>
                     <div class="weui-cell__ft">
                       <span class="promotion_price">{{order.priceInfo}}</span>
-                      <a :href="`${order.link}`" target="_blank" class="buy-btn weui-btn weui-btn_mini weui-btn_primary">去购买</a>
+                      <a :href="`${order.link}`" target="_blank" class="buy-btn weui-btn weui-btn_mini weui-btn_primary">{{order.buttonText}}</a>
                     </div>
                   </div>
                   <div v-for="good in order.goods" v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true">

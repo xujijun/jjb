@@ -91,6 +91,7 @@ gulp.task('move-static', ['build-bundle'], function () {
 gulp.task('move-js', [], function () {
   gulp.src([
     'static/start.js',
+    'static/mobile_script.js',
     'node_modules/zepto/dist/zepto.min.js',
     'node_modules/dialog-polyfill/dialog-polyfill.js',
     'node_modules/@sunoj/touchemulator/touch-emulator.js',

@@ -928,7 +928,7 @@ function getSetting(name, cb) {
     content: name
   }, function (response) {
     cb(response)
-    console.log("getSetting Response: ", response);
+    console.log("getSetting Response: ", name, response);
   });
 }
 
@@ -1235,7 +1235,7 @@ function baitiaoLottery(setting) {
       text: "run_status",
       jobId: "16"
     })
-    simulateClick($("#lottery .mark_btn_start"))
+    simulateClick($("#lottery .mark_btn_start"), true)
     observeDOM(document.body, function () {
       if ($(".layer_wrap_header").text() == '恭喜你获得') {
         let value = $(".layer_wrap_gold_text").text().replace(/[^0-9\.-]+/g, "")
@@ -1389,29 +1389,28 @@ function jrIndex(setting) {
       text: "run_status",
       jobId: "9"
     })
-    if ($(".ban-center .m-qian").length > 0 && $(".ban-center .m-qian .qian-text").text() == '签到') {
-      simulateClick($(".ban-center .m-qian .qian-text"))
+    if ($("#sign2main .sign-btn").length > 0 && $("#sign2main .sign-btn").text().indexOf('签到') > -1) {
+      simulateClick($("#sign2main .sign-btn"), true)
       // 监控结果
       setTimeout(function () {
-        if ($(".ban-center .m-qian .qian-text").text() == '已签到' || $("#signFlag").text() == '签到成功' ) {
-          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
-          let rawValue = $("#getRewardText").text()
-          let value = re.exec(rawValue)
+        if ($("#fengkong .goldcolor").text() && $("#fengkong .goldcolor").text() > 0 ) {
+          let rawValue = $("#fengkong .goldcolor").text()
           markCheckinStatus('jr-index', rawValue, () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               title: "京价保自动为您签到京东金融",
-              value: value[1],
+              value: Number(rawValue),
               unit: 'coin',
-              content: "恭喜您！领到了" + value[1] + "个钢镚"
+              content: "恭喜您！领到了" + rawValue + "个钢镚"
             }, function (response) {
               console.log("Response: ", response);
             })
           })
         }
+        console.log($(".jr-dialog").text())
       }, 1000)
     } else {
-      if ($(".ban-center .m-qian .qian-text").text() == '已签到') {
+      if ($("#sign2main .sign-btn").text().indexOf('再签') == 0) {
         markCheckinStatus('jr-index')
       }
     }
@@ -1551,7 +1550,7 @@ function CheckDom() {
   };
 
   // 京东金融首页签到（9： 金融会员签到）
-  if ($(".ban-center .m-qian").size() > 0) {
+  if ($("#sign2main .sign-btn").size() > 0) {
     getSetting('job9_frequency', jrIndex);
   };
 
