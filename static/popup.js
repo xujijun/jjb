@@ -208,7 +208,9 @@ var popupVM = new Vue({
     hiddenPromotionIds: getSetting('hiddenPromotionIds', []),
     disabled_link: getSetting('disabled_link') == 'checked' ? true : false,
     selectedTab: null,
+    discountList: null,
     newVersion: getSetting('newVersion', null),
+    numbers: [ 1, 2, 3, 4, 5 ],
     loginState: {
       m: {
         state: "unknown"
@@ -243,6 +245,15 @@ var popupVM = new Vue({
       localStorage.setItem('hiddenPromotionIds', JSON.stringify(this.hiddenPromotionIds))
       this.$forceUpdate()
     },
+    getDiscounts: async function () {
+      let response = await fetch("https://jjb.zaoshu.so/discount")
+      let discounts = await response.json();
+      this.discountList = discounts.map(function (discount) {
+        discount.displayTime = readableTime(DateTime.fromISO(discount.createdAt))
+        return discount
+      })
+      this.$forceUpdate()
+    },
     toggleOrder: function (order) {
       if (_.indexOf(this.hiddenOrderIds, order.id) > -1) {
         this.hiddenOrderIds = _.pull(this.hiddenOrderIds, order.id);
@@ -252,6 +263,19 @@ var popupVM = new Vue({
       localStorage.setItem('hiddenOrderIds', JSON.stringify(this.hiddenOrderIds))
       this.$forceUpdate()
     },
+    showChangelog: function () {
+      this.newChangelog = false
+      localStorage.setItem('changelog_version', $(this).data('version'))
+      weui.dialog({
+        title: '更新记录',
+        content: `<iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?version={{version}}" style="width: 100%;min-height: 350px;"></iframe>`,
+        className: 'changelog',
+        buttons: [{
+          label: '完成',
+          type: 'primary'
+        }]
+      })
+    }
   }
 })
 
@@ -895,19 +919,6 @@ $( document ).ready(function() {
       title: '申请支付宝收款码',
       content: `<img src="https://jjbcdn.zaoshu.so/chrome/applyAlipayCode.jpg" style="width: 270px;"></img>`,
       className: 'apply-alipay-code',
-      buttons: [{
-        label: '完成',
-        type: 'primary'
-      }]
-    })
-  })
-
-  $(".showChangelog").on("click", function () {
-    localStorage.setItem('changelog_version', $(this).data('version'))
-    weui.dialog({
-      title: '更新记录',
-      content: `<iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?version={{version}}" style="width: 100%;min-height: 350px;"></iframe>`,
-      className: 'changelog',
       buttons: [{
         label: '完成',
         type: 'primary'

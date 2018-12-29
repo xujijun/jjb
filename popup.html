@@ -220,7 +220,7 @@
                     <a href="#" id="clearAccount" class="weui-btn weui-btn_mini weui-btn_plain-default tippy" data-tippy-placement="top-start" data-tippy-content="在登录时勾选记住密码可保存新的密码">清除账号密码和记录</a>
                   </p>
                 </div>
-                <p class="text-tips version showChangelog tippy" data-tippy-content="点击查看版本更新记录" data-version="{{version}}"> 当前版本：{{version}}
+                <p class="text-tips version showChangelog tippy"  @click="showChangelog" data-tippy-content="点击查看版本更新记录" data-version="{{version}}"> 当前版本：{{version}}
                   <span class="weui-badge weui-badge_dot" v-if="newChangelog"></span>
                   <span class="weui-badge new-version" v-if="newVersion">有新版</span>
                 </p>
@@ -266,6 +266,10 @@
             <div class="weui-navbar__item" data-type="messages">
               最近通知
               <span id="unreadCount" class="weui-badge">0</span>
+            </div>
+            <div class="weui-navbar__item zaoshu-tab" @click="getDiscounts()" data-type="discounts">
+              <img src="static/image/zaoshu.png" alt="" class="zaoshu-icon">
+              枣树集惠
             </div>
           </div>
           <div class="weui-tab__panel">
@@ -365,6 +369,48 @@
               </div>
               <div class="no_message" v-else> 暂时还没有未读消息 </div>
             </div>
+            <div id="discounts" class="weui-cells contents-box discounts">
+              <div class="discounts" v-if="discountList">
+                <div v-for="discount in discountList">
+                  <div class="discount">
+                    <a class="title" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">
+                      {{discount.title}}
+                      <span class="discount_price">{{discount.price}}</span>
+                    </a>
+                    <div class="description">
+                      <img v-if="discount.photo" :src="`${discount.photo}`" @error.once="backup_picture($event)" class="discount-photo backup_picture" :alt="discount.title">
+                      <p>{{discount.description}}</p>
+                    </div>
+                    <div class="weui-cell__ft">
+                      <span class="time">{{discount.displayTime}}</span>
+                      <a v-if="discount.couponUrl" class="get-coupon" :href="`${discount.couponUrl}`" target="_blank">优惠券</a>
+                      <a class="go-buy" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">去购买</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="laoding" v-else>
+                <div class="loading-masker" v-for="masker in numbers">
+                    <div class="white-widget grey-bg author-area">
+                      <div class="auth-info row">
+                        <div class="timeline-wrapper">
+                          <div class="timeline-item">
+                            <div class="animated-background">
+                              <div class="background-masker header-top"></div>
+                              <div class="background-masker header-left"></div>
+                              <div class="background-masker header-right"></div>
+                              <div class="background-masker header-bottom"></div>
+                              <div class="background-masker subheader-left"></div>
+                              <div class="background-masker subheader-right"></div>
+                              <div class="background-masker subheader-bottom"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="bottom">
@@ -373,7 +419,7 @@
               <img src="static/image/money.png" alt="" class="weui-tabbar__icon">
               <p class="weui-tabbar__label">价保页面</p>
             </a>
-            <a class="showChangelog weui-tabbar__item" v-tippy title="查看京价保最近更新记录" style="position: relative;" data-version="{{version}}">
+            <a class="showChangelog weui-tabbar__item" @click="showChangelog" v-tippy title="查看京价保最近更新记录" style="position: relative;" data-version="{{version}}">
               <img src="static/image/update.png" alt="" class="weui-tabbar__icon">
               <p class="weui-tabbar__label">最近更新
                 <span class="weui-badge weui-badge_dot" style="position: absolute;top: 0;right: 4em;" v-if="newChangelog"></span>

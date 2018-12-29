@@ -600,19 +600,17 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       if (priceProPage) {
         console.log('existence PriceProPage:', priceProPage)
         if (priceProPage.tab){
-          chrome.tabs.sendMessage(priceProPage.tab.id, {
+          chrome.tabs.sendMessage(priceProPage.tab.id, Object.assign({
             action: 'productPrice',
             setting: getPriceProtectionSetting(),
-            ...priceInfo
-          }, {}, function (response) {
+          }, priceInfo), {}, function (response) {
             console.log('send productPrice to tabs response', response)
           })
         } else if (priceProPage.id) {
-          document.getElementById('iframe').contentWindow.postMessage({
+          document.getElementById('iframe').contentWindow.postMessage(Object.assign({
             action: 'productPrice',
             setting: getPriceProtectionSetting(),
-            ...priceInfo
-          },'*');
+          }, priceInfo),'*');
         }
       }
       // 价格追踪
