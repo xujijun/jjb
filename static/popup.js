@@ -203,7 +203,6 @@ var popupVM = new Vue({
     recommendServices: getSetting('recommendServices', recommendServices),
     currentVersion: '{{version}}',
     newChangelog: (versionCompare(getSetting('changelog_version', '2.0'), '{{version}}') < 0),
-    newVersion: getSetting('newVersion', null),
     hiddenOrderIds: getSetting('hiddenOrderIds', []),
     hiddenPromotionIds: getSetting('hiddenPromotionIds', []),
     disabled_link: getSetting('disabled_link') == 'checked' ? true : false,
@@ -268,7 +267,7 @@ var popupVM = new Vue({
       localStorage.setItem('changelog_version', $(this).data('version'))
       weui.dialog({
         title: '更新记录',
-        content: `<iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?version={{version}}" style="width: 100%;min-height: 350px;"></iframe>`,
+        content: `<iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId={{buildid}}&browser={{browser}}" style="width: 100%;min-height: 350px;"></iframe>`,
         className: 'changelog',
         buttons: [{
           label: '完成',
@@ -632,32 +631,42 @@ $( document ).ready(function() {
   });
 
   // 查询最新版本
-  $.getJSON("https://jjb.zaoshu.so/updates/check?version={{version}}&browser={{browser}}", function (json) {
-    let skipVersion = localStorage.getItem('skipVersion')
-    let localVersion = skipVersion || "{{version}}"
-    if (versionCompare(localVersion, json.lastVersion) < 0) {
-      localStorage.setItem('newVersion', json.lastVersion)
-      if (json.notice && versionCompare(localVersion, json.noticeVersion) < 1) {
-        weui.dialog({
-          title: json.title || '京价保有版本更新',
-          content: json.changelog || '一系列改进',
+  $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {
+    if (!lastVersion) return localStorage.removeItem('newVersion')
+    let skipBuildId = localStorage.getItem('skipBuildId')
+    let localBuildId = skipBuildId || "{{buildid}}"
+    // 如果有新版
+    if (localBuildId < lastVersion.buildId) {
+      localStorage.setItem('newVersion', lastVersion.versionCode)
+      // 如果新版是主要版本，而且当前版本需要被提示
+      if (lastVersion.major && localBuildId < lastVersion.noticeBuildId) {
+        let noticeDialog = weui.dialog({
+          title: `${lastVersion.title} <span class="dismiss">&times;</span>` || '京价保有版本更新',
+          content: `${lastVersion.changelog}
+            <div class="changelog">
+              <span class="time">${lastVersion.time}</span>` +
+             (lastVersion.blogUrl ? `<a class="blog" href="${lastVersion.blogUrl}" target="_blank">了解更多</a>` : '') +
+            `</div>`,
           className: 'update',
           buttons: [{
             label: '不再提醒',
             type: 'default',
             onClick: function () {
-              localStorage.setItem('skipVersion', json.lastVersion)
+              localStorage.setItem('skipBuildId', lastVersion.buildId)
             }
           }, {
             label: '下载更新',
             type: 'primary',
             onClick: function () {
               chrome.tabs.create({
-                url: json.url || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
+                url: lastVersion.downloadUrl || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
               })
             }
           }]
         });
+        $(".update .dismiss").on("click", function () {
+          noticeDialog.hide()
+        })
       }
     } else {
       localStorage.removeItem('newVersion')
@@ -754,8 +763,6 @@ $( document ).ready(function() {
     $('.contents-box').hide()
     $('.contents-box.' + type).show()
   });
-
-
 
   $(".weui-dialog__ft a").on("click", function () {
     $("#dialogs").hide()
@@ -928,14 +935,10 @@ $( document ).ready(function() {
 
 })
 
-
-
 // 防止缩放
 chrome.tabs.getZoomSettings(function (zoomSettings) {
-  console.log('zoomSettings', zoomSettings)
   if (zoomSettings.defaultZoomFactor > 1 && zoomSettings.scope == 'per-origin' && zoomSettings.mode == 'automatic') {
     let zoomPercent = (100 / (zoomSettings.defaultZoomFactor * 100)) * 100;
-    console.log('zoomPercent', zoomPercent)
     document.body.style.zoom = zoomPercent + '%'
   }
 })

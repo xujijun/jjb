@@ -755,7 +755,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         result: true
       })
       break;
-   
     case 'notice':
       var play_audio = getSetting('play_audio')
       if (msg.batch == 'jiabao') {

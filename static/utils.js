@@ -4,6 +4,9 @@ module.exports = {
   rand: function (n){
     return (Math.floor(Math.random() * n + 1));
   },
+  price: function(price) {
+    return Number(Number(price).toFixed(2))
+  },
   getSetting: function (settingKey, defaultValue) {
     let setting = localStorage.getItem(settingKey)
     if (setting) {

@@ -20,6 +20,10 @@ var observeDOM = (function () {
   };
 })();
 
+function priceFormatter(price) {
+  return Number(Number(price).toFixed(2))
+}
+
 function injectScript(file, node) {
   var th = document.getElementsByTagName(node)[0];
   var s = document.createElement('script');
@@ -1395,13 +1399,14 @@ function jrIndex(setting) {
       setTimeout(function () {
         if ($("#fengkong .goldcolor").text() && $("#fengkong .goldcolor").text() > 0 ) {
           let rawValue = $("#fengkong .goldcolor").text()
-          markCheckinStatus('jr-index', rawValue, () => {
+          let coin = priceFormatter(rawValue)
+          markCheckinStatus('jr-index', coin + "个钢镚", () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               title: "京价保自动为您签到京东金融",
               value: Number(rawValue),
               unit: 'coin',
-              content: "恭喜您！领到了" + rawValue + "个钢镚"
+              content: "恭喜您！领到了" + coin + "个钢镚"
             }, function (response) {
               console.log("Response: ", response);
             })

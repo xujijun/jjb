@@ -301,8 +301,9 @@
                         <div class="good_title">
                           <a :href="`https://jjb.zaoshu.so/good/${good.sku}`" v-if="good.sku && !disabled_link" target="_blank">
                             <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
-                            <p>{{good.name}}</p>
-                            <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
+                            <p>{{good.name}}
+                              <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
+                            </p>
                           </a>
                           <div v-else>
                             <img v-if="good.img" :src="`https:${good.img}`" @error.once="backup_picture($event)" class="backup_picture" :alt="good.name">
@@ -370,10 +371,13 @@
               <div class="no_message" v-else> 暂时还没有未读消息 </div>
             </div>
             <div id="discounts" class="weui-cells contents-box discounts">
-              <div class="discounts" v-if="discountList">
+              <div class="discount-list" v-if="discountList">
                 <div v-for="discount in discountList">
                   <div class="discount">
                     <a class="title" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">
+                      <span class="merchant" v-if="discount.merchant">
+                        <img :src="discount.merchant.icon" :alt="discount.merchant.name"/>
+                      </span>
                       {{discount.title}}
                       <span class="discount_price">{{discount.price}}</span>
                     </a>

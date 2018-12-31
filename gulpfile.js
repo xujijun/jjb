@@ -106,6 +106,7 @@ gulp.task('move-file', [], async function () {
       'manifest.json', '*.html'
     ])
     .pipe(replace('{{version}}', process.env.VERSION))
+    .pipe(replace('{{buildid}}', process.env.BUILDID))
     .pipe(replace('{{browser}}', browser))
     .pipe(preprocess({
       context: {
@@ -134,6 +135,7 @@ gulp.task('move-build-bundle', ['build-bundle'], async function () {
       'dist/*.js'
     ])
     .pipe(replace('{{version}}', process.env.VERSION))
+    .pipe(replace('{{buildid}}', process.env.BUILDID))
     .pipe(replace('{{browser}}', browser))
     .pipe(preprocess({
       context: {
