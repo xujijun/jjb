@@ -99,6 +99,12 @@ a:hover {
     background-color: #4CAF50;
 }
 
+.contents .weui-tab .weui-badge.new-discounts{
+    background-color: #b9201d;
+    padding: 0.3em;
+    position: absolute;
+}
+
 .other_actions{
     padding: 10px;
     padding-bottom: 0;
@@ -280,6 +286,10 @@ a:hover {
 .discount{
     border-bottom: 1px solid #eee;
     padding: 5px;
+}
+
+.discount.pinned{
+    background-color: #fff7e0;
 }
 
 .discount .title{
@@ -1272,6 +1282,9 @@ button.Button.messages-tab.Button--plain:focus {
     margin-top: -2px;
     padding: .2em .5em;
 }
+
+
+
 .timeline-item {
     background: #fff;
     border-bottom: 1px solid #f2f2f2;

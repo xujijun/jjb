@@ -28,28 +28,15 @@ $( document ).ready(function() {
     $(".first_area_md").append(priceChartDOM);
   }
 
-  setTimeout( function(){
-    $('#disablePriceChart').bind('click', () => {
-      weui.confirm('停用此功能后京价保将不再在商品页展示价格走势图，同时也将停止上报获取到的商品价格', function () {
-        var data = {
-          type: "FROM_PAGE",
-          text: "disablePriceChart"
-        };
-        window.postMessage(data, "*");
-      }, function () {
-        console.log('no')
-      }, {
-        title: '停用价格走势图'
-      });
-    })
+  function getPriceChart(sku) {
     $.ajax({
       method: "GET",
       type: "GET",
       url: `https://jjb.zaoshu.so/price/${sku}/detail`,
-      timeout: 3000,
+      timeout: 5000,
       success: function(data){
         if (data.chart.length > 2) {
-          $("#jjbPriceChart .ELazy-loading").hide()
+          $("#jjbPriceChart").html('')
           var chart = new G2.Chart({
             container: 'jjbPriceChart',
             forceFit: true,
@@ -71,8 +58,28 @@ $( document ).ready(function() {
         }
       },
       error: function(xhr, type){
-        $("#jjbPriceChart").html(`<div class="no_data">查询失败，请稍后重试</div>`)
+        $("#jjbPriceChart").html(`<div id="retry" class="no_data">查询失败，点击重试</div>`)
+        $('#retry').bind('click', () => {
+          getPriceChart(sku)
+        })
       }
-   });
+    });
+  }
+
+  setTimeout( function(){
+    $('#disablePriceChart').bind('click', () => {
+      weui.confirm('停用此功能后京价保将不再在商品页展示价格走势图，同时也将停止上报获取到的商品价格', function () {
+        var data = {
+          type: "FROM_PAGE",
+          text: "disablePriceChart"
+        };
+        window.postMessage(data, "*");
+      }, function () {
+        console.log('no')
+      }, {
+        title: '停用价格走势图'
+      });
+    })
+    getPriceChart(sku)
   }, 1000)
 });

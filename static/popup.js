@@ -199,6 +199,8 @@ var popupVM = new Vue({
     orders: [],
     skuPriceList: {},
     recommendedLinks: [],
+    newDiscounts: false,
+    loadingOrder: false,
     frequencyOptionText: frequencyOptionText,
     recommendServices: getSetting('recommendServices', recommendServices),
     currentVersion: '{{version}}',
@@ -211,6 +213,7 @@ var popupVM = new Vue({
     newVersion: getSetting('newVersion', null),
     numbers: [ 1, 2, 3, 4, 5 ],
     loginState: {
+      default: true,
       m: {
         state: "unknown"
       },
@@ -219,18 +222,40 @@ var popupVM = new Vue({
       }
     }
   },
+  mounted: async function () {
+    // 查询最新优惠
+    let response = await fetch("https://jjb.zaoshu.so/discount/last")
+    let lastDiscount = await response.json();
+    let readDiscountAt = localStorage.getItem('readDiscountAt')
+    if (!readDiscountAt || new Date(lastDiscount.createdAt) > new Date(readDiscountAt)) {
+      this.newDiscounts = true
+    }
+  },
+  watch: {
+    loginState: function (newState, oldState) {
+      if (oldState.m.state != "alive" && oldState.pc.state != "alive" && !oldState.default) {
+        if (newState.m.state == "alive" || newState.pc.state == "alive") {
+          if (this.orders.length < 1) {
+            this.loadingOrder = true
+            this.retryTask(tasks[0], true)
+          }
+        }
+      }
+    }
+  },
   methods: {
     showLoginState: function () {
       $("#loginNotice").show()
     },
-    retryTask: function (task) {
-      console.log('retryTask', task)
+    retryTask: function (task, hideNotice = false) {
       chrome.runtime.sendMessage({
         action: "runTask",
+        hideNotice: hideNotice,
         taskId: task.id
       }, function(response) {
-        weui.toast('手动运行成功', 3000);
-        console.log("runJob Response: ", response);
+        if (!hideNotice) {
+          weui.toast('手动运行成功', 3000);
+        }
       });
     },
     backup_picture: function (e) {
@@ -245,12 +270,14 @@ var popupVM = new Vue({
       this.$forceUpdate()
     },
     getDiscounts: async function () {
+      this.newDiscounts = false
       let response = await fetch("https://jjb.zaoshu.so/discount")
       let discounts = await response.json();
       this.discountList = discounts.map(function (discount) {
         discount.displayTime = readableTime(DateTime.fromISO(discount.createdAt))
         return discount
       })
+      localStorage.setItem('readDiscountAt', new Date())
       this.$forceUpdate()
     },
     toggleOrder: function (order) {
@@ -489,7 +516,7 @@ function dealWithLoginState() {
         loginTypeNoticeDom.attr("href", loginUrl)
         loginTypeNoticeDom.attr("target", "_blank")
       }
-    } 
+    }
   }
   let loginState = getLoginState()
   popupVM.loginState = loginState
@@ -576,7 +603,6 @@ $( document ).ready(function() {
     rate: 7,
     limit: 1
   })
-  const current_version = "{{version}}"
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
   // 渲染订单

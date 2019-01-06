@@ -745,12 +745,14 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       // set 临时运行
       localStorage.setItem('temporary_job' + jobId + '_frequency', 'onetime');
       runJob(jobId, true)
-      sendChromeNotification(new Date().getTime().toString(), {
-        type: "basic",
-        title: "正在重新运行" + job.title,
-        message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
-        iconUrl: 'static/image/128.png'
-      })
+      if (!msg.hideNotice) {
+        sendChromeNotification(new Date().getTime().toString(), {
+          type: "basic",
+          title: "正在重新运行" + job.title,
+          message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
+          iconUrl: 'static/image/128.png'
+        })
+      }
       sendResponse({
         result: true
       })

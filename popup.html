@@ -270,6 +270,7 @@
             <div class="weui-navbar__item zaoshu-tab" @click="getDiscounts()" data-type="discounts">
               <img src="static/image/zaoshu.png" alt="" class="zaoshu-icon">
               枣树集惠
+              <span class="weui-badge weui-badge_dot new-discounts" v-if="newDiscounts"></span>
             </div>
           </div>
           <div class="weui-tab__panel">
@@ -326,8 +327,13 @@
                 <p class="text-tips"><a href="https://blog.jjb.im/price-protection-policy.html" target="_block" v-tippy title="点击了解京东价格保护政策">只显示在价保监控范围内且下单金额大于0的订单（默认15天内）</a></p>
               </div>
               <div class="no_order" v-else>
-                <h4>暂时还没有监控到订单</h4>
-                <p class="tips">只显示选定范围的订单(默认为最近7天)</p>
+                <div v-if="loadingOrder">
+                  <h4>正在加载最近订单</h4>
+                </div>
+                <div v-else>
+                  <h4>暂时还没有监控到订单</h4>
+                  <p class="tips">只显示选定范围的订单(默认为最近7天)</p>
+                </div>
               </div>
             </div>
             <div id="messages" class="weui-cells contents-box messages">
@@ -373,7 +379,7 @@
             <div id="discounts" class="weui-cells contents-box discounts">
               <div class="discount-list" v-if="discountList">
                 <div v-for="discount in discountList">
-                  <div class="discount">
+                  <div :class="discount.pinned ? 'discount pinned' : 'discount'">
                     <a class="title" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">
                       <span class="merchant" v-if="discount.merchant">
                         <img :src="discount.merchant.icon" :alt="discount.merchant.name"/>
