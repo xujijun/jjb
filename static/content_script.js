@@ -1239,7 +1239,9 @@ function baitiaoLottery(setting) {
       text: "run_status",
       jobId: "16"
     })
-    simulateClick($("#lottery .mark_btn_start"), true)
+    setTimeout(() => {
+      simulateClick($("#lottery .mark_btn_start"), true)
+    }, 1500);
     observeDOM(document.body, function () {
       if ($(".layer_wrap_header").text() == '恭喜你获得') {
         let value = $(".layer_wrap_gold_text").text().replace(/[^0-9\.-]+/g, "")
@@ -1504,7 +1506,7 @@ function CheckDom() {
   }
 
   // 移动页增加滑动支持
-  if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com') {
+  if (window.location.host == 'm.jd.com' || window.location.host == 'plogin.m.jd.com' || window.location.host == 'm.jr.jd.com') {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
     injectScriptCode(`
       setTimeout(function () {

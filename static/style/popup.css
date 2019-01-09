@@ -366,6 +366,13 @@ a:hover {
     margin-left: 65px;
 }
 
+.self-recommendation p.tips {
+    font-size: 12px;
+    text-align: center;
+    padding: 1em;
+    color: #ccc;
+}
+
 .good_title p {
     overflow: hidden;
     text-overflow: ellipsis;

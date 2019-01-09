@@ -393,10 +393,13 @@
                     </div>
                     <div class="weui-cell__ft">
                       <span class="time">{{discount.displayTime}}</span>
-                      <a v-if="discount.couponUrl" class="get-coupon" :href="`${discount.couponUrl}`" target="_blank">优惠券</a>
+                      <a v-if="discount.couponUrl" class="get-coupon" v-tippy :title="discount.couponName" :href="`${discount.couponUrl}`" target="_blank">优惠券</a>
                       <a class="go-buy" :href="`https://zaoshu.so/discount/${discount.id}/redirect`" target="_blank">去购买</a>
                     </div>
                   </div>
+                </div>
+                <div class="self-recommendation">
+                  <p class="tips">商家自荐/优惠爆料可联系微信：cindywchat</p>
                 </div>
               </div>
               <div class="laoding" v-else>
