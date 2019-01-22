@@ -143,7 +143,7 @@ function apply(applyBtn, priceInfo, setting) {
     if (priceInfo.price > 0 && priceInfo.price < order_price && (order_price - priceInfo.price) > setting.pro_min ) {
       if (lastApplyPrice && Number(lastApplyPrice) <= priceInfo.price) {
         console.log('Pass: ' + product_name + '当前价格上次已经申请过了:', priceInfo.price, ' Vs ', lastApplyPrice)
-        return 
+        return
       }
       // 如果禁止了自动申请
       if (setting.prompt_only) {
@@ -589,7 +589,7 @@ function doShopSign(setting) {
 
 // 移动页领取优惠券（2：领精选券）
 function pickupCoupon(setting) {
-  if (setting != 'never') {
+  if (setting && setting != 'never') {
     let time = 0;
     console.log('开始领取精选券')
     chrome.runtime.sendMessage({
@@ -789,7 +789,6 @@ function handProtection(setting, priceInfo) {
     injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
     console.log('剁手保护模式')
     let buyDom = $("#InitCartUrl").length > 0 ? $("#InitCartUrl") : $("#btn-reservation")
-    let url = buyDom.attr("href")
     let item = $(".ellipsis").text()
     let price = priceInfo ? (priceInfo.normal_price || priceInfo.plus_price) : ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
     // 拼接提示
@@ -799,7 +798,6 @@ function handProtection(setting, priceInfo) {
     // 写入提示消息
     $("body").append(dialogMsgDOM);
 
-    buyDom.data("url", url)
     buyDom.removeAttr("clstag")
     buyDom.on("click", function () {
       let count = $('#buy-num').val()
@@ -820,7 +818,7 @@ function handProtection(setting, priceInfo) {
         (Number(count) > 1 ? `<p>有必要现在购买 ` + count + `个吗？</p>` : '') +
         `</div>` +
         `<div class="actions">` +
-        `<a href="` + url + `" class="volume-purchase forcedbuy" target="_blank">坚持购买</a>` +
+        `<a href="` + buyDom.attr("href") + `" class="volume-purchase forcedbuy" target="_blank">坚持购买</a>` +
         `<button type="submit" value="no" class="giveUp btn-special2 btn-lg" autofocus>一键省钱</button>` +
         `</div>` +
         `<p class="admonish">若无必要，勿增实体</p>` +

@@ -650,6 +650,8 @@ $( document ).ready(function() {
     }
     if (json.recommendedLinks && json.recommendedLinks.length > 0) {
       localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
+    } else {
+      localStorage.removeItem('recommendedLinks')
     }
     if (json.recommendServices && json.recommendServices.length > 0) {
       localStorage.setItem('recommendServices', JSON.stringify(json.recommendServices))

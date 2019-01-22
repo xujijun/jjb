@@ -78,7 +78,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
       requestHeaders: details.requestHeaders
     };
   }, {
-    urls: ["*://*.m.jd.com/*", "*://m.jr.jd.com/*"]
+    urls: [
+      "*://*.m.jd.com/*",
+      "*://m.jr.jd.com/*",
+      "*:://wq.jd.com/*",
+      "*:://wqs.jd.com/*"
+    ]
   }, ['blocking', 'requestHeaders']);
 
 
@@ -248,7 +253,7 @@ function runJob(jobId, force = false) {
   let job = _.find(jobList, {id: jobId})
 
   let platform = findJobPlatform(job)
-  
+
   if (!platform && !force) {
     return log('job', job.title, '由于账号未登录已暂停运行')
   }
@@ -260,8 +265,8 @@ function runJob(jobId, force = false) {
         let scheduledHour = job.schedule[i]
         if (scheduledHour > hour) {
           let scheduledTime = DateTime.local().set({
-            hour: scheduledHour, 
-            minute: rand(5), 
+            hour: scheduledHour,
+            minute: rand(5),
             second: rand(55)
           }).valueOf()
           chrome.alarms.create('runScheduleJob_' + job.id, {
@@ -310,7 +315,7 @@ function openByIframe(src, type, delayTimes = 0) {
     keepMinutes = 1
   }
   // 当前任务过多则等待
-  if ($('iframe').length > 10 && delayTimes < 6) {
+  if ($('iframe').length > 5 && delayTimes < 6) {
     setTimeout(() => {
       openByIframe(src, type, delayTimes + 1)
     }, (10 + rand(10)) * 1000);
@@ -689,7 +694,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       })
       break;
     case 'openLogin':
-      if (loginState.class == 'failed') {
+      if (loginState.m.state != 'alive') {
         openWebPageAsMoblie(mLoginUrl)
       } else {
         chrome.tabs.create({
