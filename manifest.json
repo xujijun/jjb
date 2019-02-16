@@ -34,7 +34,8 @@
         "*://*.m.jd.com/*",
         "*://m.jr.jd.com/*",
         "*://wq.jd.com/*",
-        "*://wqs.jd.com/*"
+        "*://wqs.jd.com/*",
+        "*://msitepp-fm.jd.com/*"
       ],
       "all_frames": true
     }

@@ -83,7 +83,7 @@ gulp.task('pack-popup_style', function () {
 
 gulp.task('move-static', ['build-bundle'], function () {
   gulp.src([
-    'static/audio/*.*', 'static/image/*.*', 'static/style/*.css'
+    'static/audio/*.*', 'static/image/*.*', 'static/image/*/*.*', 'static/style/*.css'
   ], { base: './' })
     .pipe(gulp.dest('build'));
 });

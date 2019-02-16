@@ -81,8 +81,9 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
     urls: [
       "*://*.m.jd.com/*",
       "*://m.jr.jd.com/*",
-      "*:://wq.jd.com/*",
-      "*:://wqs.jd.com/*"
+      "*://wq.jd.com/*",
+      "*://wqs.jd.com/*",
+      "*://msitepp-fm.jd.com/*"
     ]
   }, ['blocking', 'requestHeaders']);
 
@@ -493,30 +494,74 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
   }
 })
 
-
-
-
-function saveLoginState(state) {
-  if (state.state == 'alive') {
-    chrome.browserAction.getBadgeText({}, function (text){
-      if (text == "X") {
-        chrome.browserAction.setBadgeText({
-          text: ""
-        });
-        chrome.browserAction.setTitle({
-          title: "京价保"
-        })
-      }
-    })
+// 根据登陆状态调整图标显示
+function updateIcon() {
+  let loginState = getLoginState()
+  switch (loginState.class) {
+    case 'alive':
+      chrome.browserAction.getBadgeText({}, function (text){
+        if (text == "X" || text == " ! ") {
+          chrome.browserAction.setBadgeText({
+            text: ""
+          });
+          chrome.browserAction.setTitle({
+            title: "京价保"
+          })
+        }
+      })
+      chrome.browserAction.setIcon({
+        path : {
+          "19": "static/image/icon/jjb19x.png",
+          "38": "static/image/icon/jjb38x.png"
+        }
+      });
+      break;
+    case 'failed':
+      chrome.browserAction.setBadgeBackgroundColor({
+        color: [190, 190, 190, 230]
+      });
+      chrome.browserAction.setBadgeText({
+        text: "X"
+      });
+      chrome.browserAction.setTitle({
+        title: "账号登陆失效"
+      })
+      chrome.browserAction.setIcon({
+        path : {
+          "19": "static/image/icon/offline19x.png",
+          "38": "static/image/icon/offline38x.png"
+        }
+      });
+    case 'warning':
+      chrome.browserAction.setBadgeBackgroundColor({
+        color: "#EE7E1B"
+      });
+      chrome.browserAction.setBadgeText({
+        text: " ! "
+      });
+      chrome.browserAction.setIcon({
+        path : {
+          "19": "static/image/icon/partial-offline19x.png",
+          "38": "static/image/icon/partial-offline38x.png"
+        }
+      });
+      break;
+    default:
+      break;
   }
-  localStorage.setItem('jjb_login-state_' + state.type, JSON.stringify({
+}
+
+
+// 保存登陆状态
+function saveLoginState(loginState) {
+  localStorage.setItem('jjb_login-state_' + loginState.type, JSON.stringify({
     time: new Date(),
-    message: state.content || state.message,
-    state: state.state
+    message: loginState.content || loginState.message,
+    state: loginState.state
   }));
   chrome.runtime.sendMessage({
     action: "loginState_updated",
-    data: state
+    data: loginState
   });
 }
 
@@ -568,7 +613,7 @@ function reportPrice(priceInfo) {
   })
 }
 
-// 消息
+// 处理消息通知
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (!msg.action) {
     msg.action = msg.text
@@ -625,15 +670,17 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       sendResponse(priceInfo)
       break;
-    case 'loginState':
+    // 保存登陆状态
+    case 'saveLoginState':
       saveLoginState(msg)
       break;
+    // 获取登陆状态
     case 'getLoginState':
-      return sendResponse(loginState)
+      sendResponse(loginState)
       break;
     case 'getPriceProtectionSetting':
       let priceProtectionSetting = getPriceProtectionSetting()
-      return sendResponse(priceProtectionSetting)
+      sendResponse(priceProtectionSetting)
       break;
     case 'saveAccount':
       var content = JSON.parse(msg.content)
@@ -668,7 +715,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         }, 60*5*1000);
         return sendResponse(temporarySetting)
       }
-      return sendResponse(setting)
+      sendResponse(setting)
       break;
     case 'getAccount':
       let account = getSetting('jjb_account', null)
@@ -682,7 +729,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       if (account && autoLoginQuota[hourInYear]) {
         account.autoLoginQuota = autoLoginQuota[hourInYear][msg.type]
       }
-      return sendResponse(account)
+      sendResponse(account)
       break;
     case 'paid':
       localStorage.setItem('jjb_paid', 'Y');
@@ -710,21 +757,9 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 登录失败
     case 'loginFailed':
+      // 保存状态
+      saveLoginState(msg)
       let loginErrMsg = (msg.type == 'pc' ? 'PC网页版' : '移动网页版') + "自动登录失败：" + msg.content
-      chrome.browserAction.setBadgeBackgroundColor({
-        color: [190, 190, 190, 230]
-      });
-      chrome.browserAction.setBadgeText({
-        text: "X"
-      });
-      chrome.browserAction.setTitle({
-        title: loginErrMsg
-      })
-      localStorage.setItem('jjb_login-state_' + msg.type, JSON.stringify({
-        time: new Date(),
-        message: msg.content,
-        state: "failed"
-      }));
       if (msg.notice) {
         sendChromeNotification(new Date().getTime().toString() + "_login-failed_" + msg.type, {
           type: "basic",
@@ -823,7 +858,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       break;
     // 签到状态
-    case 'checkin_status':
+    case 'markCheckinStatus':
       let currentStatus = getSetting('jjb_checkin_' + msg.batch, null)
       let data = {
         date: DateTime.local().toFormat("o"),
@@ -834,8 +869,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         console.log('已经记录过今日签到状态了')
       } else {
         localStorage.setItem('jjb_checkin_' + msg.batch, JSON.stringify(data));
+        sendResponse(data)
       }
-      sendResponse(data)
       break;
     // 运行状态
     case 'run_status':
@@ -943,6 +978,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     default:
       console.log("Received %o from %o, frame", msg, sender.tab, sender.frameId);
   }
+  // 更新图标
+  updateIcon()
   // 保存消息
   switch (msg.text) {
     case 'coupon':

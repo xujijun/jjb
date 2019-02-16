@@ -872,13 +872,13 @@ function simulateClick(dom, mouseEvent) {
 
 function markCheckinStatus(type, value, cb) {
   chrome.runtime.sendMessage({
-    text: "checkin_status",
+    action: "markCheckinStatus",
     batch: type,
     value: value,
     status: "signed"
   }, function (response) {
     console.log('markCheckinStatus response', response)
-    if (cb) { cb() }
+    if (cb && response) { cb() }
   });
 }
 
@@ -913,7 +913,7 @@ function getAccount(type) {
       }, 50);
     } else {
       chrome.runtime.sendMessage({
-        action: "loginState",
+        action: "saveLoginState",
         state: "failed",
         message: "由于账号未保存无法自动登录",
         type: type
@@ -940,7 +940,8 @@ function dealLoginFailed(type, errormsg) {
     text: "loginFailed",
     type: type,
     notice: true,
-    content: errormsg
+    content: errormsg,
+    state: "failed"
   }
   // 如果是单纯的登录页面，则不发送浏览器提醒
   if (window.innerWidth == 420 || window.location.href == "https://passport.jd.com/uc/login") {
@@ -1010,7 +1011,7 @@ function autoLogin(account, type) {
         })
       }, function (response) {
         console.log("Response: ", response);
-      });  
+      });
     } else {
       // 如果显示需要验证
       if ($("#s-authcode").height() > 0) {
@@ -1202,27 +1203,21 @@ function vipCheckin(setting) {
       text: "run_status",
       jobId: "5"
     })
-    const signRes = $(".signin-desc").text()
-    if (signRes.indexOf("已签到") > -1) {
-      markCheckinStatus('vip')
-    } else {
-      setTimeout(function () {
-        if ((signRes && signRes.indexOf("获得") > -1)) {
-          let value = signRes.substring(signRes.indexOf("获得")).replace(/[^0-9\.-]+/g, "")
-          markCheckinStatus('vip', value + '京豆', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              batch: "bean",
-              value: value,
-              unit: 'bean',
-              title: "京价保自动为您签到领京豆",
-              content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 2000)
+    const signRes = $(".signin-desc").text() || $(".dayGet").text()
+    if (signRes && (signRes.indexOf("获得") > -1 || signRes.indexOf("已领取") > -1)) {
+      let value = $(".beanNum").text() || signRes.substring(signRes.indexOf("获得")).replace(/[^0-9\.-]+/g, "")
+      markCheckinStatus('vip', value + '京豆', () => {
+        chrome.runtime.sendMessage({
+          text: "checkin_notice",
+          batch: "bean",
+          value: value,
+          unit: 'bean',
+          title: "京价保自动为您签到领京豆",
+          content: "恭喜您获得了" + value + '个京豆奖励'
+        }, function (response) {
+          console.log("Response: ", response);
+        })
+      })
     }
   }
 }
@@ -1437,7 +1432,7 @@ function CheckDom() {
   if ($("#ttbar-login .nickname") && $("#ttbar-login .nickname").length > 0 || $("#J_user .user_show .user_logout").length > 0) {
     console.log('PC 已经登录')
     chrome.runtime.sendMessage({
-      text: "loginState",
+      action: "saveLoginState",
       state: "alive",
       message: "PC网页检测到用户名",
       type: "pc"
@@ -1450,7 +1445,7 @@ function CheckDom() {
   if (($("#mCommonMy") && $("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
     console.log('M 已经登录')
     chrome.runtime.sendMessage({
-      text: "loginState",
+      action: "saveLoginState",
       state: "alive",
       message: "移动网页检测到登录",
       type: "m"
@@ -1514,7 +1509,7 @@ function CheckDom() {
   }
 
   // 会员页签到 (5:京东会员签到)
-  if ($(".sign-pop").length || $(".signin .signin-days").length) {
+  if ($(".sign-pop").length || $(".signin .signin-days").length || window.location.host == 'vip.m.jd.com') {
     getSetting('job5_frequency', vipCheckin)
   };
 

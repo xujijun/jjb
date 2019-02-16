@@ -839,7 +839,7 @@ $( document ).ready(function() {
 
   $(document).on("click", ".openMobilePage", function () {
     chrome.runtime.sendMessage({
-      text: "openUrlAsMoblie",
+      action: "openUrlAsMoblie",
       url: $(this).data('url')
     }, function (response) {
       console.log("Response: ", response);
