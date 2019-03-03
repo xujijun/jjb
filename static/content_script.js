@@ -328,7 +328,6 @@ async function dealOrder(order, orders, setting) {
   }
 }
 
-
 async function getAllOrders(mode, setting) {
   console.log('京价保开始自动检查订单', mode)
   let orders = []
@@ -1259,38 +1258,40 @@ function baitiaoLottery(setting) {
 }
 
 
-// 12: 双签奖励（double_check）
-function doubleCheck(setting) {
+// 17: 小羊毛
+function dailyJDBeans(setting) {
   if (setting != 'never') {
-    console.log('双签奖励（double_check）')
     weui.toast('京价保运行中', 1000);
     chrome.runtime.sendMessage({
       text: "run_status",
-      jobId: "12"
+      jobId: "17"
     })
-    if ($("#JGiftDialog .gift-dialog-btn").text() == '立即领取') {
-      simulateClick($("#JGiftDialog .gift-dialog-btn"))
+
+    if ($(".daily-bonus .opened .red").text() == "红包已领取了哦") {
+      let value = $(".daily-bonus .opened .info .red_l").text()
+      markCheckinStatus('xym', value)
+    } else if ($(".daily-bonus .click-icon")) {
+      simulateClick($(".daily-bonus .click-icon"))
       setTimeout(function () {
-        if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
-          let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
-          markCheckinStatus('double_check', value + '京豆', () => {
+        const signRes = $(".xym-dialog .hit .title").text()
+        if (signRes && signRes.indexOf("获得") > -1) {
+          let value = signRes.replace(/[^0-9\.-]+/g, "")
+          markCheckinStatus('xym', value + '京豆', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               batch: "bean",
               value: value,
               unit: 'bean',
-              title: "京价保自动为您领取双签礼包",
+              title: "京价保自动为您领取京东京豆红包",
               content: "恭喜您获得了" + value + '个京豆奖励'
             }, function (response) {
               console.log("Response: ", response);
             })
           })
+        } else if (signRes && signRes.indexOf("未登录") > -1) {
+          simulateClick($(".xym-dialog .button"))
         }
       }, 2000)
-    } else {
-      if ($("#receiveAward .link-gift").text() == "今天已领点击查看礼包"){
-        markCheckinStatus('double_check')
-      }
     }
   }
 }
@@ -1518,10 +1519,10 @@ function CheckDom() {
     getSetting('job16_frequency', baitiaoLottery)
   };
 
-  // 双签奖励 (12:双签奖励)
-  if ($("#receiveAward .link-gift").length) {
-    getSetting('job12_frequency', doubleCheck)
-  };
+  // 17 小羊毛
+  if (document.title == "小羊毛领京豆红包" && window.location.host == 'wqs.jd.com') {
+    getSetting('job16_frequency', dailyJDBeans)
+  }
 
   // 京豆签到 (11:京豆签到)
   if (window.location.host == 'bean.m.jd.com') {

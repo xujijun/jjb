@@ -109,18 +109,6 @@ let notices = [
     target: 'ming'
   },
   {
-    text: '京价保所有的功能均在本地完成，不会上传任何信息给任何人。',
-    button: rewards[5],
-    type: 'reward',
-    target: 'ming'
-  },
-  {
-    text: '京价保部分功能会开启一个固定的标签页，过一会儿它会自动关掉，不必紧张。',
-    button: rewards[1],
-    type: 'reward',
-    target: 'ming'
-  },
-  {
     text: '京东的登录有效期很短，请在登录时勾选保存密码自动登录以便京价保自动完成工作。',
     button: rewards[0],
     type: 'reward',

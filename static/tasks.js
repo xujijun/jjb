@@ -148,13 +148,13 @@ module.exports = {
       frequency: 'daily'
     },
     {
-      id: '12',
+      id: '17',
       src: {
-        m: 'https://ljd.m.jd.com/countersign/index.action',
+        m: 'https://wqs.jd.com/wxsq_project/xym/dailyJDBeans/xym_dailyJDBeans.html',
       },
-      title: '领取双签奖励',
-      description: "完成京豆和京东金融签到有一个双签奖励",
-      key: "double_check",
+      title: '京东京豆红包',
+      description: "小羊毛领京豆红包",
+      key: "xym",
       mode: 'iframe',
       type: ['m'],
       checkin: true,
