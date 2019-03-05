@@ -186,5 +186,4 @@ module.exports = {
     }
     return platform
   }
-  
 };

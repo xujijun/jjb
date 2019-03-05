@@ -1267,13 +1267,14 @@ function dailyJDBeans(setting) {
       jobId: "17"
     })
 
-    if ($(".daily-bonus .opened .red").text() == "红包已领取了哦") {
+    if ($(".daily-bonus .opened .red").text() == "红包已领取了哦" && $(".daily-bonus .opened .red").height() > 0) {
       let value = $(".daily-bonus .opened .info .red_l").text()
       markCheckinStatus('xym', value)
     } else if ($(".daily-bonus .click-icon")) {
       simulateClick($(".daily-bonus .click-icon"))
       setTimeout(function () {
         const signRes = $(".xym-dialog .hit .title").text()
+        const signResContent = $(".xym-dialog .message .content").text()
         if (signRes && signRes.indexOf("获得") > -1) {
           let value = signRes.replace(/[^0-9\.-]+/g, "")
           markCheckinStatus('xym', value + '京豆', () => {
@@ -1288,7 +1289,7 @@ function dailyJDBeans(setting) {
               console.log("Response: ", response);
             })
           })
-        } else if (signRes && signRes.indexOf("未登录") > -1) {
+        } else if (signResContent && signResContent.indexOf("未登录") > -1) {
           simulateClick($(".xym-dialog .button"))
         }
       }, 2000)
