@@ -981,7 +981,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   // 更新图标
   updateIcon()
   // 保存消息
-  switch (msg.text) {
+  switch (msg.action) {
     case 'coupon':
     case 'notice':
     case 'checkin_notice':

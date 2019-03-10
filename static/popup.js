@@ -10,7 +10,7 @@ import {getSetting, versionCompare, readableTime} from './utils'
 import {getLoginState} from './account'
 
 Vue.directive('tippy', {
-  bind(el) {
+  componentUpdated(el) {
     let title = el.getAttribute('title')
     if (title) {
       tippy(el, {
@@ -472,6 +472,7 @@ function getTaskList() {
     }
     if (!task.platform) {
       task.suspended = true
+      task.platform = task.type[0]
     }
     return task
   })
