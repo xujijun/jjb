@@ -1258,6 +1258,42 @@ function baitiaoLottery(setting) {
 }
 
 
+// 12: 双签奖励（double_check）, 由于风控策略升级，本任务无法在浏览器模拟
+function doubleCheck(setting) {
+  if (setting != 'never') {
+    console.log('双签奖励（double_check）')
+    weui.toast('京价保运行中', 1000);
+    chrome.runtime.sendMessage({
+      text: "run_status",
+      jobId: "12"
+    })
+    if ($(".pop-success .success-btn").text() == '立即领取') {
+      simulateClick($(".pop-success .success-btn"))
+      setTimeout(function () {
+        if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
+          let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
+          markCheckinStatus('double_check', value + '京豆', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              batch: "bean",
+              value: value,
+              unit: 'bean',
+              title: "京价保自动为您领取双签礼包",
+              content: "恭喜您获得了" + value + '个京豆奖励'
+            }, function (response) {
+              console.log("Response: ", response);
+            })
+          })
+        }
+      }, 2000)
+    } else {
+      if ($("#receiveAward .link-gift").text() == "今天已领点击查看礼包"){
+        markCheckinStatus('double_check')
+      }
+    }
+  }
+}
+
 // 17: 小羊毛
 function dailyJDBeans(setting) {
   if (setting != 'never') {
@@ -1353,7 +1389,7 @@ function guangbeng(setting) {
       jobId: "6"
     })
     if ($(".gangbeng .btn").text() == "签到") {
-      simulateClick($(".gangbeng .btn"))
+      simulateClick($(".gangbeng .btn"), true)
       // 监控结果
       setTimeout(function () {
         if (($(".am-modal-body .title").text() && $(".am-modal-body .title").text().indexOf("获得") > -1) ) {
@@ -1456,6 +1492,17 @@ function CheckDom() {
     });
   };
 
+  if (location.href == "https://wqs.jd.com/my/indexv2.shtml" && document.title == "个人中心") {
+    chrome.runtime.sendMessage({
+      action: "saveLoginState",
+      state: "alive",
+      message: "移动网页打开个人中心",
+      type: "m"
+    }, function(response) {
+      console.log("Response: ", response);
+    });
+  }
+
   // 是否是PLUS会员
   if ($(".cw-user .fm-icon").size() > 0 && $(".cw-user .fm-icon").text() == '正式会员') {
     chrome.runtime.sendMessage({
@@ -1468,7 +1515,9 @@ function CheckDom() {
   }
 
   // 账号登录页
-  dealLoginPage()
+  setTimeout(() => {
+    dealLoginPage()
+  }, 500);
 
   // 移除遮罩
   if ($("#pcprompt-viewpc").size() > 0) {
@@ -1520,6 +1569,13 @@ function CheckDom() {
     getSetting('job16_frequency', baitiaoLottery)
   };
 
+  // 双签奖励 (12:双签奖励)
+  if (window.location.host == 'm.jr.jd.com' && document.title == "双签领奖励") {
+    setTimeout(() => {
+      getSetting('job12_frequency', doubleCheck)
+    }, 500);
+  };
+
   // 17 小羊毛
   if (document.title == "小羊毛领京豆红包" && window.location.host == 'wqs.jd.com') {
     getSetting('job16_frequency', dailyJDBeans)
@@ -1532,7 +1588,9 @@ function CheckDom() {
 
   // 京东金融慧赚钱签到 (6:金融慧赚钱签到)
   if ($(".assets-wrap .gangbeng").size() > 0) {
-    getSetting('job6_frequency', guangbeng)
+    setTimeout(() => {
+      getSetting('job6_frequency', guangbeng)
+    }, 500);
   };
 
   // 钢镚签到 (14:钢镚签到)
@@ -1653,7 +1711,7 @@ $( document ).ready(function() {
     setTimeout( function(){
       console.log('京价保开始执行任务');
       CheckDom()
-    }, 1000)
+    }, 1200)
   }
 });
 
