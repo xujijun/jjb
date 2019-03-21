@@ -164,8 +164,8 @@ Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，�
 
 请勿发送功能咨询邮件，将不会收到回复。相关功能细节请自行了解。
 
-## 赞助商
+## 衍生项目
 
 <h3>
-  <a href="https://www.duohui.cn/?utm_source=jjb&utm_medium=github&utm_campaign=jjb-readme" target="_blank">多会 - 专业的活动管理系统</a>
+  <a href="https://github.com/sunoj/teaclub" target="_blank">茶友会</a>
 </h3>
