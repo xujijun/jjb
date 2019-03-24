@@ -20,7 +20,7 @@
         "static/content_script.js"
       ],
       "css": [
-        "static/style/contentstyle.css"
+        "static/style/content_style.css"
       ],
       "run_at": "document_end",
       "all_frames": true

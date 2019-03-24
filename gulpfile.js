@@ -7,13 +7,12 @@ const preprocess = require('gulp-preprocess');
 const Bundler = require('parcel-bundler');
 const Path = require('path');
 
-
 async function bundleBuild(fileName) {
   let file = Path.join(__dirname, `./${fileName}`);
   let options = {
     outDir: './dist', // 将生成的文件放入输出目录下，默认为 dist
     outFile: fileName, // 输出文件的名称
-    publicUrl: './', // 静态资源的 url ，默认为 dist
+    publicUrl: './static', // 静态资源的 url ，默认为 dist
     watch: false, // 是否需要监听文件并在发生改变时重新编译它们，默认为 process.env.NODE_ENV !== 'production'
     cache: true, // 启用或禁用缓存，默认为 true
     cacheDir: '.cache', // 存放缓存的目录，默认为 .cache
@@ -30,18 +29,18 @@ async function bundleBuild(fileName) {
 }
 
 
-gulp.task('watch', function () {
+function watchFile() {
   // watch many files
   watch([
-    'manifest.json', '*.html',
+    'manifest.json', '*.html', 'components/*.vue',
     'static/*.js', 'static/style/*.css'
   ], function () {
-    gulp.start('default');
+    exports.default()
   });
-});
+};
 
-gulp.task('pack-priceChart', function () {
-  gulp.src([
+function packPriceChart() {
+  return gulp.src([
     'node_modules/weui.js/dist/weui.min.js',
     'node_modules/@antv/g2/dist/g2.min.js',
     'static/priceChart.js'
@@ -49,47 +48,44 @@ gulp.task('pack-priceChart', function () {
   .pipe(concat('priceChart.js'))
   .pipe(replace('{{version}}', process.env.VERSION))
   .pipe(gulp.dest('build/static'));
-  console.log("pack-priceChart task done @", new Date())
+};
 
-});
-
-gulp.task('pack-contentjs', function () {
+function packContentJs() {
   return gulp.src([
     'node_modules/weui.js/dist/weui.min.js',
     'static/content_script.js'
   ])
   .pipe(concat('content_script.js'))
   .pipe(gulp.dest('build/static'));
-});
+}
 
-gulp.task('pack-content_style', function () {
+function packContentStyle() {
   return gulp.src(['static/style/weui.min.css', 'static/style/style.css'])
-    .pipe(concat('contentstyle.css'))
+    .pipe(concat('content_style.css'))
     .pipe(cleanCss())
     .pipe(gulp.dest('build/static/style'));
-});
+};
 
-gulp.task('pack-popup_style', function () {
+
+function packPopupStyle() {
   return gulp.src([
     'static/style/weui.min.css',
-    'node_modules/tippy.js/dist/tippy.css',
     'static/style/popup.css'
   ])
-  .pipe(concat('popupstyle.css'))
+  .pipe(concat('popup_style.css'))
   .pipe(cleanCss())
   .pipe(gulp.dest('build/static/style'));
-});
+};
 
-
-gulp.task('move-static', ['build-bundle'], function () {
-  gulp.src([
+function moveStatic() {
+  return gulp.src([
     'static/audio/*.*', 'static/image/*.*', 'static/image/*/*.*', 'static/style/*.css'
   ], { base: './' })
     .pipe(gulp.dest('build'));
-});
+};
 
-gulp.task('move-js', [], function () {
-  gulp.src([
+function moveJs() {
+  return gulp.src([
     'static/start.js',
     'static/mobile_script.js',
     'node_modules/zepto/dist/zepto.min.js',
@@ -97,61 +93,62 @@ gulp.task('move-js', [], function () {
     'node_modules/@sunoj/touchemulator/touch-emulator.js',
   ])
   .pipe(gulp.dest('build/static'));
-});
+};
 
-gulp.task('move-file', [], async function () {
+async function moveFile() {
   let browser = (process.env.BROWSER ? process.env.BROWSER : 'chrome')
-  await new Promise((resolve, reject) => {
-    gulp.src([
-      'manifest.json', '*.html'
-    ])
-    .pipe(replace('{{version}}', process.env.VERSION))
-    .pipe(replace('{{buildid}}', process.env.BUILDID))
-    .pipe(replace('{{browser}}', browser))
-    .pipe(preprocess({
-      context: {
-        Browser: browser
-      }
-    }))
-    .pipe(gulp.dest('build'))
-    .on("end", resolve);
-  });
-  console.log('move-file done')
-});
+  return gulp.src([
+    'manifest.json', '*.html'
+  ])
+  .pipe(replace('{{version}}', process.env.VERSION))
+  .pipe(replace('{{buildid}}', process.env.BUILDID))
+  .pipe(replace('{{browser}}', browser))
+  .pipe(preprocess({
+    context: {
+      Browser: browser
+    }
+  }))
+  .pipe(gulp.dest('build'))
+};
 
 
-gulp.task('build-bundle', ['move-file'], async function () {
+async function buildBundle() {
   console.log('build-bundle start')
   await bundleBuild('static/background.js')
   await bundleBuild('static/popup.js')
   console.log('build-bundle done')
-});
+};
 
-gulp.task('move-build-bundle', ['build-bundle'], async function () {
+async function moveBuildBundle() {
   console.log('move-build-bundle start')
   let browser = (process.env.BROWSER ? process.env.BROWSER : 'chrome')
-  await new Promise((resolve, reject) => {
-    gulp.src([
-      'dist/*.js'
-    ])
-    .pipe(replace('{{version}}', process.env.VERSION))
-    .pipe(replace('{{buildid}}', process.env.BUILDID))
-    .pipe(replace('{{browser}}', browser))
-    .pipe(preprocess({
-      context: {
-        Browser: browser
-      }
-    }))
-    .pipe(gulp.dest('build/static'))
-    .on("end", resolve);
-  });
-  console.log('move-build-bundle done')
-});
+  return gulp.src([
+    'dist/*.js'
+  ])
+  .pipe(replace('{{version}}', process.env.VERSION))
+  .pipe(replace('{{buildid}}', process.env.BUILDID))
+  .pipe(replace('{{browser}}', browser))
+  .pipe(preprocess({
+    context: {
+      Browser: browser
+    }
+  }))
+  .pipe(gulp.dest('build/static'))
+};
 
+function moveBundleStatic() {
+  return gulp.src([
+    'dist/*.png', 'dist/*.svg', 'dist/*.jpg', 'dist/*.gif',
+    'dist/*.css'
+  ])
+    .pipe(gulp.dest('build/static'));
+};
 
-gulp.task('default', [
-  'move-file', 'move-js', 'pack-priceChart', 'pack-content_style', 'pack-popup_style',
-  'pack-contentjs', 'build-bundle', 'move-build-bundle', 'move-static'
-]);
+const moveBuildBundleFile = gulp.series(moveFile, buildBundle, moveBuildBundle, moveBundleStatic)
 
-gulp.task('dev', ['default', 'watch']);
+exports.default = gulp.series(
+  moveFile, moveJs, packPriceChart, packContentStyle, packPopupStyle,
+  packContentJs, moveBuildBundleFile, moveStatic
+);
+
+exports.dev = gulp.series(exports.default, watchFile);
