@@ -14,7 +14,7 @@
           <div class="page__bd">
           <div class="weui-cells__title">当前账号状态</div>
             <div class="weui-cells">
-              <a data-url="https://passport.jd.com/uc/login" v-tippy :class="`${state['pc'].state} login-type_pc`" :title="state['pc'].description">
+              <a :target="state['pc'].state != 'alive' ? '_blank' : '_self'" :href="state['pc'].state != 'alive' ? 'https://home.jd.com' : ''" v-tippy :class="`${state['pc'].state} login-type_pc`" :title="state['pc'].description">
                 <div class="weui-cell">
                   <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
                     <img src="../static/image/pc.svg" style="width: 30px;display: block">
@@ -29,7 +29,7 @@
                   </div>
                 </div>
               </a>
-              <a data-url="https://wqs.jd.com/my/indexv2.shtml" v-tippy :class="`${state['m'].state} login-type_m openMobilePage`" :title="state['pc'].description">
+              <a data-url="https://wqs.jd.com/my/indexv2.shtml" v-tippy :class="`${state['m'].state} login-type_m openMobilePage`" :title="state['m'].description">
                 <div class="weui-cell">
                   <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
                     <img src="../static/image/m.png" style="width: 30px;display: block">

@@ -124,6 +124,9 @@ export default {
     }
   },
   methods: {
+    backup_picture: function(e) {
+      e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png";
+    },
     getDiscounts: async function(condition) {
       this.discountList = null;
       this.selectTag = null;
@@ -316,7 +319,7 @@ export default {
   padding-right: 16px;
 }
 .discount-list {
-  margin-top: 45px;
+  margin-top: 50px;
   overflow-y: auto;
   height: 465px;
 }

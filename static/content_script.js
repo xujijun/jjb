@@ -137,6 +137,10 @@ function apply(applyBtn, priceInfo, setting) {
   let order_price = applyBtn.attr('order_price')
   let product_name = applyBtn.attr('product_name')
   let applyId = applyBtn.attr('id')
+  // 是否暂停价保
+  if (setting.suspendedApplyIds.indexOf(applyId) > -1) {
+    return console.log('价保暂停', applyId)
+  }
   // 获取上次申请价保的价格
   getSetting('last_apply_price' + applyId, (lastApply) => {
     let lastApplyPrice = lastApply ? lastApply.price : localStorage.getItem('jjb_order_' + applyId)
@@ -285,9 +289,17 @@ function seekPriceInfo(platform) {
 function findOrderBySkuAndApply(priceInfo, setting) {
   console.log('findOrderBySkuAndApply', priceInfo)
   $( ".applyBtn" ).each(function() {
-    let skuid = $(this).attr('sku')
-    if (skuid && skuid == priceInfo.sku) {
+    let skuId = $(this).attr('sku')
+    let applyId = $(this).attr('id')
+    if (skuId && skuId == priceInfo.sku) {
       apply($(this), priceInfo, setting)
+    }
+    if (setting.suspendedApplyIds.indexOf(applyId) > -1) {
+      $(this).text("已暂停")
+      $(this).addClass("disable-apply")
+      $(this).removeAttr("onclick")
+      $(this).removeAttr("report-eventid")
+      $(this).removeAttr("id")
     }
   });
 }

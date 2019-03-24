@@ -155,8 +155,8 @@ function saveJobStack(jobStack) {
   localStorage.setItem('jobStack', JSON.stringify(jobStack));
 }
 
-function getTasks() {
-  return _.map(tasks, (task) => {
+function getTasks(platform) {
+  let taskList = _.map(tasks, (task) => {
     var job_run_last_time = localStorage.getItem('job' + task.id + '_lasttime')
     task.last_run_at = job_run_last_time ? parseInt(job_run_last_time) : null
     task.frequency = getSetting('job' + task.id + '_frequency') || task.frequency
@@ -167,17 +167,26 @@ function getTasks() {
         task.checked = true
       }
     }
+    // 如果限定平台
+    if (platform) {
+      if (task.type.indexOf(platform) < 0) {
+        task.unavailable = true
+      }
+    }
     return task
   })
+  _.remove(taskList, 'unavailable')
+  return taskList
 }
 
 // 寻找乔布斯
-function findJobs() {
+function findJobs(platform) {
   let jobStack = getSetting('jobStack', [])
-  let jobList = getTasks()
+  let jobList = getTasks(platform)
+
   jobList.forEach(function(job) {
-    let platform = findJobPlatform(job)
-    if (!platform) {
+    let availablePlatform = findJobPlatform(job)
+    if (!availablePlatform) {
       return console.log(job.title, '由于账号未登录已暂停运行')
     }
     switch(job.frequency){
@@ -551,9 +560,13 @@ function updateIcon() {
   }
 }
 
-
 // 保存登陆状态
 function saveLoginState(loginState) {
+  let previousState = getLoginState()
+  // 如果登录状态从失败转换到了在线
+  if (previousState[loginState.type].state != 'alive' && loginState.state == "alive") {
+    findJobs(loginState.type)
+  }
   localStorage.setItem('jjb_login-state_' + loginState.type, JSON.stringify({
     time: new Date(),
     message: loginState.content || loginState.message,
@@ -584,11 +597,13 @@ function getPriceProtectionSetting() {
   let pro_days = getSetting('price_pro_days', 15)
   let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (getSetting('jjb_plus') == 'Y')
   let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
+  let suspendedApplyIds = getSetting("suspendedApplyIds", []);
   return {
     pro_min,
     prompt_only,
     pro_days,
-    is_plus
+    is_plus,
+    suspendedApplyIds
   }
 }
 
@@ -745,7 +760,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         openWebPageAsMoblie(mLoginUrl)
       } else {
         chrome.tabs.create({
-          url: "https://passport.jd.com/uc/login"
+          url: "https://home.jd.com"
         })
       }
       break;

@@ -200,12 +200,18 @@ a:hover {
     height: 515px;
 }
 
+.order-good{
+    overflow: hidden;
+}
+
 .orders li, .messages li{
     display: block;
+    overflow: hidden;
 }
 
 .orders .order_time{
     position: relative;
+    overflow: hidden;
 }
 
 .orders .show-order{
@@ -234,6 +240,46 @@ a:hover {
     mask: url(../image/hide.svg) no-repeat center;
     -webkit-mask-size: 16px;
     mask-size: 16px;
+}
+
+.monitoring .suspend, .monitoring .resume{
+    width: 55px;
+    height: 55px;
+    color: #dcdcdc;
+    display: inline-block;
+    vertical-align: middle;
+    background-size: 16px;
+    cursor: pointer;
+    background-color: #8a8a8a;
+}
+
+.monitoring .suspend{
+    -webkit-mask: url(../image/stop.svg) no-repeat center;
+    mask: url(../image/stop.svg) no-repeat center;
+    -webkit-mask-size: 24px;
+    mask-size: 24px;
+}
+
+.monitoring .resume{
+    -webkit-mask: url(../image/play.svg) no-repeat center;
+    mask: url(../image/play.svg) no-repeat center;
+    -webkit-mask-size: 24px;
+    mask-size: 24px;
+}
+
+.good_img:hover img{
+    opacity: 0.3;
+}
+
+.good_img:hover .monitoring{
+    opacity: 1;
+}
+
+.monitoring{
+    width: 55px;
+    height: 55px;
+    position: absolute;
+    opacity: 0.1;
 }
 
 .messages, .discounts{
@@ -385,18 +431,11 @@ a:hover {
 .orders .good_title img{
     width: 55px;
     height: 55px;
+    padding-right: 10px;
+    overflow: hidden;
+    float: left;
 }
 
-.good_title img{
-    display: inline-block;
-    position: absolute;
-    left: 15px;
-    top: 10px;
-    padding-right: 10px;
-    width: 75px;
-    height: 75px;
-    overflow: hidden;
-}
 
 .good_title .description {
     font-size: 12px;
@@ -485,6 +524,7 @@ a.buy-btn:hover{
     background: #fdfdfd;
     border-bottom: 1px solid #f3f3f3;
     border-top: 1px solid #f3f3f3;
+    overflow: hidden;
 }
 
 .good + .good {

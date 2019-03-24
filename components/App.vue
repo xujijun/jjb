@@ -19,7 +19,7 @@
               <div class="weui-cells weui-cells_form">
                 <div
                   class="weui-cell weui-cell_select weui-cell_select-after"
-                  v-for="task in tasks"
+                  v-for="task in taskList"
                   :key="task.id"
                 >
                   <div class="weui-cell__bd job-m">
@@ -275,7 +275,7 @@
                     <input
                       class="weui-switch"
                       type="checkbox"
-                      :bind="disabled_link"
+                      v-on:change="updateDisableOrderLink"
                       v-auto-save="{
                         notice: '京价保展示的最近订单商品链接带有京东联盟的返利，使用该链接购买能给开发者提供一些收入，帮助京价保保持更新。确认要停用该链接吗？'
                       }"
@@ -505,16 +505,13 @@
                 <div
                   v-for="(good, index) in order.goods"
                   :key="index"
+                  :class="`order-good ${good.suspended}`"
                   v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true"
                 >
                   <div class="weui-cell good" v-if="good && good.order_price > 0">
                     <div class="weui-cell__bd">
                       <div class="good_title">
-                        <a
-                          :href="`https://jjb.zaoshu.so/good/${good.sku}`"
-                          v-if="good.sku && !disabled_link"
-                          target="_blank"
-                        >
+                        <div class="good_img">
                           <img
                             v-if="good.img"
                             :src="`https:${good.img}`"
@@ -522,24 +519,19 @@
                             class="backup_picture"
                             :alt="good.name"
                           >
-                          <p>
-                            {{good.name}}
-                            <span
-                              class="count"
-                              v-if="good.quantity"
-                            >&times; {{good.quantity}}</span>
-                          </p>
-                        </a>
-                        <div v-else>
-                          <img
-                            v-if="good.img"
-                            :src="`https:${good.img}`"
-                            @error.once="backup_picture($event)"
-                            class="backup_picture"
-                            :alt="good.name"
-                          >
-                          <p>{{good.name}}</p>
+                          <div class="monitoring">
+                            <span v-if="good.suspended" @click="toggleSuspend(order, good, index)" class="resume" v-tippy title="恢复价保"></span>
+                            <span v-else class="suspend" @click="toggleSuspend(order, good, index)" v-tippy title="停止价保"></span>
+                          </div>
                         </div>
+                        <p v-if="good.sku">
+                          <a v-if="!disableOrderLink" :href="`https://jjb.zaoshu.so/good/${good.sku}`" target="_blank"> {{good.name}}</a>
+                          <a v-else>{{good.name}}</a>
+                          <span
+                            class="count"
+                            v-if="good.quantity"
+                          >&times; {{good.quantity}}</span>
+                        </p>
                       </div>
                     </div>
                     <div class="weui-cell__ft">
@@ -717,11 +709,15 @@ function tippyElement(el) {
   setTimeout(() => {
     let title = el.getAttribute("title");
     if (title) {
-      tippy(el, {
-        content: title
-      });
+      if (el._tippy) {
+        el._tippy.setContent(title)
+      } else {
+        tippy(el, {
+          content: title
+        });
+      }
     }
-  }, 500);
+  }, 50);
 }
 
 Vue.directive("tippy", {
@@ -730,7 +726,7 @@ Vue.directive("tippy", {
 });
 
 Vue.directive("autoSave", {
-  bind(el, binding) {
+  bind(el, binding, vnode) {
     function revertValue(el) {
       let current = getSetting(el.name, null);
       if (el.type == "checkbox") {
@@ -751,9 +747,6 @@ Vue.directive("autoSave", {
           localStorage.setItem(el.name, "checked");
         } else {
           localStorage.removeItem(el.name);
-        }
-        if (el.dataset.bind) {
-          el.dataset.bind = el.checked;
         }
       } else {
         localStorage.setItem(el.name, el.value);
@@ -794,7 +787,7 @@ export default {
   components: { laodingMask, loginNotice, discounts },
   data() {
     return {
-      tasks: [],
+      taskList: [],
       messages: [],
       orders: [],
       skuPriceList: {},
@@ -805,7 +798,7 @@ export default {
       frequencyOptionText: frequencyOptionText,
       currentVersion: "{{version}}",
       recommendServices: getSetting("recommendServices", recommendServices),
-      disabled_link: getSetting("disabled_link") == "checked" ? true : false,
+      disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
       newChangelog: versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") < 0,
       hiddenOrderIds: getSetting("hiddenOrderIds", []),
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
@@ -824,31 +817,28 @@ export default {
     };
   },
   mounted: async function() {
-    // 查询最新优惠
-    let response = await fetch("https://jjb.zaoshu.so/discount/last");
-    let lastDiscount = await response.json();
-    let readDiscountAt = localStorage.getItem("readDiscountAt");
-    if (
-      !readDiscountAt ||
-      new Date(lastDiscount.createdAt) > new Date(readDiscountAt)
-    ) {
-      this.newDiscounts = true;
-    }
-
     // 准备数据
-    this.tasks = this.getTaskList();
+    this.getTaskList();
     // 渲染订单
-    this.getOrders()
+    setTimeout(() => {
+      this.getOrders()
+    }, 50);
+    // 查询最新优惠
+    setTimeout(() => {
+      this.getLastDiscount()
+    }, 100);
     // 渲染通知
-    this.getMessages()
+    setTimeout(() => {
+      this.getMessages()
+    }, 500);
     this.dealWithLoginState()
 
     // 接收消息
-    chrome.runtime.onMessage.addListener(function(
+    chrome.runtime.onMessage.addListener((
       message,
       sender,
       sendResponse
-    ) {
+    ) => {
       switch (message.action) {
         case "orders_updated":
           let orders = JSON.parse(message.data).map(function(order) {
@@ -866,6 +856,9 @@ export default {
           break;
         case "loginState_updated":
           this.dealWithLoginState();
+          setTimeout(() => {
+            this.getTaskList();
+          }, 1000);
           break;
         default:
           break;
@@ -889,6 +882,22 @@ export default {
     }
   },
   methods: {
+    getLastDiscount: async function() {
+      let response = await fetch("https://jjb.zaoshu.so/discount/last");
+      let lastDiscount = await response.json();
+      let readDiscountAt = localStorage.getItem("readDiscountAt");
+      if (
+        !readDiscountAt ||
+        new Date(lastDiscount.createdAt) > new Date(readDiscountAt)
+      ) {
+        this.newDiscounts = true;
+      }
+    },
+    updateDisableOrderLink: function() {
+      setTimeout(() => {
+        this.disableOrderLink = getSetting("disabled_link") == "checked" ? true : false
+      }, 1000);
+    },
     makeupMessages: function(messages) {
       if (messages) {
         return messages.reverse().map(function(message) {
@@ -918,9 +927,14 @@ export default {
     getOrders: function() {
       let orders = JSON.parse(localStorage.getItem("jjb_orders"));
       let skuPriceList = getSetting("skuPriceList", {});
+      let suspendedApplyIds = getSetting("suspendedApplyIds", []);
       if (orders) {
         orders = orders.map(function(order) {
           order.displayTime = readableTime(DateTime.fromISO(order.time));
+          order.goods = order.goods.map(function(good, index) {
+            good.suspended = _.indexOf(suspendedApplyIds, `applyBT_${order.id}_${good.sku}_${index+1}`) > -1 ? "suspended" : false
+            return good
+          })
           return order;
         });
       } else {
@@ -950,11 +964,10 @@ export default {
       this.loginState["pc"].description = "当前登录状态" + getStateDescription(loginState, "pc");
       this.loginState["m"].description = "当前登录状态" + getStateDescription(loginState, "m");
       this.loginStateDescription = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
-
     },
     // 任务列表
-    getTaskList: function() {
-      return _.map(tasks, task => {
+    getTaskList: async function() {
+      this.taskList = _.map(tasks, task => {
         task.last_run_at = getSetting("job" + task.id + "_lasttime", null);
         task.frequencySetting = getSetting(
           "job" + task.id + "_frequency",
@@ -1014,9 +1027,6 @@ export default {
         }
       );
     },
-    backup_picture: function(e) {
-      e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png";
-    },
     selectType: function(type) {
       this.selectedTab = type;
     },
@@ -1039,6 +1049,22 @@ export default {
         JSON.stringify(this.hiddenOrderIds)
       );
       this.$forceUpdate();
+    },
+    toggleSuspend: function (order, good, index) {
+      // localStorage.setItem(`order_${order.id}_index_${index}`, 'suspended')
+      let suspendedApplyIds = getSetting("suspendedApplyIds", []);
+      let applyId = `applyBT_${order.id}_${good.sku}_${index+1}`
+      if (_.indexOf(suspendedApplyIds, applyId) > -1) {
+        suspendedApplyIds = _.pull(suspendedApplyIds, applyId);
+        good.suspended = false
+      } else {
+        suspendedApplyIds.push(applyId);
+        good.suspended = "suspended"
+      }
+      localStorage.setItem(
+        "suspendedApplyIds",
+        JSON.stringify(suspendedApplyIds)
+      );
     },
     showChangelog: function() {
       this.newChangelog = false;
@@ -1063,4 +1089,7 @@ export default {
 </script>
 
 <style scoped>
+.order-good.suspended{
+  opacity: 0.5
+}
 </style>
