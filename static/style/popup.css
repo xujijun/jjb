@@ -69,7 +69,7 @@ a:hover {
 }
 
 .contents .weui-navbar__item.weui-bar__item_on {
-    background-image: linear-gradient(180deg,#549606,#06a90c94);
+    background-image: linear-gradient(180deg,#e6ad00,#FF9800);
     color: #fff;
 }
 

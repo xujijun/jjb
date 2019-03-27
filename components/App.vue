@@ -2,7 +2,7 @@
   <div>
     <div class="settings">
       <div class="weui-tab">
-        <div class="weui-navbar">
+        <div :class="`${scienceOnline} weui-navbar`">
           <div class="weui-navbar__item weui-bar__item_on" data-type="frequency_settings">任务设置</div>
           <div class="weui-navbar__item" data-type="notice_settings">通知设置</div>
           <div class="weui-navbar__item" data-type="other_settings">高级设置</div>
@@ -795,6 +795,7 @@ export default {
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
+      scienceOnline: false,
       frequencyOptionText: frequencyOptionText,
       currentVersion: "{{version}}",
       recommendServices: getSetting("recommendServices", recommendServices),
@@ -827,6 +828,10 @@ export default {
     setTimeout(() => {
       this.getLastDiscount()
     }, 100);
+    // 测试是否科学上网
+    setTimeout(() => {
+      this.tryGoogle()
+    }, 200);
     // 渲染通知
     setTimeout(() => {
       this.getMessages()
@@ -891,6 +896,14 @@ export default {
         new Date(lastDiscount.createdAt) > new Date(readDiscountAt)
       ) {
         this.newDiscounts = true;
+      }
+    },
+    tryGoogle: async function() {
+      let response = await fetch("https://www.googleapis.com/discovery/v1/apis?name=abusiveexperiencereport");
+      if ( response.status == "200" ) {
+        this.scienceOnline = true;
+      } else {
+        this.scienceOnline = false;
       }
     },
     updateDisableOrderLink: function() {
@@ -1091,5 +1104,8 @@ export default {
 <style scoped>
 .order-good.suspended{
   opacity: 0.5
+}
+.weui-navbar.true .weui-navbar__item.weui-bar__item_on{
+  background-image: linear-gradient(180deg,#09bb07,#06a90c94);
 }
 </style>
