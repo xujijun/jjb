@@ -221,7 +221,7 @@
                   </div>
                 </div>
                 <!-- @if Browser='chrome' -->
-                <div class="weui-cell weui-cell_switch">
+                <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
                   <div class="weui-cell__bd">
                     <span
                       data-tippy-placement="top-start"
@@ -233,7 +233,7 @@
                     <input class="weui-switch" type="checkbox" v-auto-save name="hand_protection">
                   </div>
                 </div>
-                <div class="weui-cell weui-cell_switch">
+                <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
                   <div class="weui-cell__bd">
                     <span
                       data-tippy-placement="top-start"
@@ -454,7 +454,7 @@
         </div>
         <div class="weui-tab__panel">
           <div id="orders" class="weui-cells contents-box orders">
-            <div class="orders" v-if="orders && orders.length > 0">
+            <div v-if="orders && orders.length > 0">
               <li
                 v-for="order in orders"
                 :key="order.id"
@@ -798,6 +798,7 @@ export default {
       scienceOnline: false,
       frequencyOptionText: frequencyOptionText,
       currentVersion: "{{version}}",
+      currentBrowser: "{{browser}}",
       recommendServices: getSetting("recommendServices", recommendServices),
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
       newChangelog: versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") < 0,
