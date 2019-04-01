@@ -22,7 +22,7 @@
 
 <script>
 export default {
-  name: "laodingMask",
+  name: "loading",
   data() {
     return {
       numbers: [1, 2, 3, 4, 5]

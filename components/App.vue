@@ -412,7 +412,7 @@
     <div class="contents">
       <div class="weui-tab">
         <div class="weui-navbar">
-          <div class="weui-navbar__item weui-bar__item_on" data-type="orders">
+          <div :class="`weui-navbar__item ${contentType == 'orders' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('orders')">
             最近订单
             <a
               href="https://order.jd.com/center/list.action"
@@ -439,11 +439,11 @@
               </svg>
             </a>
           </div>
-          <div class="weui-navbar__item" data-type="messages">
+          <div :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('messages')">
             最近通知
             <span id="unreadCount" class="weui-badge">0</span>
           </div>
-          <div class="weui-navbar__item zaoshu-tab" data-type="discounts" @click="readDiscounts">
+          <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
             <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
             枣树集惠
             <span
@@ -453,7 +453,7 @@
           </div>
         </div>
         <div class="weui-tab__panel">
-          <div id="orders" class="weui-cells contents-box orders">
+          <div id="orders" v-if="contentType == 'orders'" class="weui-cells contents-box orders">
             <div v-if="orders && orders.length > 0">
               <li
                 v-for="order in orders"
@@ -571,7 +571,7 @@
               </div>
             </div>
           </div>
-          <div id="messages" class="weui-cells contents-box messages">
+          <div id="messages" v-if="contentType == 'messages'" class="weui-cells contents-box messages">
             <div class="messages-top">
               <div class="messages-header">
                 <button
@@ -644,7 +644,7 @@
             </div>
             <div class="no_message" v-else>暂时还没有未读消息</div>
           </div>
-          <discounts/>
+          <discounts v-if="contentType == 'discounts'"/>
         </div>
       </div>
       <div class="bottom">
@@ -778,13 +778,12 @@ Vue.directive("autoSave", {
   }
 });
 
-import laodingMask from './laoding-mask.vue';
 import loginNotice from './login-notice.vue';
 import discounts from './discounts.vue';
 
 export default {
   name: "App",
-  components: { laodingMask, loginNotice, discounts },
+  components: { loginNotice, discounts },
   data() {
     return {
       taskList: [],
@@ -805,6 +804,7 @@ export default {
       hiddenOrderIds: getSetting("hiddenOrderIds", []),
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
       selectedTab: null,
+      contentType: 'orders',
       loginStateDescription: "未能获取登录状态",
       newVersion: getSetting("newVersion", null),
       loginState: {
@@ -899,6 +899,22 @@ export default {
         this.newDiscounts = true;
       }
     },
+    switchContentType: function(type) {
+      this.contentType = type
+      switch (type) {
+        case "messages":
+          this.getMessages()
+          break;
+        case "discounts":
+          this.readDiscounts()
+          break;
+        case "orders":
+          this.getOrders()
+          break;
+        default:
+          break;
+      }
+    },
     tryGoogle: async function() {
       let response = await fetch("https://www.googleapis.com/discovery/v1/apis?name=abusiveexperiencereport");
       if ( response.status == "200" ) {
@@ -927,6 +943,12 @@ export default {
     },
     readDiscounts: function() {
       this.newDiscounts = false
+      $("#unreadCount").fadeOut()
+      chrome.runtime.sendMessage({
+        text: "clearUnread"
+      }, function (response) {
+        console.log("Response: ", response);
+      });
     },
     getPromotions: function() {
       let promotions = getSetting("promotions", []);

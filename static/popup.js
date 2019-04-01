@@ -330,21 +330,6 @@ $( document ).ready(function() {
     });
   });
 
-  $('.contents .weui-navbar__item').on('click', function () {
-    $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
-    var type = $(this).data('type')
-    if (type == 'messages') {
-      $("#unreadCount").fadeOut()
-      chrome.runtime.sendMessage({
-        text: "clearUnread"
-      }, function (response) {
-        console.log("Response: ", response);
-      });
-    }
-    $('.contents-box').hide()
-    $('.contents-box.' + type).show()
-  });
-
   $(".weui-dialog__ft a").on("click", function () {
     $("#dialogs").hide()
     $("#listenAudio").hide()
