@@ -162,7 +162,6 @@ $( document ).ready(function() {
   var paid = localStorage.getItem('jjb_paid');
   var account = localStorage.getItem('jjb_account');
   var admission_test = localStorage.getItem('jjb_admission-test')
-  var unreadCount = localStorage.getItem('unreadCount') || 0
   const displayRecommend = localStorage.getItem('displayRecommend')
   const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
     rate: 7,
@@ -182,10 +181,6 @@ $( document ).ready(function() {
   setTimeout(() => {
     $('body').width(windowWidth)
   }, 100);
-
-  if (unreadCount > 0) {
-    $("#unreadCount").text(unreadCount).fadeIn()
-  }
 
   // 查询推荐设置
   $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {

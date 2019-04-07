@@ -1,4 +1,4 @@
-import {getLoginState} from './account'
+import { getLoginState } from './account'
 
 module.exports = {
   priceProUrl: "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu",
@@ -36,7 +36,7 @@ module.exports = {
       url: 'https://a.jd.com',
       title: '全品类券',
       description: "每天整天领取全平台通用券（105减5/500减20/1000减30）",
-      schedule: [10,11,12,13,14,15,16,17,18,19,20,21,22,23,24],
+      schedule: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
       mode: 'iframe',
       type: ['pc'],
       frequencyOption: ['2h', '5h', 'daily', 'never'],
@@ -147,28 +147,42 @@ module.exports = {
     //   frequencyOption: ['daily', 'never'],
     //   frequency: 'daily'
     // },
+    // {
+    //   id: '16',
+    //   src: {
+    //     m: 'https://m.jr.jd.com/btyingxiao/marketing/html/index.html',
+    //   },
+    //   title: '每日白条抽奖',
+    //   description: "大部分情况获得京豆，也有可能白条券",
+    //   key: "baitiao",
+    //   checkin: true,
+    //   mode: 'iframe',
+    //   type: ['m'],
+    //   frequencyOption: ['daily', 'never'],
+    //   frequency: 'daily'
+    // },
     {
-      id: '16',
+      id: "18",
       src: {
-        m: 'https://m.jr.jd.com/btyingxiao/marketing/html/index.html',
+        m: "https://pro.m.jd.com/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html"
       },
-      title: '每日白条抽奖',
-      description: "大部分情况获得京豆，也有可能白条券",
-      key: "baitiao",
-      checkin: true,
+      title: '拍拍签到有礼',
+      description: "拍拍二手签到有礼",
+      key: "paipai",
       mode: 'iframe',
       type: ['m'],
+      checkin: true,
       frequencyOption: ['daily', 'never'],
       frequency: 'daily'
     },
     {
-      id: '17',
+      id: "19",
       src: {
-        m: 'https://wqs.jd.com/wxsq_project/xym/dailyJDBeans/xym_dailyJDBeans.html',
+        m: "https://m.jr.jd.com/activity/brief/get5Coin/index2.html"
       },
-      title: '京东京豆红包',
-      description: "小羊毛领京豆红包",
-      key: "xym",
+      title: '拼手气领钢镚',
+      description: "京东金融每天领钢镚",
+      key: "mtlgb",
       mode: 'iframe',
       type: ['m'],
       checkin: true,

@@ -1033,8 +1033,8 @@ function autoLogin(account, type) {
         }, 500)
         // 是否需要滑动验证
         setTimeout(function () {
-          let slidemsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
-          if (slidemsg.length > 0) {
+          let slideMsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
+          if (slideMsg && slideMsg.length > 0) {
             dealLoginFailed("pc", "需要完成登录验证")
             chrome.runtime.sendMessage({
               text: "highlightTab",
@@ -1050,9 +1050,9 @@ function autoLogin(account, type) {
         }, 1500)
         // 监控登录失败
         setTimeout(function () {
-          let errormsg = $('.login-box .msg-error').text()
-          if (errormsg.length > 0) {
-            dealLoginFailed("pc",errormsg)
+          let errorMsg = $('.login-box .msg-error').text()
+          if (errorMsg && errorMsg.length > 0) {
+            dealLoginFailed("pc", errorMsg)
           }
         }, 2000)
       }
@@ -1077,9 +1077,9 @@ function autoLogin(account, type) {
           // 监控失败提示
           setTimeout(function () {
             observeDOM($(".notice")[0], function () {
-              let errormsg = $(".notice").text()
-              if (errormsg.length > 0) {
-                dealLoginFailed("m", errormsg)
+              let errorMsg = $(".notice").text()
+              if (errorMsg && errorMsg.length > 0) {
+                dealLoginFailed("m", errorMsg)
               }
             })
           }, 500)
@@ -1306,42 +1306,71 @@ function doubleCheck(setting) {
   }
 }
 
-// 17: 小羊毛
-function dailyJDBeans(setting) {
-  if (setting != 'never') {
-    weui.toast('京价保运行中', 1000);
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "17"
-    })
-
-    if ($(".daily-bonus .opened .red").text() == "红包已领取了哦" && $(".daily-bonus .opened .red").height() > 0) {
-      let value = $(".daily-bonus .opened .info .red_l").text()
-      markCheckinStatus('xym', value)
-    } else if ($(".daily-bonus .click-icon")) {
-      simulateClick($(".daily-bonus .click-icon"))
+// 18: 拍拍二手签到有礼
+function dailyPaipai(setting) {
+	if (setting != 'never') {
+		weui.toast('京价保运行中', 1000);
+		chrome.runtime.sendMessage({
+			text: "run_status",
+			jobId: "19"
+		});
+    if ($(".signIn_btnTxt").text() == '签到') {
+      simulateClick($(".signIn_btnTxt"))
       setTimeout(function () {
-        const signRes = $(".xym-dialog .hit .title").text()
-        const signResContent = $(".xym-dialog .message .content").text()
-        if (signRes && signRes.indexOf("获得") > -1) {
-          let value = signRes.replace(/[^0-9\.-]+/g, "")
-          markCheckinStatus('xym', value + '京豆', () => {
+        if ($(".signIn_pop").height() > 0 && $(".signIn_pop .signIn_Title").text() == '签到成功') {
+          let value = $(".signIn_pop .signIn_bean").text().replace(/[^0-9\.-]+/g, "")
+          markCheckinStatus('paipai', value + '京豆', () => {
             chrome.runtime.sendMessage({
               text: "checkin_notice",
               batch: "bean",
               value: value,
               unit: 'bean',
-              title: "京价保自动为您领取京东京豆红包",
+              title: "京价保自动为您领取拍拍签到有礼",
               content: "恭喜您获得了" + value + '个京豆奖励'
             }, function (response) {
               console.log("Response: ", response);
             })
           })
-        } else if (signResContent && signResContent.indexOf("未登录") > -1) {
-          simulateClick($(".xym-dialog .button"))
         }
-      }, 2000)
+      }, 1500)
+    } else {
+      if ($(".signIn_btnTxt").text() && $(".signIn_btnTxt").text().indexOf("连续签到") > -1){
+        markCheckinStatus('paipai')
+      }
     }
+	}
+}
+
+// 19：每天领钢镚
+function dailyMTLGB(setting) {
+	if (setting != 'never') {
+		weui.toast('京价保运行中', 1000);
+		chrome.runtime.sendMessage({
+			text: "run_status",
+			jobId: "19"
+    });
+    simulateClick($(".absolute.tModel_2 .t_1B img"), true)
+    setTimeout(function () {
+      if ($(".dialogW").height() > 0 && $(".dialogW .dialog_Button").text() == '立即查看') {
+        let value = $(".dialogW .dialog_c").text().replace(/[^0-9\.-]+/g, "")
+        markCheckinStatus('mtlgb', value + '钢镚', () => {
+          chrome.runtime.sendMessage({
+            text: "checkin_notice",
+            batch: "coin",
+            value: value,
+            unit: 'bean',
+            title: "京价保自动为您每天领钢镚",
+            content: "恭喜您获得了" + value + '个钢镚奖励'
+          }, function (response) {
+            console.log("Response: ", response);
+          })
+        })
+      }
+      if ($(".dialogB .b_bg h2").text() && $(".dialogB .b_bg h2").text().indexOf("已经") > -1){
+        console.log('已经领取')
+        markCheckinStatus('mtlgb')
+      }
+    }, 1500)
   }
 }
 
@@ -1588,9 +1617,16 @@ function CheckDom() {
     }, 500);
   };
 
-  // 17 小羊毛
-  if (document.title == "小羊毛领京豆红包" && window.location.host == 'wqs.jd.com') {
-    getSetting('job16_frequency', dailyJDBeans)
+  // 18 拍拍签到有礼
+  if (window.location.host == 'pro.m.jd.com' && window.location.pathname == '/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html') {
+    getSetting('job18_frequency', dailyPaipai)
+  }
+
+  // 19 每天领钢镚
+  if (window.location.host == 'm.jr.jd.com' && window.location.pathname == '/activity/brief/get5Coin/index2.html') {
+    setTimeout(() => {
+      getSetting('job19_frequency', dailyMTLGB)
+    }, 1500);
   }
 
   // 京豆签到 (11:京豆签到)

@@ -441,7 +441,7 @@
           </div>
           <div :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('messages')">
             最近通知
-            <span id="unreadCount" class="weui-badge">0</span>
+            <span class="weui-badge" v-if="unreadCount > 0">{{unreadCount}}</span>
           </div>
           <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
             <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
@@ -807,6 +807,7 @@ export default {
       contentType: 'orders',
       loginStateDescription: "未能获取登录状态",
       newVersion: getSetting("newVersion", null),
+      unreadCount: getSetting("unreadCount", null),
       loginState: {
         default: true,
         m: {
@@ -854,10 +855,7 @@ export default {
           this.orders = orders;
           break;
         case "new_message":
-          let lastUnreadCount = $("#unreadCount").text();
-          $("#unreadCount")
-            .text(Number(lastUnreadCount) + 1)
-            .fadeIn();
+          this.unreadCount = this.unreadCount + 1
           this.messages = makeupMessages(JSON.parse(message.data));
           break;
         case "loginState_updated":
@@ -904,6 +902,7 @@ export default {
       switch (type) {
         case "messages":
           this.getMessages()
+          this.readMessages()
           break;
         case "discounts":
           this.readDiscounts()
@@ -941,14 +940,16 @@ export default {
         return [];
       }
     },
-    readDiscounts: function() {
-      this.newDiscounts = false
-      $("#unreadCount").fadeOut()
+    readMessages: function () {
+      this.unreadCount = 0
       chrome.runtime.sendMessage({
         text: "clearUnread"
       }, function (response) {
         console.log("Response: ", response);
       });
+    },
+    readDiscounts: function() {
+      this.newDiscounts = false
     },
     getPromotions: function() {
       let promotions = getSetting("promotions", []);
