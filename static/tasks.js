@@ -176,13 +176,13 @@ module.exports = {
       frequency: 'daily'
     },
     {
-      id: "19",
+      id: "20",
       src: {
-        m: "https://m.jr.jd.com/activity/brief/get5Coin/index2.html"
+        m: "https://stock-sr.jd.com/h5/jd-flipDraw/html/index.html"
       },
-      title: '拼手气领钢镚',
-      description: "京东金融每天领钢镚",
-      key: "mtlgb",
+      title: '每日翻牌抽奖',
+      description: "京东股票每天翻牌领好礼",
+      key: "flip-draw",
       mode: 'iframe',
       type: ['m'],
       checkin: true,

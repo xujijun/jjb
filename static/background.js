@@ -319,7 +319,7 @@ function runJob(jobId, force = false) {
 function openByIframe(src, type, delayTimes = 0) {
   // 加载新的任务
   let iframeId = "iframe"
-  let keepMinutes = 5
+  let keepMinutes = 6
   if (type == 'temporary') {
     iframeId = 'iframe' + rand(10241024)
     keepMinutes = 1

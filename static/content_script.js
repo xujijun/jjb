@@ -12,10 +12,10 @@ var observeDOM = (function () {
       });
       // have the observer observe foo for changes in children
       obs.observe(obj, { childList: true, subtree: true });
-    }
-    else if (eventListenerSupported) {
+    } else if (eventListenerSupported) {
       obj.addEventListener('DOMNodeInserted', callback, false);
       obj.addEventListener('DOMNodeRemoved', callback, false);
+      obj.addEventListener('DOMSubtreeModified', callback, false);
     }
   };
 })();
@@ -305,7 +305,7 @@ function findOrderBySkuAndApply(priceInfo, setting) {
 }
 
 async function dealOrder(order, orders, setting) {
-  let dealgoods = []
+  let dealGoods = []
   let order_time = order.find('.tr-th span.time').text() ? new Date(order.find('.tr-th span.time').text()) : new Date(order.find('.title span').last().text().trim().split('：')[1])
   let order_id = order.find('.tr-th span.order').text() ? order.find('.tr-th span.order').text().replace(/[^0-9\.-]+/g, "") : order.find('.title .order-code').text().trim().split('：')[1]
 
@@ -330,9 +330,9 @@ async function dealOrder(order, orders, setting) {
     let productList = order.find('.product-item').length > 0 ? order.find('.product-item') : order.filter( ".co-th" )
 
     productList.each(function() {
-      dealgoods.push(dealProduct($(this), order_info, setting))
+      dealGoods.push(dealProduct($(this), order_info, setting))
     })
-    await Promise.all(dealgoods)
+    await Promise.all(dealGoods)
 
     if (order_info.goods.length > 0) {
       orders.push(order_info)
@@ -343,11 +343,11 @@ async function dealOrder(order, orders, setting) {
 async function getAllOrders(mode, setting) {
   console.log('京价保开始自动检查订单', mode)
   let orders = []
-  let dealorders = []
+  let dealOrders = []
   // 移动价保
   if ($( "#dataList0 li").length > 0) {
     $( "#dataList0 li").each(function() {
-      dealorders.push(dealOrder($(this), orders, setting))
+      dealOrders.push(dealOrder($(this), orders, setting))
     });
   }
   // PC价保
@@ -360,11 +360,11 @@ async function getAllOrders(mode, setting) {
         orderDom = orderDom.add(product.next())
         product = product.next()
       }
-      dealorders.push(dealOrder(orderDom, orders, setting))
+      dealOrders.push(dealOrder(orderDom, orders, setting))
     });
   }
   try {
-    await Promise.all(dealorders)
+    await Promise.all(dealOrders)
   } catch (error) {
     console.error('dealorders', error)
   }
@@ -946,12 +946,12 @@ function getSetting(name, cb) {
 }
 
 // 登录失败
-function dealLoginFailed(type, errormsg) {
+function dealLoginFailed(type, errorMsg) {
   let loginFailedDetail = {
     text: "loginFailed",
     type: type,
     notice: true,
-    content: errormsg,
+    content: errorMsg,
     state: "failed"
   }
   // 如果是单纯的登录页面，则不发送浏览器提醒
@@ -1312,33 +1312,35 @@ function dailyPaipai(setting) {
 		weui.toast('京价保运行中', 1000);
 		chrome.runtime.sendMessage({
 			text: "run_status",
-			jobId: "19"
-		});
-    if ($(".signIn_btnTxt").text() == '签到') {
-      simulateClick($(".signIn_btnTxt"))
-      setTimeout(function () {
-        if ($(".signIn_pop").height() > 0 && $(".signIn_pop .signIn_Title").text() == '签到成功') {
-          let value = $(".signIn_pop .signIn_bean").text().replace(/[^0-9\.-]+/g, "")
-          markCheckinStatus('paipai', value + '京豆', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              batch: "bean",
-              value: value,
-              unit: 'bean',
-              title: "京价保自动为您领取拍拍签到有礼",
-              content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function (response) {
-              console.log("Response: ", response);
+			jobId: "18"
+    });
+    setTimeout(() => {
+      if ($(".signIn_btnTxt").text() == '签到') {
+        simulateClick($(".signIn_btnTxt"))
+        observeDOM(document.body, function () {
+          if ($(".signIn_pop").height() > 0 && $(".signIn_pop .signIn_Title").text() == '签到成功') {
+            let value = $(".signIn_pop .signIn_bean").text().replace(/[^0-9\.-]+/g, "")
+            markCheckinStatus('paipai', value + '京豆', () => {
+              chrome.runtime.sendMessage({
+                text: "checkin_notice",
+                batch: "bean",
+                value: value,
+                unit: 'bean',
+                title: "京价保自动为您领取拍拍签到有礼",
+                content: "恭喜您获得了" + value + '个京豆奖励'
+              }, function (response) {
+                console.log("Response: ", response);
+              })
             })
-          })
+          }
+        })
+      } else {
+        if ($(".signIn_btnTxt").text() && $(".signIn_btnTxt").text().indexOf("连续签到") > -1){
+          markCheckinStatus('paipai')
         }
-      }, 1500)
-    } else {
-      if ($(".signIn_btnTxt").text() && $(".signIn_btnTxt").text().indexOf("连续签到") > -1){
-        markCheckinStatus('paipai')
       }
-    }
-	}
+    }, 2000);
+  }
 }
 
 // 19：每天领钢镚
@@ -1349,28 +1351,72 @@ function dailyMTLGB(setting) {
 			text: "run_status",
 			jobId: "19"
     });
-    simulateClick($(".absolute.tModel_2 .t_1B img"), true)
-    setTimeout(function () {
-      if ($(".dialogW").height() > 0 && $(".dialogW .dialog_Button").text() == '立即查看') {
-        let value = $(".dialogW .dialog_c").text().replace(/[^0-9\.-]+/g, "")
-        markCheckinStatus('mtlgb', value + '钢镚', () => {
-          chrome.runtime.sendMessage({
-            text: "checkin_notice",
-            batch: "coin",
-            value: value,
-            unit: 'bean',
-            title: "京价保自动为您每天领钢镚",
-            content: "恭喜您获得了" + value + '个钢镚奖励'
-          }, function (response) {
-            console.log("Response: ", response);
+    setTimeout(() => {
+      simulateClick($(".absolute.tModel_2 .t_1B img"), true)
+      observeDOM(document.body, function () {
+        if ($(".dialogB").height() > 0 && $(".dialogB .dialog_Button").text() == '立即查看') {
+          let value = $(".dialogB .dialog_c").text().replace(/[^0-9\.-]+/g, "")
+          markCheckinStatus('mtlgb', value + '钢镚', () => {
+            chrome.runtime.sendMessage({
+              text: "checkin_notice",
+              batch: "coin",
+              value: value,
+              unit: 'bean',
+              title: "京价保自动为您每天领钢镚",
+              content: "恭喜您获得了" + value + '个钢镚奖励'
+            }, function (response) {
+              console.log("Response: ", response);
+            })
           })
+        }
+        if ($(".dialogB .b_bg h2").text() && $(".dialogB .b_bg h2").text().indexOf("已经") > -1){
+          console.log('已经领取')
+          markCheckinStatus('mtlgb')
+        }
+      })
+    }, 1200);
+
+  }
+}
+
+// 20：每日翻牌抽奖
+function dailyFlipDraw(setting) {
+	if (setting != 'never') {
+		weui.toast('京价保运行中', 1000);
+		chrome.runtime.sendMessage({
+			text: "run_status",
+			jobId: "20"
+    });
+    setTimeout(() => {
+      if ($(".drawCont-item .rightBg").height() > 0) {
+        markCheckinStatus('flip-draw')
+      } else {
+        simulateClick($(".drawCont-item").first(), true);
+        observeDOM(document.body, function () {
+          if ($(".drawCont-item .rightBg").height() > 0) {
+            // 翻到了钢镚
+            if ($(".drawCont-item .sortTxt").first().text().indexOf("钢镚") > -1) {
+              let value = $(".drawCont-item .sortTxt").first().text().replace(/[^0-9\.-]+/g, "")
+              markCheckinStatus('flip-draw', value + '钢镚', () => {
+                chrome.runtime.sendMessage({
+                  text: "checkin_notice",
+                  batch: "coin",
+                  value: value,
+                  unit: 'coin',
+                  title: "京价保自动为您每日翻牌抽奖",
+                  content: "恭喜您获得了" + value + '个钢镚奖励'
+                }, function (response) {
+                  console.log("Response: ", response);
+                })
+              })
+            } else {
+              markCheckinStatus('flip-draw')
+            }
+          }
         })
       }
-      if ($(".dialogB .b_bg h2").text() && $(".dialogB .b_bg h2").text().indexOf("已经") > -1){
-        console.log('已经领取')
-        markCheckinStatus('mtlgb')
-      }
-    }, 1500)
+    }, 2000);
+
   }
 }
 
@@ -1619,13 +1665,22 @@ function CheckDom() {
 
   // 18 拍拍签到有礼
   if (window.location.host == 'pro.m.jd.com' && window.location.pathname == '/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html') {
-    getSetting('job18_frequency', dailyPaipai)
+    setTimeout(() => {
+      getSetting('job18_frequency', dailyPaipai)
+    }, 1500);
   }
 
   // 19 每天领钢镚
   if (window.location.host == 'm.jr.jd.com' && window.location.pathname == '/activity/brief/get5Coin/index2.html') {
     setTimeout(() => {
       getSetting('job19_frequency', dailyMTLGB)
+    }, 1500);
+  }
+
+  // 20 每日翻牌抽奖
+  if (window.location.host == 'stock-sr.jd.com' && window.location.pathname == '/h5/jd-flipDraw/html/index.html') {
+    setTimeout(() => {
+      getSetting('job20_frequency', dailyFlipDraw)
     }, 1500);
   }
 
