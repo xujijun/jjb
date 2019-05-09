@@ -429,7 +429,7 @@ function CheckBaitiaoCouponDom(setting) {
       mode: 'm',
       jobId: "4"
     })
-    var time = 0;
+    let time = 0;
     $("#react-root .react-root .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
       let targetEle = $(this)
       if (targetEle.text() == '确定') {
@@ -440,8 +440,9 @@ function CheckBaitiaoCouponDom(setting) {
         let couponDetails = targetEle.parent().prev().find('span').toArray()
         var coupon_name = couponDetails[2] ? $(couponDetails[2]).text().trim() : '未知白条券'
         var coupon_price = couponDetails[0] ? $(couponDetails[0]).text().trim(): '？' + (couponDetails[1] ? (' (' + $(couponDetails[1]).text() + ')') : '')
+
         setTimeout(function () {
-          simulateClick(targetEle)
+          simulateClick(targetEle, true)
           setTimeout(function () {
             if (targetEle.text() == '去查看') {
               chrome.runtime.sendMessage({
@@ -456,9 +457,9 @@ function CheckBaitiaoCouponDom(setting) {
                 console.log("Response: ", response);
               });
             }
-          }, 500)
+          }, 1500)
         }, time)
-        time += 5000;
+        time += 15000;
       }
     })
   }
@@ -1397,18 +1398,22 @@ function dailyFlipDraw(setting) {
             // 翻到了钢镚
             if ($(".drawCont-item .sortTxt").first().text().indexOf("钢镚") > -1) {
               let value = $(".drawCont-item .sortTxt").first().text().replace(/[^0-9\.-]+/g, "")
-              markCheckinStatus('flip-draw', value + '钢镚', () => {
-                chrome.runtime.sendMessage({
-                  text: "checkin_notice",
-                  batch: "coin",
-                  value: value,
-                  unit: 'coin',
-                  title: "京价保自动为您每日翻牌抽奖",
-                  content: "恭喜您获得了" + value + '个钢镚奖励'
-                }, function (response) {
-                  console.log("Response: ", response);
+              if (value && Number(value) > 0) {
+                markCheckinStatus('flip-draw', value + '钢镚', () => {
+                  chrome.runtime.sendMessage({
+                    text: "checkin_notice",
+                    batch: "coin",
+                    value: value,
+                    unit: 'coin',
+                    title: "京价保自动为您每日翻牌抽奖",
+                    content: "恭喜您获得了" + value + '个钢镚奖励'
+                  }, function (response) {
+                    console.log("Response: ", response);
+                  })
                 })
-              })
+              } else {
+                markCheckinStatus('flip-draw')
+              }
             } else {
               markCheckinStatus('flip-draw')
             }

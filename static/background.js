@@ -276,7 +276,7 @@ function runJob(jobId, force = false) {
         if (scheduledHour > hour) {
           let scheduledTime = DateTime.local().set({
             hour: scheduledHour,
-            minute: rand(5),
+            minute: rand(2) - 1,
             second: rand(55)
           }).valueOf()
           chrome.alarms.create('runScheduleJob_' + job.id, {
