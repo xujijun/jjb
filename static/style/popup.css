@@ -26,6 +26,13 @@ a:hover {
     padding: 2px 15px;
 }
 
+
+.frequency_settings .weui-cell_select{
+    height: 32px;
+    font-size: 13px;
+    padding: 1.5px 11px;
+}
+
 .frequency_settings .weui-cell__bd i.show{
     font-size: 20px;
     margin-left: -5px;

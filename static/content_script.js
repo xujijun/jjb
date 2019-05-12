@@ -545,6 +545,46 @@ function getCommonUseCoupon(setting) {
   }
 }
 
+// 21：领取话费券
+function getTelephoneCoupon(setting) {
+  if (setting != 'never') {
+    var time = 0;
+    console.log('开始领取话费券')
+    weui.toast('京价保运行中', 1000);
+    chrome.runtime.sendMessage({
+      action: "run_status",
+      jobId: "21"
+    })
+    $("#quanlist .quan-item").each(function () {
+      var that = $(this)
+      if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("话费充值券") > -1) {
+        var coupon_name = that.find('.q-range').text()
+        var coupon_price = that.find('.q-price strong').text() + '元 (' + that.find('.q-limit').text() + ')'
+        setTimeout(function () {
+          $(that).find('.btn-def').trigger("click")
+          setTimeout(function () {
+            if ($(".tip-title").text() && $(".tip-title").text().indexOf("领取成功") > -1) {
+              chrome.runtime.sendMessage({
+                text: "coupon",
+                title: "京价保自动领到一张话费优惠券",
+                content: JSON.stringify({
+                  id: '',
+                  batch: '',
+                  price: coupon_price,
+                  name: coupon_name
+                })
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          }, 1500)
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
 // 自动浏览店铺（7：店铺签到）
 function autoVisitShop(setting) {
   if (setting != 'never') {
@@ -1739,9 +1779,10 @@ function CheckDom() {
     getSetting('job4_frequency', CheckBaitiaoCouponDom)
   };
 
-  // 全品类券
+  // 全品类券 & 话费券
   if ($("#quanlist").length > 0 && window.location.host == 'a.jd.com') {
     getSetting('job15_frequency', getCommonUseCoupon)
+    getSetting('job21_frequency', getTelephoneCoupon)
   };
 
   // 自动访问店铺领京豆

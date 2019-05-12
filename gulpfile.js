@@ -60,7 +60,7 @@ function packContentJs() {
 }
 
 function packContentStyle() {
-  return gulp.src(['static/style/weui.min.css', 'static/style/style.css'])
+  return gulp.src(['node_modules/weui/dist/style/weui.css', 'static/style/style.css'])
     .pipe(concat('content_style.css'))
     .pipe(cleanCss())
     .pipe(gulp.dest('build/static/style'));
@@ -69,7 +69,7 @@ function packContentStyle() {
 
 function packPopupStyle() {
   return gulp.src([
-    'static/style/weui.min.css',
+    'node_modules/weui/dist/style/weui.css',
     'static/style/popup.css'
   ])
   .pipe(concat('popup_style.css'))

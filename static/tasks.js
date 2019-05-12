@@ -66,6 +66,19 @@ module.exports = {
       frequency: '5h'
     },
     {
+      id: '21',
+      src: {
+        pc: 'https://jjb.zaoshu.so/event/coupon',
+      },
+      url: 'https://a.jd.com',
+      title: '话费券',
+      description: "领取话费充值券",
+      mode: 'iframe',
+      type: ['pc'],
+      frequencyOption: ['2h', '5h', 'daily', 'never'],
+      frequency: '2h'
+    },
+    {
       id: '5',
       src: {
         m: 'https://vip.m.jd.com/page/signin',
@@ -133,34 +146,6 @@ module.exports = {
       frequencyOption: ['daily', 'never'],
       frequency: 'daily'
     },
-    // {
-    //   id: '12',
-    //   src: {
-    //     m: 'https://m.jr.jd.com/integrate/signin/index.html',
-    //   },
-    //   title: '领取双签奖励',
-    //   description: "完成京豆和京东金融签到有一个双签奖励",
-    //   key: "double_check",
-    //   mode: 'iframe',
-    //   type: ['m'],
-    //   checkin: true,
-    //   frequencyOption: ['daily', 'never'],
-    //   frequency: 'daily'
-    // },
-    // {
-    //   id: '16',
-    //   src: {
-    //     m: 'https://m.jr.jd.com/btyingxiao/marketing/html/index.html',
-    //   },
-    //   title: '每日白条抽奖',
-    //   description: "大部分情况获得京豆，也有可能白条券",
-    //   key: "baitiao",
-    //   checkin: true,
-    //   mode: 'iframe',
-    //   type: ['m'],
-    //   frequencyOption: ['daily', 'never'],
-    //   frequency: 'daily'
-    // },
     {
       id: "18",
       src: {
@@ -176,19 +161,33 @@ module.exports = {
       frequency: 'daily'
     },
     {
-      id: "20",
+      id: '16',
       src: {
-        m: "https://stock-sr.jd.com/h5/jd-flipDraw/html/index.html"
+        m: 'https://m.jr.jd.com/btyingxiao/marketing/html/index.html',
       },
-      title: '每日翻牌抽奖',
-      description: "京东股票每天翻牌领好礼",
-      key: "flip-draw",
+      title: '白条免息红包',
+      description: "大部分情况获得京豆，也有可能白条券",
+      key: "baitiao",
+      checkin: true,
       mode: 'iframe',
       type: ['m'],
-      checkin: true,
       frequencyOption: ['daily', 'never'],
       frequency: 'daily'
     },
+    // {
+    //   id: "20",
+    //   src: {
+    //     m: "https://stock-sr.jd.com/h5/jd-flipDraw/html/index.html"
+    //   },
+    //   title: '每日翻牌抽奖',
+    //   description: "京东股票每天翻牌领好礼",
+    //   key: "flip-draw",
+    //   mode: 'iframe',
+    //   type: ['m'],
+    //   checkin: true,
+    //   frequencyOption: ['daily', 'never'],
+    //   frequency: 'daily'
+    // },
     {
       id: '7',
       src: {
