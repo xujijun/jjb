@@ -458,7 +458,7 @@ $( document ).ready(function() {
   })
 
 
-  $("#login").on("click", function () {
+  $(".openLogin").on("click", function () {
     chrome.runtime.sendMessage({
       text: "openLogin",
     }, function(response) {

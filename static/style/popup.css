@@ -480,6 +480,11 @@ a.buy-btn:hover{
     display: none;
 }
 
+.testbox b{
+    color: #333;
+    font-weight: 500;
+}
+
 #admissionTest .weui-dialog__bd{
     line-height: 1.6;
     max-height: 300px;

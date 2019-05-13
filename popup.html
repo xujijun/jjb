@@ -167,7 +167,7 @@
               </div>
               <div class="weui-dialog__bd">
                 <p>感谢你使用京价保！以下是一些简单的介绍：</p>
-                <p>京价保是一个<a href="https://github.com/sunoj/jjb" target="_blank">公开源代码</a>的浏览器插件。它能自动监控已购商品的价格变化，在降价时自动申请价格保护。还内置一系列替你进行签到、领券、领返利的小任务。</p>
+                <p>京价保是一个<a href="https://github.com/sunoj/jjb" target="_blank">公开源代码</a>的浏览器插件。它能自动监控已购商品的价格变化，在降价时自动申请价格保护。还内置一系列替你进行签到、领券、抽奖等小任务。</p>
                 <p>由于京东网页经常更新，京价保受其影响可能部分功能有时变得不可用，因此京价保会经常更新以保持功能正常。如果你使用的不是 <a href="https://chrome.google.com/webstore/detail/gfgkebiommjpiaomalcbfefimhhanlfd" target="_blank">Chrome 拓展商店</a> 或 <a href="https://addons.mozilla.org/zh-CN/firefox/addon/jjb/" target="_blank">Firefox 官方商店</a> 安装，强烈建议您使用上述渠道安装，只有这样你才能获得官方的自动更新。</p>
                 <p>本插件的所有功能均为京东官方网页提供，未利用任何私有 API。</p>
               </div>
@@ -177,17 +177,25 @@
             </div>
             <div class="testbox test-2">
               <div class="weui-dialog__hd">
-                <strong class="weui-dialog__title">授权方式</strong>
+                <strong class="weui-dialog__title">登录账号</strong>
               </div>
               <div class="weui-dialog__bd">
-                <p>如你所知，京价保可以免费安装而且公开源代码，但，京价保并不是一个免费软件，从发布之初京价保就选择了"打赏任意金额即可获得授权"的模式。</p>
-                <p>自2017年诞生以来，京价保至今已经迭代了几十个版本，用户数也已经超过2万人。很遗憾，不像其他商业软件。京价保靠打赏模式带来的收入屈指可数，甚至不及很多公众号一篇文章的打赏。</p>
-                <p>很容易就可以了解，写一个软件并维护一年多远比写出一篇公众号文章更难，更不用说这个软件可以给用户带来直接的收益。然而现实却是，如果不强制收费，那么就几乎没人付钱。</p>
-                <p>我不是在摇尾乞怜，我们见过很多项目缺乏支持而停止维护，我们是合作者，只不过用一种更优雅的方式合作。</p>
-                <p>如果你是新用户，你不必着急现在就给作者打赏，不妨等京价保第一次价保成功。</p>
+                <p>如你所知，京价保是一个浏览器插件。在你的授权下，京价保代替你自动访问京东的网页来执行一系列操作。 </p>
+                <p>很显然，
+                  <b>京价保需要您登录京东才能完成你指定的工作</b>。而京东的登录有效期很短，如果您使用扫码登录等方式登录京东，京价保只能在短时间内保持有效。
+                </p>
+                <p>强烈建议您在登录时选择
+                  <b>“让京价保记住密码并自动登录”</b>，以便京价保自动完成工作。
+                </p>
+                <p>京价保确保
+                  <b>绝不会将您的密码上传和分享给任何人</b>，您可以通过
+                  <a href="https://github.com/sunoj/jjb" target="_blank">审查代码</a>来确认这一点，同时建议您
+                  <b>为京东配置一个唯一的登录密码，开启所有的安全措施</b>。
+                </p>
+                <p>当登录失效或者需要验证码时，京价保将会提醒你。除非你重新登录，否则京价保将无法继续完成任何工作。</p>
               </div>
               <div class="weui-dialog__ft">
-                <a class="weui-dialog__btn weui-dialog__btn_primary answer" data-next="" >好的</a>
+                <a class="weui-dialog__btn weui-dialog__btn_primary answer openLogin" data-next="" >现在登录</a>
                 <a class="weui-dialog__btn weui-dialog__btn_default answer" data-next="3">了解更多</a>
               </div>
             </div>
