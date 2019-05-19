@@ -7,6 +7,7 @@ import Vue from 'vue'
 
 import { getSetting } from './utils'
 import { notices } from './variables'
+import { getLoginState } from './account'
 
 import App from '../components/App.vue';
 new Vue({
@@ -159,9 +160,8 @@ function showJEvent(rateLimit) {
 
 
 $( document ).ready(function() {
-  var paid = localStorage.getItem('jjb_paid');
-  var account = localStorage.getItem('jjb_account');
-  var admission_test = localStorage.getItem('jjb_admission-test')
+  const paid = localStorage.getItem('jjb_paid');
+  const account = localStorage.getItem('jjb_account');
   const displayRecommend = localStorage.getItem('displayRecommend')
   const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
     rate: 7,
@@ -169,6 +169,7 @@ $( document ).ready(function() {
   })
   let windowWidth = Number(document.body.offsetWidth)
   let time = Date.now().toString()
+  let loginState = getLoginState()
 
   // tippy
   tippy('.tippy')
@@ -254,48 +255,20 @@ $( document ).ready(function() {
     return ($(".js_dialog:visible").length < 1) && ($(".weui-dialog:visible").length < 1)
   }
 
-  // 入学考试
-  function showTest(target) {
-    let testNo = target || '1'
-    $("#admissionTest .testbox").hide()
-    setTimeout(() => {
-      $("#admissionTest .test-" + testNo).show()
-    }, 50);
-  }
-
-  if (admission_test && admission_test == 'N') {
-    $("#admissionTest").show()
-    $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")
-    $("#admissionTest .answer").on("click", function () {
-      let next = $(this).data('next')
-      if (next) {
-        showTest(next)
-      } else {
-        $("#admissionTest").hide()
-        localStorage.setItem('jjb_admission-test', 'Y');
-      }
-    })
-    $("#admissionTest .dismiss").on("click", function () {
-      $("#admissionTest").hide()
-      window.close();
-    })
-    showTest()
-  }
-
   // 常规弹窗延迟200ms
   setTimeout(() => {
     if (paid) {
       $("#dialogs").hide()
-    } else {
-      if (isNoDialog() && time[time.length - 1] < 4) {
-        showReward()
-      }
     }
     // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
     if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > displayRecommendRateLimit.rate) {
       showJEvent(displayRecommendRateLimit)
     }
 
+    // 没有弹框 且 未登录账号
+    if (isNoDialog() && (!account && loginState.class == "failed") || loginState.class == "unknown") {
+      $("#loginNotice").show();
+    }
 
     if (!account) {
       $("#clearAccount").addClass('weui-btn_disabled')

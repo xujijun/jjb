@@ -149,7 +149,7 @@ export default {
       this.selectTag = null;
       let queryParams = new URLSearchParams(condition);
       let response = await fetch(
-        `https://teaclub.zaoshu.so/discount?${queryParams.toString()}`
+        `https://jjb.zaoshu.so/discount?${queryParams.toString()}`
       );
       let discounts = await response.json();
       this.discountList = discounts.map(function(discount) {
@@ -175,7 +175,7 @@ export default {
       this.discountTab = null;
       this.discountList = null;
       let response = await fetch(
-        `https://teaclub.zaoshu.so/discount/tag/${tag.id}`
+        `https://jjb.zaoshu.so/discount/tag/${tag.id}`
       );
       let data = await response.json();
       this.selectTag = data.tag;

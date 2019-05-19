@@ -463,8 +463,7 @@ a.buy-btn:hover{
 }
 
 #dialogs,
-#changeLogs,
-#admissionTest {
+#changeLogs {
     display: none;
 }
 
@@ -476,22 +475,19 @@ a.buy-btn:hover{
 }
 
 
-#admissionTest .testbox{
-    display: none;
-}
 
 .testbox b{
     color: #333;
     font-weight: 500;
 }
 
-#admissionTest .weui-dialog__bd{
+.guide .weui-dialog__bd{
     line-height: 1.6;
     max-height: 300px;
     overflow-x: hidden;
 }
 
-#admissionTest .weui-dialog__bd p{
+.guide .weui-dialog__bd p{
     margin-bottom: 1em;
 }
 
@@ -720,7 +716,6 @@ img.weui-tabbar__icon {
 #feedbackDialags,
 #faqDialags,
 #jEventDialags,
-#loginNotice,
 #listenAudio {
     display: none;
 }

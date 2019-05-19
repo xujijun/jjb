@@ -2,8 +2,8 @@ $ = window.$ = window.jQuery = require('jquery')
 import * as _ from "lodash"
 import Logline from 'logline'
 import {DateTime} from 'luxon'
-import {priceProUrl, tasks, mapFrequency, findJobPlatform} from './tasks'
-import {rand, getSetting} from './utils'
+import {priceProUrl, mapFrequency, getTask, getTasks} from './tasks'
+import {rand, getSetting, saveSetting} from './utils'
 import {getLoginState} from './account'
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
@@ -13,14 +13,6 @@ var autoLoginQuota = {}
 var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
 var priceProPage = null
 var mobileUAType = getSetting('uaType', 1)
-
-// 设置默认频率
-_.forEach(tasks, (job) => {
-  let frequency = getSetting('job' + job.id + '_frequency')
-  if (!frequency) {
-    localStorage.setItem('job' + job.id + '_frequency', job.frequency)
-  }
-})
 
 // This is to remove X-Frame-Options header, if present
 chrome.webRequest.onHeadersReceived.addListener(
@@ -51,7 +43,6 @@ chrome.runtime.onInstalled.addListener(function (object) {
     console.log("已经安装")
   } else {
     localStorage.setItem('jjb_installed', 'Y');
-    localStorage.setItem('jjb_admission-test', 'N');
     localStorage.setItem('uaType', rand(3));
     chrome.tabs.create({url: "/start.html"}, function (tab) {
       console.log("京价保安装成功！");
@@ -107,17 +98,18 @@ chrome.webRequest.onBeforeRequest.addListener(
     urls: ["*://m.jr.jd.com/*", "*://m.jd.com/*"]
   }, ["blocking"]);
 
+// 定时任务
 chrome.alarms.onAlarm.addListener(function( alarm ) {
   log('background', "onAlarm", alarm)
-  var jobId = alarm.name.split('_')[1]
+  let taskId = alarm.name.split('_').length > 1 ? alarm.name.split('_')[1] : null
   switch(true){
     // 计划任务
     case alarm.name.startsWith('runScheduleJob'):
-      runJob(jobId, true)
+      runJob(taskId, true)
       break;
     // 定时任务
     case alarm.name.startsWith('runJob'):
-      runJob(jobId)
+      runJob(taskId)
       break;
     // 周期运行（10分钟）
     case alarm.name == 'cycleTask':
@@ -126,14 +118,14 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       runJob()
       break;
     case alarm.name.startsWith('clearIframe'):
-      resetIframe(jobId || 'iframe')
+      resetIframe(taskId || 'iframe')
       break;
     case alarm.name.startsWith('destroyIframe'):
-      $("#" + jobId).remove();
+      $("#" + taskId).remove();
       break;
     case alarm.name.startsWith('closeTab'):
       try {
-        chrome.tabs.get(jobId, (tab) => {
+        chrome.tabs.get(taskId, (tab) => {
           if (tab) {
             chrome.tabs.remove(tab.id)
           }
@@ -155,67 +147,129 @@ function saveJobStack(jobStack) {
   localStorage.setItem('jobStack', JSON.stringify(jobStack));
 }
 
-function getTasks(platform) {
-  let taskList = _.map(tasks, (task) => {
-    var job_run_last_time = localStorage.getItem('job' + task.id + '_lasttime')
-    task.last_run_at = job_run_last_time ? parseInt(job_run_last_time) : null
-    task.frequency = getSetting('job' + task.id + '_frequency') || task.frequency
-    // 如果是签到任务，则读取签到状态
-    if (task.checkin) {
-      let checkinRecord = getSetting('jjb_checkin_' + task.key, null)
-      if (checkinRecord && checkinRecord.date == DateTime.local().toFormat("o")) {
-        task.checked = true
-      }
+// 根据页面查找匹配的任务
+function findTasksByLocation(location) {
+  let taskList = getTasks()
+  let locationTask = taskList.filter(task => task.location && Object.keys(task.location).length > 0)
+  let matchedTasks =[]
+  locationTask.forEach((task) => {
+    if (Object.keys(task.location).every((key) => task.location[key].indexOf(location[key]) > -1 )) {
+      matchedTasks.push(task)
     }
-    // 如果限定平台
-    if (platform) {
-      if (task.type.indexOf(platform) < 0) {
-        task.unavailable = true
-      }
-    }
-    return task
   })
-  _.remove(taskList, 'unavailable')
-  return taskList
+  return matchedTasks
 }
 
 // 寻找乔布斯
 function findJobs(platform) {
   let jobStack = getSetting('jobStack', [])
-  let jobList = getTasks(platform)
+  let taskList = getTasks(platform)
 
-  jobList.forEach(function(job) {
-    let availablePlatform = findJobPlatform(job)
-    if (!availablePlatform) {
-      return console.log(job.title, '由于账号未登录已暂停运行')
+  taskList.forEach(function(task) {
+    if (task.suspended || task.deprecated) {
+      return console.log(task.title, '任务已暂停')
     }
-    switch(job.frequency){
+    switch(task.frequency){
       case '2h':
         // 如果从没运行过，或者上次运行已经过去超过2小时，那么需要运行
-        if (!job.last_run_at || (DateTime.local() > DateTime.fromMillis(job.last_run_at).plus({ hours: 2 }))) {
-          jobStack.push(job.id)
+        if (!task.last_run_at || (DateTime.local() > DateTime.fromMillis(task.last_run_at).plus({ hours: 2 }))) {
+          jobStack.push(task.id)
         }
         break;
       case '5h':
         // 如果从没运行过，或者上次运行已经过去超过5小时，那么需要运行
-        if (!job.last_run_at || (DateTime.local() > DateTime.fromMillis(job.last_run_at).plus({ hours: 5 }))) {
-          jobStack.push(job.id)
+        if (!task.last_run_at || (DateTime.local() > DateTime.fromMillis(task.last_run_at).plus({ hours: 5 }))) {
+          jobStack.push(task.id)
         }
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
-        if (!job.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(job.last_run_at), 'day')) || (job.checkin && !job.checked)) {
-          jobStack.push(job.id)
+        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day')) || (task.checkin && !task.checked)) {
+          jobStack.push(task.id)
         }
         break;
       default:
-        console.log('ok, never run ', job.title)
+        console.log('ok, never run ', task.title)
     }
   });
   saveJobStack(jobStack)
 }
 
+// 执行组织交给我的任务
+function runJob(taskId, force = false) {
+  // 不在凌晨阶段运行非强制任务
+  if (DateTime.local().hour < 6 && !force) {
+    return console.log('Silent Night')
+  }
+  log('background', "run job", {
+    taskId,
+    force
+  })
+  // 如果没有指定任务ID 就从任务栈里面找一个
+  if (!taskId) {
+    let jobStack = getSetting('jobStack', [])
+    if (jobStack && jobStack.length > 0) {
+      taskId = jobStack.shift();
+      saveJobStack(jobStack)
+    } else {
+      return log('info', '好像没有什么事需要我做...')
+    }
+  }
+  let task = getTask(taskId)
+  console.log('task', task)
 
+  // 如果任务已暂停或已经弃用 且不是强制执行
+  if ((task.suspended || task.deprecated) && !force) {
+    return log('job', task.title, '由于账号未登录已暂停运行')
+  }
+  if (task && (task.frequency != 'never' || force)) {
+    // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段，并继续执行任务
+    if (!force && task.schedule) {
+      for (var i = 0, len = task.schedule.length; i < len; i++) {
+        let hour = DateTime.local().hour;
+        let scheduledHour = task.schedule[i]
+        if (scheduledHour > hour) {
+          let scheduledTime = DateTime.local().set({
+            hour: scheduledHour,
+            minute: rand(2) - 1,
+            second: rand(55)
+          }).valueOf()
+          chrome.alarms.create('runScheduleJob_' + task.id, {
+            when: scheduledTime
+          })
+          log('background', "schedule job created", {
+            job: task,
+            time: scheduledHour,
+            when: scheduledTime
+          })
+        }
+      }
+      // 如果当前已经过了最晚的运行时段，则放弃运行
+      log('background', "pass schedule job", {
+        job: task
+      })
+    }
+    log('background', "run", task)
+    if (task.mode == 'iframe') {
+      openByIframe(task.url, 'job')
+    } else {
+      chrome.tabs.create({
+        index: 1,
+        url: task.url,
+        active: false,
+        pinned: true
+      }, function (tab) {
+        // 将标签页静音
+        chrome.tabs.update(tab.id, {
+          muted: true
+        }, function (result) {
+          log('background', "muted tab", result)
+        })
+        chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
+      })
+    }
+  }
+}
 
 function savePrice(price) {
   let skuPriceList = localStorage.getItem('skuPriceList') ? JSON.parse(localStorage.getItem('skuPriceList')) : {}
@@ -237,83 +291,6 @@ function resetIframe(domId) {
   $("#" + domId).remove();
   let iframeDom = `<iframe id="${domId}" width="400 px" height="600 px" src=""></iframe>`;
   $('body').append(iframeDom);
-}
-
-// 执行组织交给我的任务
-function runJob(jobId, force = false) {
-  // 不在凌晨阶段运行非强制任务
-  if (DateTime.local().hour < 6 && !force) {
-    return console.log('Silent Night')
-  }
-  log('background', "run job", {
-    jobId: jobId,
-    force: force
-  })
-  // 如果没有指定任务ID 就从任务栈里面找一个
-  if (!jobId) {
-    let jobStack = getSetting('jobStack', [])
-    if (jobStack && jobStack.length > 0) {
-      jobId = jobStack.shift();
-      saveJobStack(jobStack)
-    } else {
-      return log('info', '好像没有什么事需要我做...')
-    }
-  }
-  let jobList = getTasks()
-  let job = _.find(jobList, {id: jobId})
-
-  let platform = findJobPlatform(job)
-
-  if (!platform && !force) {
-    return log('job', job.title, '由于账号未登录已暂停运行')
-  }
-  if (job && (job.frequency != 'never' || force)) {
-    // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段
-    if (!force && job.schedule) {
-      for (var i = 0, len = job.schedule.length; i < len; i++) {
-        let hour = DateTime.local().hour;
-        let scheduledHour = job.schedule[i]
-        if (scheduledHour > hour) {
-          let scheduledTime = DateTime.local().set({
-            hour: scheduledHour,
-            minute: rand(2) - 1,
-            second: rand(55)
-          }).valueOf()
-          chrome.alarms.create('runScheduleJob_' + job.id, {
-            when: scheduledTime
-          })
-          return log('background', "schedule job created", {
-            job: job,
-            time: scheduledHour,
-            when: scheduledTime
-          })
-        }
-      }
-      // 如果当前已经过了最晚的运行时段，则放弃运行
-      return log('background', "pass schedule job", {
-        job: job
-      })
-    }
-    log('background', "run", job)
-    if (job.mode == 'iframe') {
-      openByIframe(job.src[platform], 'job')
-    } else {
-      chrome.tabs.create({
-        index: 1,
-        url: job.src[platform],
-        active: false,
-        pinned: true
-      }, function (tab) {
-        // 将标签页静音
-        chrome.tabs.update(tab.id, {
-          muted: true
-        }, function (result) {
-          log('background', "muted tab", result)
-        })
-        chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
-      })
-    }
-  }
 }
 
 function openByIframe(src, type, delayTimes = 0) {
@@ -360,7 +337,6 @@ function updateUnreadCount(change = 0) {
 }
 
 
-
 $( document ).ready(function() {
   log('background', "document ready")
   // 每10分钟运行一次定时任务
@@ -377,39 +353,18 @@ $( document ).ready(function() {
   // 载入显示未读数量
   updateUnreadCount()
 
-  // 总是安全的访问京东
-  var force_https = getSetting('force_https')
-  if (force_https && force_https == 'checked') {
-    chrome.tabs.onCreated.addListener(function (tab){
-      forceHttps(tab)
-    })
-    chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-      if (changeInfo.url) {
-        forceHttps(tab)
-      }
-    })
-  }
+  // 加载任务参数
+  loadSettingsToLocalStorage('task-parameters')
 })
 
-
-function openWebPageAsMoblie(url) {
+// 用手机模式打开
+function openWebPageAsMobile(url) {
   chrome.windows.create({
     width: 420,
     height: 800,
     url: url,
     type: "popup"
   });
-}
-
-// force ssl
-function forceHttps(tab) {
-  if (tab && tab.url && _.startsWith(tab.url, 'http://') && tab.url.indexOf('jd.com') !== -1) {
-    chrome.tabs.update(tab.id, {
-      url: tab.url.replace(/^http:\/\//i, 'https://')
-    }, function () {
-      console.log('force ssl jd.com')
-    })
-  }
 }
 
 // 清除不需要的tab
@@ -448,7 +403,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
           })
           break;
         case 'jiabao':
-          openWebPageAsMoblie(priceProUrl)
+          openWebPageAsMobile(priceProUrl)
           break;
         case 'login-failed':
           if (type == 'pc') {
@@ -456,7 +411,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
               url: "https://passport.jd.com/uc/login"
             })
           } else {
-            openWebPageAsMoblie(mLoginUrl)
+            openWebPageAsMobile(mLoginUrl)
           }
           break;
         default:
@@ -492,7 +447,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
         break;
       case 'm':
         if (buttonIndex == 0) {
-          openWebPageAsMoblie(mLoginUrl)
+          openWebPageAsMobile(mLoginUrl)
         }
         break;
       default:
@@ -563,10 +518,6 @@ function updateIcon() {
 // 保存登陆状态
 function saveLoginState(loginState) {
   let previousState = getLoginState()
-  // 如果登录状态从失败转换到了在线
-  if (previousState[loginState.type].state != 'alive' && loginState.state == "alive") {
-    findJobs(loginState.type)
-  }
   localStorage.setItem('jjb_login-state_' + loginState.type, JSON.stringify({
     time: new Date(),
     message: loginState.content || loginState.message,
@@ -576,6 +527,18 @@ function saveLoginState(loginState) {
     action: "loginState_updated",
     data: loginState
   });
+  // 如果登录状态从失败转换到了在线
+  if (previousState[loginState.type].state != 'alive' && loginState.state == "alive") {
+    setTimeout(() => {
+      findJobs(loginState.type)
+    }, 30000);
+  }
+  // 如果账号首次登录，马上运行一次价保
+  if (previousState.class == 'unknown' && loginState.state == "alive") {
+    setTimeout(() => {
+      runJob('1')
+    }, 15000);
+  }
 }
 
 // 浏览器通知（合并）
@@ -628,11 +591,19 @@ function reportPrice(priceInfo) {
   })
 }
 
+// 加载任务参数
+function loadSettingsToLocalStorage(key) {
+  $.getJSON(`https://jjb.zaoshu.so/setting/${key}`, function (json) {
+    saveSetting(key, json)
+  })
+}
+
 // 处理消息通知
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (!msg.action) {
     msg.action = msg.text
   }
+  let task
   let loginState = getLoginState()
   let hourInYear = DateTime.local().toFormat("oHH")
   switch(msg.action){
@@ -732,6 +703,13 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       sendResponse(setting)
       break;
+    // 获取页面参数
+    case 'getPageSetting':
+      let matchedTasks = findTasksByLocation(msg.location)
+      sendResponse({
+        tasks: matchedTasks
+      })
+      break;
     case 'getAccount':
       let account = getSetting('jjb_account', null)
       let loginTypeState = getSetting('jjb_login-state_' + msg.type, {})
@@ -757,7 +735,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     case 'openLogin':
       if (loginState.m.state != 'alive') {
-        openWebPageAsMoblie(mLoginUrl)
+        openWebPageAsMobile(mLoginUrl)
       } else {
         chrome.tabs.create({
           url: "https://home.jd.com"
@@ -765,10 +743,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }
       break;
     case 'openUrlAsMoblie':
-      openWebPageAsMoblie(msg.url)
+      openWebPageAsMobile(msg.url)
       break;
     case 'openPricePro':
-      openWebPageAsMoblie(priceProUrl)
+      openWebPageAsMobile(priceProUrl)
       break;
     // 登录失败
     case 'loginFailed':
@@ -792,18 +770,21 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     case 'option':
       localStorage.setItem('jjb_'+msg.title, msg.content);
       break;
+    // 获取任务
+    case 'getTask':
+      task = getTask(msg.taskId)
+      sendResponse(task)
+      break;
     // 手动运行任务
     case 'runTask':
-      var jobId = msg.taskId
-      var jobList = getTasks()
-      var job = _.find(jobList, {id: jobId})
+      task = getTask(msg.taskId)
       // set 临时运行
-      localStorage.setItem('temporary_job' + jobId + '_frequency', 'onetime');
-      runJob(jobId, true)
+      localStorage.setItem(`temporary_job${task.id}_frequency`, 'onetime');
+      runJob(task.id, true)
       if (!msg.hideNotice) {
         sendChromeNotification(new Date().getTime().toString(), {
           type: "basic",
-          title: "正在重新运行" + job.title,
+          title: "正在重新运行" + task.title,
           message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
           iconUrl: 'static/image/128.png'
         })
@@ -889,18 +870,17 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
     // 运行状态
     case 'run_status':
-      var jobList = getTasks()
-      var job = _.find(jobList, { id: msg.jobId })
-      localStorage.setItem('job' + job.id + '_lasttime', new Date().getTime())
+      task = getTask(msg.jobId)
+      localStorage.setItem('job' + task.id + '_lasttime', new Date().getTime())
       saveLoginState({
-        content: job.title + "成功运行",
+        content: task.title + "成功运行",
         state: "alive",
-        type: msg.mode || job.type[0]
+        type: msg.mode || task.type[0]
       })
       // 如果任务周期小于10小时，且不是计划任务，则安排下一次运行
-      if (mapFrequency[job.frequency] < 600 && !job.schedule) {
-        chrome.alarms.create('runJob_' + job.id, {
-          delayInMinutes: mapFrequency[job.frequency]
+      if (mapFrequency[task.frequency] < 600 && !task.schedule) {
+        chrome.alarms.create('runJob_' + task.id, {
+          delayInMinutes: mapFrequency[task.frequency]
         })
       }
       sendResponse({
@@ -958,8 +938,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         })
       })
       break;
-    case 'coupon':
-      var coupon = JSON.parse(msg.content)
+    case 'couponReceived':
+      var coupon = msg.content
       var mute_coupon = getSetting('mute_coupon')
       if (mute_coupon && mute_coupon == 'checked') {
         console.log('coupon', msg)
@@ -1024,7 +1004,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       break;
   }
 
-  if (msg.text != 'saveAccount') {
+  if (msg.action != 'saveAccount') {
     log('message', msg.text, msg);
   }
   // 如果消息 300ms 未被回复

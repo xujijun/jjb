@@ -29,10 +29,10 @@
                         class="openMobilePage"
                         :data-url="task.url"
                       >{{task.title}}</a>
-                      <a v-else :href="task.url" target="_blank">{{task.title}}</a>
+                      <a v-else :href="task.baseUrl || task.url" target="_blank">{{task.title}}</a>
                     </span>
                     <span v-show="task.suspended && !task.checked" v-tippy title="因账号未登录任务已暂停运行">
-                      <i class="job-state weui-icon-waiting-circle" @click="showLoginState"></i>
+                      <i class="job-state weui-icon-waiting-circle" @click="showLoginState = true"></i>
                     </span>
                     <i
                       v-show="task.checked"
@@ -288,18 +288,6 @@
                     <span
                       data-tippy-placement="top-start"
                       class="tippy"
-                      data-tippy-content="该功能会自动跳转http的访问至https，这能更安全的访问京东以及防止运营商劫持（而且这样你就不会把劫持跳转的锅甩到京价保身上了）。"
-                    >强制https访问京东</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="force_https">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
                       data-tippy-content="停用价格走势功能将停止上报京价保在本地获取到的商品价格同时停止展示价格走势图"
                     >停用价格走势图</span>
                   </div>
@@ -361,8 +349,9 @@
         <div class="avatar">
           <a
             id="loginState"
-            :class="`${loginState.class} login-state showLoginState`"
+            :class="`${loginState.class} login-state`"
             v-tippy
+            @click="showLoginState = true"
             :title="loginStateDescription"
           ></a>
         </div>
@@ -689,7 +678,10 @@
         </div>
       </div>
     </div>
-    <login-notice :state="loginState"/>
+    <div class="dialogs">
+      <guide v-if="showGuide" :login-state="loginState"></guide>
+      <login-notice v-if="showLoginState" :state="loginState"></login-notice>
+    </div>
   </div>
 </template>
 
@@ -701,7 +693,7 @@ import Vue from "vue";
 
 import { DateTime } from 'luxon'
 import { getLoginState } from '../static/account'
-import { tasks, frequencyOptionText, findJobPlatform } from "../static/tasks";
+import { tasks, frequencyOptionText, findJobPlatform, getTasks } from "../static/tasks";
 import { getSetting, versionCompare, readableTime } from "../static/utils";
 import { rewards, notices, stateText, recommendServices } from "../static/variables";
 
@@ -780,10 +772,11 @@ Vue.directive("autoSave", {
 
 import loginNotice from './login-notice.vue';
 import discounts from './discounts.vue';
+import guide from './guide.vue';
 
 export default {
   name: "App",
-  components: { loginNotice, discounts },
+  components: { loginNotice, discounts, guide },
   data() {
     return {
       taskList: [],
@@ -795,6 +788,7 @@ export default {
       newDiscounts: false,
       loadingOrder: false,
       scienceOnline: false,
+      showLoginState: false,
       frequencyOptionText: frequencyOptionText,
       currentVersion: "{{version}}",
       currentBrowser: "{{browser}}",
@@ -808,6 +802,8 @@ export default {
       loginStateDescription: "未能获取登录状态",
       newVersion: getSetting("newVersion", null),
       unreadCount: getSetting("unreadCount", null),
+      olduser: getSetting('jjb_admission-test', false),
+      showGuideAt: getSetting('showGuideAt', false),
       loginState: {
         default: true,
         m: {
@@ -856,7 +852,7 @@ export default {
           break;
         case "new_message":
           this.unreadCount = this.unreadCount + 1
-          this.messages = makeupMessages(JSON.parse(message.data));
+          this.messages = this.makeupMessages(JSON.parse(message.data));
           break;
         case "loginState_updated":
           this.dealWithLoginState();
@@ -882,6 +878,15 @@ export default {
             this.retryTask(tasks[0], true);
           }
         }
+      }
+    }
+  },
+  computed: {
+    showGuide: function() {
+      if (!this.olduser && !this.showGuideAt) {
+        return true
+      } else {
+        return false
       }
     }
   },
@@ -1001,54 +1006,20 @@ export default {
       this.loginState["pc"].description = "当前登录状态" + getStateDescription(loginState, "pc");
       this.loginState["m"].description = "当前登录状态" + getStateDescription(loginState, "m");
       this.loginStateDescription = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
+
+      // 如果登录失败，那么显示提示
+      if (loginState.class == "failed") {
+        this.showLoginState = true
+      }
     },
     // 任务列表
     getTaskList: async function() {
-      this.taskList = _.map(tasks, task => {
-        task.last_run_at = getSetting("job" + task.id + "_lasttime", null);
-        task.frequencySetting = getSetting(
-          "job" + task.id + "_frequency",
-          task.frequency
-        );
-        task.last_run_description = task.last_run_at
-          ? "上次运行： " +
-            readableTime(DateTime.fromMillis(Number(task.last_run_at)))
-          : "从未执行";
-        // 如果是签到任务，则读取签到状态
-        if (task.checkin) {
-          let checkinRecord = getSetting("jjb_checkin_" + task.key, null);
-          if (
-            checkinRecord &&
-            checkinRecord.date == DateTime.local().toFormat("o")
-          ) {
-            task.checked = true;
-            task.checkin_description =
-              "完成于：" +
-              readableTime(DateTime.fromISO(checkinRecord.time)) +
-              (checkinRecord.value ? "，领到：" + checkinRecord.value : "");
-          }
-        }
-        // 选择运行平台
-        task.platform = findJobPlatform(task);
-        if (!task.url) {
-          task.url = task.platform
-            ? task.src[task.platform]
-            : task.src[task.type[0]];
-        }
-        if (!task.platform) {
-          task.suspended = true;
-          task.platform = task.type[0];
-        }
-        return task;
-      });
+      this.taskList = getTasks()
     },
     getMessages: function() {
       let messages = JSON.parse(localStorage.getItem("jjb_messages"));
       messages = this.makeupMessages(messages);
       this.messages = messages;
-    },
-    showLoginState: function() {
-      $("#loginNotice").show();
     },
     retryTask: function(task, hideNotice = false) {
       chrome.runtime.sendMessage(
