@@ -234,10 +234,10 @@ function findJobs(platform) {
 
 function incrementUsage(task) {
   let year = new Date().getFullYear()
-  let today = new Date().getDay()
+  let today = DateTime.local().toFormat("o")
   let hour = new Date().getHours()
-  saveSetting(`usage-${task.id}_${year}d:${today}:h:${hour}`, task.usage.hour + 1)
-  saveSetting(`usage-${task.id}_${year}d:${today}`, task.usage.daily  + 1)
+  saveSetting(`temporary:usage-${task.id}_${year}d:${today}:h:${hour}`, task.usage.hour + 1)
+  saveSetting(`temporary:usage-${task.id}_${year}d:${today}`, task.usage.daily  + 1)
 }
 
 // 执行组织交给我的任务
@@ -360,6 +360,20 @@ function updateUnreadCount(change = 0) {
   }
 }
 
+// 清除掉不必要的
+function removeExpiredLocalStorageItems() {
+  let arr = [];
+  for (var i = 0; i < localStorage.length; i++){
+    if (localStorage.key(i).indexOf('temporary:') == 0) {
+      arr.push(localStorage.key(i));
+    }
+  }
+
+  for (var i = 0; i < arr.length; i++) {
+    localStorage.removeItem(arr[i]);
+  }
+}
+
 
 $( document ).ready(function() {
   log('background', "document ready")
@@ -379,6 +393,9 @@ $( document ).ready(function() {
 
   // 加载任务参数
   loadSettingsToLocalStorage('task-parameters')
+
+  // 清理 LocalStorage
+  removeExpiredLocalStorageItems()
 })
 
 // 用手机模式打开

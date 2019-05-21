@@ -282,14 +282,14 @@ let getTask = function (taskId, currentPlatform) {
   let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
   let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
   let year = new Date().getFullYear()
-  let today = new Date().getDay()
+  let today = DateTime.local().toFormat("o")
   let hour = new Date().getHours()
   let taskStatus = {}
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`job${taskId}_frequency`, task.frequency)
   taskStatus.usage = {
-    hour: getSetting(`usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
-    daily: getSetting(`usage-${taskId}_${year}d:${today}`, 0)
+    hour: getSetting(`temporary:usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
+    daily: getSetting(`temporary:usage-${taskId}_${year}d:${today}`, 0)
   }
   taskStatus.last_run_at = localStorage.getItem(`job${task.id}_lasttime`) ? parseInt(localStorage.getItem(`job${task.id}_lasttime`)) : null
   taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
