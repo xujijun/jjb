@@ -87,10 +87,10 @@
           </div>
         </div>
         <div class="weui-dialog__ft">
-          <a id="login" class="weui-dialog__btn weui-dialog__btn_primary openLogin">
+          <a class="weui-dialog__btn weui-dialog__btn_primary" @click="done('openLogin')">
             <i class="weui-icon-success"></i>现在登录
           </a>
-          <a class="weui-dialog__btn weui-dialog__btn_default" data-action="dismiss">知道了</a>
+          <a class="weui-dialog__btn weui-dialog__btn_default" @click="done()">知道了</a>
         </div>
       </div>
     </div>
@@ -107,6 +107,18 @@ export default {
     return {
       stateText: stateText
     };
+  },
+  methods: {
+    done: async function(action) {
+      if (action == 'openLogin') {
+        chrome.runtime.sendMessage({
+          action: "openLogin",
+        }, function(response) {
+          console.log("Response: ", response);
+        });
+      }
+      this.$emit('close')
+    }
   }
 };
 </script>

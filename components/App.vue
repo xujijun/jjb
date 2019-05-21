@@ -680,7 +680,7 @@
     </div>
     <div class="dialogs">
       <guide v-if="showGuide" :login-state="loginState"></guide>
-      <login-notice v-if="showLoginState" :state="loginState"></login-notice>
+      <login-notice v-if="showLoginState" :state="loginState" @close="showLoginState = false"></login-notice>
     </div>
   </div>
 </template>
