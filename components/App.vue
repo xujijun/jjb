@@ -1030,7 +1030,11 @@ export default {
         },
         function(response) {
           if (!hideNotice) {
-            weui.toast("手动运行成功", 3000);
+            if (response.result == "success") {
+              weui.toast("手动运行成功", 3000);
+            } else if (response.message) {
+              weui.alert(response.message, { title: '任务暂未运行' })
+            }
           }
         }
       );

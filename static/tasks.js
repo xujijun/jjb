@@ -30,6 +30,10 @@ const tasks = [
     frequency: '5h',
     location: {
       host: ['pcsitepp-fm.jd.com', 'msitepp-fm.jd.com']
+    },
+    rateLimit:{
+      daily: 10,
+      hour: 2
     }
   },
   {
@@ -47,6 +51,10 @@ const tasks = [
     frequency: '2h',
     location: {
       host: ['a.jd.com']
+    },
+    rateLimit:{
+      daily: 10,
+      hour: 2
     }
   },
   {
@@ -63,6 +71,10 @@ const tasks = [
     location: {
       host: ['plus.m.jd.com'],
       pathname: ['/index']
+    },
+    rateLimit:{
+      daily: 10,
+      hour: 2
     }
   },
   {
@@ -74,7 +86,11 @@ const tasks = [
     mode: 'iframe',
     frequencyOption: ['2h', '5h', 'daily', 'never'],
     type: ['m'],
-    frequency: '5h'
+    frequency: '5h',
+    rateLimit:{
+      daily: 10,
+      hour: 2
+    }
   },
   {
     id: '21',
@@ -96,6 +112,10 @@ const tasks = [
       target: ".coupon-item:last",
       result: ".mask .content",
       successKeyWord: "成功",
+    },
+    rateLimit:{
+      daily: 10,
+      hour: 2
     }
   },
   {
@@ -110,7 +130,11 @@ const tasks = [
     type: ['m'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '14',
@@ -123,7 +147,11 @@ const tasks = [
     mode: 'iframe',
     type: ['m'],
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '6',
@@ -137,7 +165,11 @@ const tasks = [
     type: ['m'],
     checkin: true,
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '9',
@@ -151,7 +183,11 @@ const tasks = [
     mode: 'iframe',
     type: ['m'],
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '11',
@@ -164,7 +200,11 @@ const tasks = [
     mode: 'iframe',
     type: ['m'],
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: "18",
@@ -182,6 +222,10 @@ const tasks = [
     location: {
       host: ['pro.m.jd.com'],
       pathname: ['/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html']
+    },
+    rateLimit:{
+      daily: 10,
+      hour: 2
     }
   },
   {
@@ -196,7 +240,11 @@ const tasks = [
     mode: 'iframe',
     type: ['m'],
     frequencyOption: ['daily', 'never'],
-    frequency: 'daily'
+    frequency: 'daily',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
   {
     id: '7',
@@ -208,7 +256,11 @@ const tasks = [
     mode: 'tab',
     type: ['pc'],
     frequencyOption: ['daily', 'never'],
-    frequency: 'never'
+    frequency: 'never',
+    rateLimit:{
+      daily: 5,
+      hour: 2
+    }
   },
 ]
 
@@ -229,9 +281,16 @@ let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('task-parameters', [])
   let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
   let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
+  let year = new Date().getFullYear()
+  let today = new Date().getDay()
+  let hour = new Date().getHours()
   let taskStatus = {}
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`job${taskId}_frequency`, task.frequency)
+  taskStatus.usage = {
+    hour: getSetting(`usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
+    daily: getSetting(`usage-${taskId}_${year}d:${today}`, 0)
+  }
   taskStatus.last_run_at = localStorage.getItem(`job${task.id}_lasttime`) ? parseInt(localStorage.getItem(`job${task.id}_lasttime`)) : null
   taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
 
@@ -257,6 +316,10 @@ let getTask = function (taskId, currentPlatform) {
   if (!taskStatus.platform) {
     taskStatus.suspended = true;
     taskStatus.platform = task.type[0];
+  }
+  // 如果超出限制
+  if (taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
+    taskStatus.pause = true;
   }
   return Object.assign(task, taskStatus)
 }

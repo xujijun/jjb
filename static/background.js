@@ -160,6 +160,33 @@ function findTasksByLocation(location) {
   return matchedTasks
 }
 
+
+function scheduleJob(task) {
+  for (var i = 0, len = task.schedule.length; i < len; i++) {
+    let hour = DateTime.local().hour;
+    let scheduledHour = task.schedule[i]
+    if (scheduledHour > hour) {
+      let scheduledTime = DateTime.local().set({
+        hour: scheduledHour,
+        minute: rand(2) - 1,
+        second: rand(55)
+      }).valueOf()
+      chrome.alarms.create('runScheduleJob_' + task.id, {
+        when: scheduledTime
+      })
+      return log('background', "schedule job created", {
+        job: task,
+        time: scheduledHour,
+        when: scheduledTime
+      })
+    }
+    // 如果当前已经过了最晚的运行时段，则放弃运行
+    return log('background', "pass schedule job", {
+      job: task
+    })
+  }
+}
+
 // 寻找乔布斯
 function findJobs(platform) {
   let jobStack = getSetting('jobStack', [])
@@ -168,6 +195,16 @@ function findJobs(platform) {
   taskList.forEach(function(task) {
     if (task.suspended || task.deprecated) {
       return console.log(task.title, '任务已暂停')
+    }
+    // 如果任务有时间安排，则把任务安排到最近的下一个时段
+    if (task.schedule) {
+      return chrome.alarms.get('runScheduleJob_' + task.id, function (alarm) {
+        if (!alarm || alarm.scheduledTime < Date.now()) {
+          return scheduleJob(task)
+        } else {
+          console.log("job already scheduled ", alarm)
+        }
+      })
     }
     switch(task.frequency){
       case '2h':
@@ -195,6 +232,14 @@ function findJobs(platform) {
   saveJobStack(jobStack)
 }
 
+function incrementUsage(task) {
+  let year = new Date().getFullYear()
+  let today = new Date().getDay()
+  let hour = new Date().getHours()
+  saveSetting(`usage-${task.id}_${year}d:${today}:h:${hour}`, task.usage.hour + 1)
+  saveSetting(`usage-${task.id}_${year}d:${today}`, task.usage.daily  + 1)
+}
+
 // 执行组织交给我的任务
 function runJob(taskId, force = false) {
   // 不在凌晨阶段运行非强制任务
@@ -216,40 +261,19 @@ function runJob(taskId, force = false) {
     }
   }
   let task = getTask(taskId)
-  console.log('task', task)
 
-  // 如果任务已暂停或已经弃用 且不是强制执行
+  // 如果任务已暂停
+  if (task.pause) {
+    return log('job', task.title, '由于运行次数超限而被暂停')
+  }
+
+  // 如果任务已挂起或已经弃用 且不是强制执行
   if ((task.suspended || task.deprecated) && !force) {
     return log('job', task.title, '由于账号未登录已暂停运行')
   }
   if (task && (task.frequency != 'never' || force)) {
-    // 如果不是强制运行，且任务有时间安排，则把任务安排到最近的下一个时段，并继续执行任务
-    if (!force && task.schedule) {
-      for (var i = 0, len = task.schedule.length; i < len; i++) {
-        let hour = DateTime.local().hour;
-        let scheduledHour = task.schedule[i]
-        if (scheduledHour > hour) {
-          let scheduledTime = DateTime.local().set({
-            hour: scheduledHour,
-            minute: rand(2) - 1,
-            second: rand(55)
-          }).valueOf()
-          chrome.alarms.create('runScheduleJob_' + task.id, {
-            when: scheduledTime
-          })
-          log('background', "schedule job created", {
-            job: task,
-            time: scheduledHour,
-            when: scheduledTime
-          })
-        }
-      }
-      // 如果当前已经过了最晚的运行时段，则放弃运行
-      log('background', "pass schedule job", {
-        job: task
-      })
-    }
     log('background', "run", task)
+    incrementUsage(task)
     if (task.mode == 'iframe') {
       openByIframe(task.url, 'job')
     } else {
@@ -781,18 +805,32 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       task = getTask(msg.taskId)
       // set 临时运行
       localStorage.setItem(`temporary_job${task.id}_frequency`, 'onetime');
-      runJob(task.id, true)
-      if (!msg.hideNotice) {
+      // 任务因为频率受限无法运行
+      if (task.pause) {
         sendChromeNotification(new Date().getTime().toString(), {
           type: "basic",
-          title: "正在重新运行" + task.title,
-          message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
+          title: "任务因为频率受限无法运行",
+          message: task.title + "已达到最大时段频率，每小时：" + task.rateLimit.hour,
           iconUrl: 'static/image/128.png'
         })
+        sendResponse({
+          result: "pause",
+          message: "任务因为频率受限无法运行"
+        })
+      } else {
+        runJob(task.id, true)
+        if (!msg.hideNotice) {
+          sendChromeNotification(new Date().getTime().toString(), {
+            type: "basic",
+            title: "正在重新运行" + task.title,
+            message: "任务运行大约需要2分钟，如果有情况我再叫你（请勿连续运行）",
+            iconUrl: 'static/image/128.png'
+          })
+        }
+        sendResponse({
+          result: "success"
+        })
       }
-      sendResponse({
-        result: true
-      })
       break;
     case 'notice':
       var play_audio = getSetting('play_audio')
