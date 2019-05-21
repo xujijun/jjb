@@ -659,6 +659,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     // 保存登陆状态
     case 'saveLoginState':
       saveLoginState(msg)
+      sendResponse(msg)
       break;
     // 获取登陆状态
     case 'getLoginState':
@@ -904,12 +905,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       })
       break;
     case 'remove_tab':
-      var content = JSON.parse(msg.content)
       chrome.tabs.query({
-        url: content.url,
-        pinned: content.pinned == 'true'
+        url: msg.content.url,
+        pinned: msg.content.pinned
       }, function (tabs) {
-        var tabIds = $.map(tabs, function (tab) {
+        let tabIds = $.map(tabs, function (tab) {
           return tab.id
         })
         chrome.tabs.remove(tabIds)

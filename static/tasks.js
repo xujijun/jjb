@@ -227,7 +227,8 @@ let findTaskPlatform = function (task) {
 
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('task-parameters', [])
-  let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()))
+  let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
+  let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
   let taskStatus = {}
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`job${taskId}_frequency`, task.frequency)
@@ -257,8 +258,7 @@ let getTask = function (taskId, currentPlatform) {
     taskStatus.suspended = true;
     taskStatus.platform = task.type[0];
   }
-  let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
-  return Object.assign(task, parameters, taskStatus)
+  return Object.assign(task, taskStatus)
 }
 
 let getTasks = function (currentPlatform) {

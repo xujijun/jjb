@@ -181,7 +181,7 @@ function apply(applyBtn, priceInfo, setting) {
   let product_name = applyBtn.attr('product_name')
   let applyId = applyBtn.attr('id')
   // 是否暂停价保
-  if (setting.suspendedApplyIds.indexOf(applyId) > -1) {
+  if (!applyId || setting.suspendedApplyIds.indexOf(applyId) > -1) {
     return console.log('价保暂停', applyId)
   }
   // 获取上次申请价保的价格
@@ -654,6 +654,9 @@ function autoVisitShop(setting) {
 function doShopSign(setting) {
   if (setting != 'never') {
     console.log('店铺自动签到')
+    if ($(".J_giftClose").length > 0) {
+      simulateClick($(".J_giftClose"))
+    }
     chrome.runtime.sendMessage({ text: "myTab" }, function (result) {
       console.log('tab', result.tab)
       if (result.tab.pinned) {
@@ -943,8 +946,8 @@ function simulateClick(dom, mouseEvent) {
     return mockClick(domNode)
   }
   try {
-    dom.trigger("tap")
-    dom.trigger("click")
+    domNode.trigger("tap")
+    domNode.trigger("click")
   } catch (error) {
     try {
       mockClick(domNode)
@@ -1264,7 +1267,7 @@ function dealLoginPage() {
           password: password
         })
       }
-      simulateClick($("#loginBtn"))
+      simulateClick($("#loginBtn"), true)
     })
   };
   // PC版登录页
@@ -1347,43 +1350,6 @@ function baitiaoLottery(task) {
         markCheckinStatus('baitiao')
       }
     })
-  }
-}
-
-
-// 12: 双签奖励（double_check）, 由于风控策略升级，本任务无法在浏览器模拟
-function doubleCheck(setting) {
-  if (setting != 'never') {
-    console.log('双签奖励（double_check）')
-    weui.toast('京价保运行中', 1000);
-    chrome.runtime.sendMessage({
-      text: "run_status",
-      jobId: "12"
-    })
-    if ($(".pop-success .success-btn").text() == '立即领取') {
-      simulateClick($(".pop-success .success-btn"))
-      setTimeout(function () {
-        if ($("#awardInfo .cnt-hd").text() == '你已领取双签礼包') {
-          let value = $("#awardInfo .item-desc-1").text().replace(/[^0-9\.-]+/g, "")
-          markCheckinStatus('double_check', value + '京豆', () => {
-            chrome.runtime.sendMessage({
-              text: "checkin_notice",
-              batch: "bean",
-              value: value,
-              unit: 'bean',
-              title: "京价保自动为您领取双签礼包",
-              content: "恭喜您获得了" + value + '个京豆奖励'
-            }, function (response) {
-              console.log("Response: ", response);
-            })
-          })
-        }
-      }, 2000)
-    } else {
-      if ($("#receiveAward .link-gift").text() == "今天已领点击查看礼包"){
-        markCheckinStatus('double_check')
-      }
-    }
   }
 }
 
@@ -1679,22 +1645,9 @@ function CheckDom() {
   pageTaskRunning = true
   // 转存账号
   resaveAccount()
-  // PC 是否登录
-  if (document.getElementById("ttbar-login")) {
-    observeDOM(document.getElementById("ttbar-login"), function () {
-      accountAlive('pc', 'PC网页检测到用户名')
-    });
-  }
-  if ($("#J_user .user_show .user_logout").length > 0) {
-    accountAlive('pc', 'PC网页检测到用户名')
-  };
-  // M 是否登录
-  if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
-    accountAlive('m', '移动网页检测到登录')
-  };
-  if (location.href == "https://wqs.jd.com/my/indexv2.shtml" && document.title == "个人中心") {
-    accountAlive('m', '移动网页打开个人中心')
-  }
+
+  // 登录状态检查
+  checkLoginState()
 
   // getPageSetting
   chrome.runtime.sendMessage({
@@ -1852,15 +1805,26 @@ function CheckDom() {
   }
 
   if ($(".jShopHeaderArea").length > 0 && $(".jShopHeaderArea .jSign .signed").length > 0) {
-    chrome.runtime.sendMessage({
-      text: "remove_tab",
-      content: JSON.stringify({
-        url: window.location.href,
-        pinned: "true"
+    if ($(".real-gift-tip .jingdou").length > 0) {
+      chrome.runtime.sendMessage({
+        action: "checkin_notice",
+        title: "京价保自动为店铺签到领京豆",
+        content: "恭喜您获得了" + $(".real-gift-tip .jingdou span").text() + "京豆"
+      }, function (response) {
+        console.log("Response: ", response);
       })
-    }, function(response) {
-      console.log("Response: ", response);
-    });
+    }
+    setTimeout(() => {
+      chrome.runtime.sendMessage({
+        text: "remove_tab",
+        content: {
+          url: window.location.href,
+          pinned: true
+        }
+      }, function(response) {
+        console.log("Response: ", response);
+      });
+    }, 1500);
   }
 
   // 领取精选券
@@ -1910,8 +1874,26 @@ function CheckDom() {
   }
 }
 
+// 检查登录状态
+function checkLoginState() {
+  if (document.getElementById("ttbar-login") && document.getElementsByClassName("nickname")[0] && document.getElementsByClassName("nickname")[0].innerText) {
+    accountAlive('pc', 'PC网页检测到用户名')
+  }
+  if ($("#J_user .user_show .user_logout").length > 0) {
+    accountAlive('pc', 'PC网页检测到用户名')
+  };
+  // M 是否登录
+  if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
+    accountAlive('m', '移动网页检测到登录')
+  };
+  if (location.href == "https://wqs.jd.com/my/indexv2.shtml" && document.title == "个人中心") {
+    accountAlive('m', '移动网页打开个人中心')
+  }
+}
+
 $( document ).ready(function() {
   console.log('京价保注入页面成功');
+  checkLoginState()
   if (!pageTaskRunning) {
     setTimeout( function(){
       console.log('京价保开始执行任务');
