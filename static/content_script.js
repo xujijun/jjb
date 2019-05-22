@@ -120,61 +120,6 @@ function sendTouchEvent(x, y, element, eventType) {
 
 }
 
-// 单个商品价保申请
-async function dealProduct(product, order_info, setting) {
-  let success_logs = []
-  let product_name = product.find('.p-name a').text() || product.find('.item-name .name').text()
-  let orderPriceDom = product.find('.price-count .price').text() ? product.find('.price-count .price') : product.find('.item-opt .price')
-  let order_price = Number(orderPriceDom.text().replace(/[^0-9\.-]+/g, ""))
-
-  let applyBtn = product.find('.item-opt .apply').text() ? product.find('.item-opt .apply') : product.find('.btn a')
-  let orderId = applyBtn.attr('id').split('_')
-
-  let orderCountDom = product.find('.price-count .count').text() ? product.find('.price-count .count') : product.find('.item-name .count')
-  let order_quantity =  Number(orderCountDom.text().trim().replace(/[^0-9\.-]+/g, ""))
-
-  let order_success_logs = product.find('.show-detail').text() ? product.find('.show-detail td') : product.next().next().find('.jb-has-succ')
-
-  let product_img = product.find('a img').attr('src') ? product.find('a img').attr('src') : product.find('.img img').attr('src')
-
-  if (order_price < 0.01) {
-    return console.log('忽略免费的商品')
-  }
-
-  console.log('发现有效的订单：', product_name, " 下单价格：", order_price)
-
-  if (order_success_logs && order_success_logs.length > 0) {
-    order_success_logs.each(function() {
-      let log = $(this).text().trim().replace('查看退款详情','').replace('查看申请记录','').replace('查看详细规则','')
-      if (log && log.indexOf("成功") > -1) {
-        success_logs.push(log)
-      }
-    });
-  }
-  // 请求价格
-  chrome.runtime.sendMessage({
-    action: "getProductPrice",
-    sku: orderId[2],
-    setting: setting
-  }, function(response) {
-    console.log("getProductPrice Response: ", response);
-  });
-
-  order_info.goods.push({
-    sku: orderId[2],
-    name: product_name,
-    img: product_img,
-    order_price: order_price,
-    success_log: success_logs,
-    quantity: order_quantity
-  })
-  // 记录订单信息
-  applyBtn.addClass('applyBtn')
-  applyBtn.attr('sku', orderId[2])
-  applyBtn.attr('order_price', order_price)
-  applyBtn.attr('product_name', product_name)
-}
-
 // 申请价保
 function apply(applyBtn, priceInfo, setting) {
   let order_price = applyBtn.attr('order_price')
@@ -217,44 +162,48 @@ function apply(applyBtn, priceInfo, setting) {
         });
       } else {
         // 申请
-        applyBtn.trigger( "click" )
-        localStorage.setItem('jjb_order_' + applyId, priceInfo.price)
-        chrome.runtime.sendMessage({
-          action: "setVariable",
-          key: 'last_apply_price' + applyId,
-          value: {
-            price: priceInfo.price,
-            submitted: true,
-            time: new Date()
-          }
-        }, function (response) {
-          console.log("Response: ", response);
-        });
-        chrome.runtime.sendMessage({
-          text: "notice",
-          batch: 'jiabao',
-          title: '报告老板，发现价格保护机会！',
-          product_name: product_name,
-          content: '购买价：'+ order_price + ' 现价：' + priceInfo.price + '，已经自动提交价保申请，正在等待申请结果。'
-        }, function(response) {
-          console.log("Response: ", response);
-        });
-        // 等待申请结果
-        var resultId = "applyResult_" + applyId.substr(8)
-        observeDOM(document.getElementById(resultId), function () {
-          let resultText = $("#" + resultId).text()
-          if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
+        simulateClick(applyBtn, true)
+        setTimeout(() => {
+          let resultId = "applyResult_" + applyId.substr(8)
+          if (applyBtn.hasClass("disable-apply") || $("#" + resultId).is(":visible")) {
+            localStorage.setItem('jjb_order_' + applyId, priceInfo.price)
             chrome.runtime.sendMessage({
-              batch: 'jiabao',
-              text: "notice",
-              title: "报告老板，价保申请有结果了",
-              product_name: product_name,
-              content: "价保结果：" + resultText
+              action: "setVariable",
+              key: 'last_apply_price' + applyId,
+              value: {
+                price: priceInfo.price,
+                submitted: true,
+                time: new Date()
+              }
             }, function (response) {
               console.log("Response: ", response);
             });
+            chrome.runtime.sendMessage({
+              text: "notice",
+              batch: 'jiabao',
+              title: '报告老板，发现价格保护机会！',
+              product_name: product_name,
+              content: '购买价：'+ order_price + ' 现价：' + priceInfo.price + '，已经自动提交价保申请，正在等待申请结果。'
+            }, function(response) {
+              console.log("Response: ", response);
+            });
           }
-        });
+
+          observeDOM(document.getElementById(resultId), function () {
+            let resultText = $("#" + resultId).text()
+            if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
+              chrome.runtime.sendMessage({
+                batch: 'jiabao',
+                text: "notice",
+                title: "报告老板，价保申请有结果了",
+                product_name: product_name,
+                content: "价保结果：" + resultText
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          });
+        }, 1500);
       }
     }
   });
@@ -347,76 +296,156 @@ function findOrderBySkuAndApply(priceInfo, setting) {
   });
 }
 
-async function dealOrder(order, orders, setting) {
-  let dealGoods = []
-  let order_time = order.find('.tr-th span.time').text() ? new Date(order.find('.tr-th span.time').text()) : new Date(order.find('.title span').last().text().trim().split('：')[1])
-  let order_id = order.find('.tr-th span.order').text() ? order.find('.tr-th span.order').text().replace(/[^0-9\.-]+/g, "") : order.find('.title .order-code').text().trim().split('：')[1]
+async function dealProduct(product, orderInfo, setting) {
+  console.log('dealProduct', product, orderInfo, setting)
+  let pro_logs = []
+  let product_name = product.find('.p-name a').text() || product.find('.item-name .name').text()
+  let orderPriceDom = product.find('.price-count .price').text() ? product.find('.price-count .price') : product.find('.item-opt .price')
+  let order_price = Number(orderPriceDom.text().replace(/[^0-9\.-]+/g, ""))
+
+  let applyBtn = product.find('.item-opt .apply').text() ? product.find('.item-opt .apply') : product.find('.btn a')
+  let orderId = applyBtn.attr('id') ? applyBtn.attr('id').split('_') : null
+
+  if (!orderId) {
+    return console.log('找不到 orderId')
+  }
+
+  let orderCountDom = product.find('.price-count .count').text() ? product.find('.price-count .count') : product.find('.item-name .count')
+  let order_quantity =  Number(orderCountDom.text().trim().replace(/[^0-9\.-]+/g, ""))
+
+  let order_pro_logs = product.find('.show-detail').text() ? product.find('.show-detail td') : product.next().next().find('.item-jb')
+
+  let product_img = product.find('a img').attr('src') ? product.find('a img').attr('src') : product.find('.img img').attr('src')
+
+  if (order_price < 0.01) {
+    return console.log('忽略免费的商品')
+  }
+  console.log('发现有效的订单：', product_name, " 下单价格：", order_price)
+  if (order_pro_logs && order_pro_logs.length > 0) {
+    order_pro_logs.each(function() {
+      let logElement = $(this)
+      let log = logElement.text().trim().replace('查看退款详情','').replace('查看申请记录','').replace('查看详细规则','')
+      if (log && log.indexOf("成功") > -1 || logElement.hasClass("jb-has-succ")) {
+        pro_logs.push({
+          status: "success",
+          message: log
+        })
+      } else {
+        pro_logs.push({
+          status: "failed",
+          message: log
+        })
+      }
+    });
+  }
+  // 请求价格
+  chrome.runtime.sendMessage({
+    action: "getProductPrice",
+    sku: orderId[2],
+    setting: setting
+  }, function(response) {
+    console.log("getProductPrice Response: ", response);
+  });
+  let goodInfo = {
+    sku: orderId[2],
+    name: product_name,
+    img: product_img,
+    order_price: order_price,
+    logs: pro_logs,
+    quantity: order_quantity
+  }
+  chrome.runtime.sendMessage({
+    action: "findGood",
+    orderId: orderInfo.id,
+    good: goodInfo
+  }, function(response) {
+    console.log("good Response: ", response);
+  });
+
+  // 记录订单信息
+  applyBtn.addClass('applyBtn')
+  applyBtn.attr('sku', orderId[2])
+  applyBtn.attr('order_price', order_price)
+  applyBtn.attr('product_name', product_name)
+}
+
+async function dealOrder(order, setting) {
+  console.log('dealOrder', order)
+
+  let order_time = order.find('span.time').text() ? new Date(order.find('span.time').text()) : new Date(order.find('.title span').last().text().trim().split('：')[1])
+  let order_id = order.find('span.order').text() ? order.find('span.order').text().replace(/[^0-9\.-]+/g, "") : order.find('.title .order-code').text().trim().split('：')[1]
 
   console.log('订单:', order_id, order_time, setting)
-
-  let proTime = 15 * 24 * 3600 * 1000
-  if (setting.pro_days == '7') {
-    proTime = 7 * 24 * 3600 * 1000
-  }
-  if (setting.pro_days == '30') {
-    proTime = 30 * 24 * 3600 * 1000
-  }
-
+  let proTime = Date.now() - 60*60*1000*24*Number(setting.pro_days);
   // 如果订单时间在设置的价保监控范围以内
-  if (new Date().getTime() - order_time.getTime() < proTime) {
-    var order_info = {
-      time: order_time,
+  if (order_time.getTime() > proTime) {
+    let orderInfo = {
       id: order_id,
+      timestamp: order_time.getTime(),
       goods: []
     }
-
+    chrome.runtime.sendMessage({
+      action: "findOrder",
+      orderId: order_id,
+      order: orderInfo
+    }, function(response) {
+      console.log("good Response: ", response);
+    });
     let productList = order.find('.product-item').length > 0 ? order.find('.product-item') : order.filter( ".co-th" )
-
-    productList.each(function() {
-      dealGoods.push(dealProduct($(this), order_info, setting))
+    let time = 0
+    productList.each(function () {
+      let productElement = $(this)
+      setTimeout(async () => {
+        try {
+          await dealProduct(productElement, orderInfo, setting)
+        } catch (error) {
+          console.error(error)
+        }
+      }, time);
+      time += 2000;
     })
-    await Promise.all(dealGoods)
-
-    if (order_info.goods.length > 0) {
-      orders.push(order_info)
-    }
   }
 }
 
 async function getAllOrders(mode, setting) {
   console.log('京价保开始自动检查订单', mode)
-  let orders = []
-  let dealOrders = []
   // 移动价保
   if ($( "#dataList0 li").length > 0) {
+    let time = 0
     $( "#dataList0 li").each(function() {
-      dealOrders.push(dealOrder($(this), orders, setting))
+      let orderElement = $(this)
+      setTimeout(async () => {
+        try {
+          await dealOrder(orderElement, setting)
+        } catch (error) {
+          console.error(error)
+        }
+      }, time);
+      time += 3000;
     });
   }
   // PC价保
   if ($( "#dataList .tr-th").length > 0) {
+    let time = 0
     $( "#dataList .tr-th").each(function() {
-      let orderDom = $(this)
-      let product = $(this).next()
-      orderDom = orderDom.add(product)
-      while (product.next().hasClass('co-th')) {
-        orderDom = orderDom.add(product.next())
-        product = product.next()
-      }
-      dealOrders.push(dealOrder(orderDom, orders, setting))
+      setTimeout(async () => {
+        let orderDom = $(this)
+        let product = $(this).next()
+        orderDom = orderDom.add(product)
+        while (product.next().hasClass('co-th')) {
+          orderDom = orderDom.add(product.next())
+          product = product.next()
+        }
+        try {
+          await dealOrder(orderDom, setting)
+        } catch (error) {
+          console.error(error)
+        }
+      }, time);
+      time += 500;
     });
   }
-  try {
-    await Promise.all(dealOrders)
-  } catch (error) {
-    console.error('dealorders', error)
-  }
-  chrome.runtime.sendMessage({
-    text: "orders",
-    content: JSON.stringify(orders)
-  }, function(response) {
-    console.log("Response: ", response);
-  });
+
   localStorage.setItem('jjb_last_check', new Date().getTime());
 }
 
@@ -486,7 +515,7 @@ function getPlusCoupon(task) {
         setTimeout(function () {
           getBtn.trigger("click")
           setTimeout(function () {
-            if (getBtn.text().indexOf("去使用") > -1 || getBtn.indexOf("已领取") > -1) {
+            if (getBtn.text().indexOf("去使用") > -1 || getBtn.text().indexOf("已领取") > -1) {
               chrome.runtime.sendMessage({
                 action: "couponReceived",
                 title: "京价保自动领到一张 PLUS 优惠券",
@@ -761,33 +790,33 @@ function getCoin(setting) {
 // 1: 价格保护
 function priceProtect(task) {
   if (task.frequency != 'never') {
-    weui.toast('京价保运行中', 1500);
+    weui.toast('京价保运行中', 3500);
     let mode = "m"
     // 加载第二页
     if (document.getElementById("mescroll0")) {
       document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
       setTimeout(() => {
         document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      }, 300);
+      }, 3000);
       setTimeout(() => {
         document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      }, 600);
+      }, 6000);
       setTimeout(() => {
         document.getElementById("mescroll0").scrollTop =0
-      }, 1000);
+      }, 6500);
     }
     if (document.getElementById("dataList")) {
       mode = "pc"
       $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
       setTimeout(() => {
         $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      }, 300);
+      }, 3000);
       setTimeout(() => {
         $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      }, 600);
+      }, 6000);
       setTimeout(() => {
         $(window).scrollTop(0)
-      }, 1000);
+      }, 6500);
     }
 
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
@@ -802,7 +831,7 @@ function priceProtect(task) {
       }, function (response) {
         setTimeout(function () {
           getAllOrders(mode, response)
-        }, 3000)
+        }, 8000)
         console.log("getPriceProtectionSetting Response: ", response);
       });
     } else {
@@ -1886,7 +1915,7 @@ function checkLoginState() {
   if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
     accountAlive('m', '移动网页检测到登录')
   };
-  if (location.href == "https://wqs.jd.com/my/indexv2.shtml" && document.title == "个人中心") {
+  if (location.href == "https://home.m.jd.com/myJd/newhome.action" && document.title == "个人中心") {
     accountAlive('m', '移动网页打开个人中心')
   }
 }

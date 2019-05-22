@@ -450,10 +450,17 @@ a.buy-btn:hover{
     border-top: none;
 }
 
-.success_log{
+.order-good .log{
     font-size: 12px;
     margin: 10px;
+}
+
+.log.success{
     color: #690;
+}
+
+.log.failed{
+    color: #999;
 }
 
 .order_price{

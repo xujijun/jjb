@@ -538,7 +538,7 @@
                       </div>
                     </div>
                   </div>
-                  <p class="success_log" v-for="(log, index) in good.success_log" :key="index">{{log}}</p>
+                  <p :class="`log ${log.status}`" v-for="(log, index) in good.logs" :key="index">{{log.message}}</p>
                 </div>
               </li>
               <p class="text-tips">
@@ -820,7 +820,7 @@ export default {
     this.getTaskList();
     // 渲染订单
     setTimeout(() => {
-      this.getOrders()
+      this.renderOrders()
     }, 50);
     // 查询最新优惠
     setTimeout(() => {
@@ -844,11 +844,7 @@ export default {
     ) => {
       switch (message.action) {
         case "orders_updated":
-          let orders = JSON.parse(message.data).map(function(order) {
-            order.displayTime = readableTime(DateTime.fromISO(order.time));
-            return order;
-          });
-          this.orders = orders;
+          this.renderOrders(message.orders)
           break;
         case "new_message":
           this.unreadCount = this.unreadCount + 1
@@ -913,7 +909,7 @@ export default {
           this.readDiscounts()
           break;
         case "orders":
-          this.getOrders()
+          this.renderOrders()
           break;
         default:
           break;
@@ -948,7 +944,7 @@ export default {
     readMessages: function () {
       this.unreadCount = 0
       chrome.runtime.sendMessage({
-        text: "clearUnread"
+        action: "clearUnread"
       }, function (response) {
         console.log("Response: ", response);
       });
@@ -966,13 +962,16 @@ export default {
       localStorage.setItem("promotions", JSON.stringify(promotions));
       return promotions;
     },
-    getOrders: function() {
-      let orders = JSON.parse(localStorage.getItem("jjb_orders"));
+    renderOrders: function(orders) {
+      if (!orders) {
+        orders = getSetting("jjb_orders", [])
+        chrome.runtime.sendMessage({ action: "getOrders" })
+      }
       let skuPriceList = getSetting("skuPriceList", {});
       let suspendedApplyIds = getSetting("suspendedApplyIds", []);
       if (orders) {
         orders = orders.map(function(order) {
-          order.displayTime = readableTime(DateTime.fromISO(order.time));
+          order.displayTime = readableTime(DateTime.fromMillis(order.timestamp));
           order.goods = order.goods.map(function(good, index) {
             good.suspended = _.indexOf(suspendedApplyIds, `applyBT_${order.id}_${good.sku}_${index+1}`) > -1 ? "suspended" : false
             return good

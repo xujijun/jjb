@@ -1,6 +1,7 @@
 $ = window.$ = window.jQuery = require('jquery')
 import * as _ from "lodash"
 import Logline from 'logline'
+import Dexie from 'dexie';
 import {DateTime} from 'luxon'
 import {priceProUrl, mapFrequency, getTask, getTasks} from './tasks'
 import {rand, getSetting, saveSetting} from './utils'
@@ -8,9 +9,30 @@ import {getLoginState} from './account'
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
+//
+// Declare Database
+//
+const db = new Dexie("orders");
+db.version(1).stores({ orders: "++id,timestamp" });
+
+async function findGood(orderId, good) {
+  await db.orders.where('id').equals(orderId).modify(order => {
+    order.goods.push(good);
+  });
+}
+
+async function findOrder(orderId, data) {
+  let order = await db.orders.where('id').equals(orderId).toArray();
+  if (order && order.length > 0) return await db.orders.update(orderId, data)
+  let orderInfo = Object.assign(data, {
+    id: orderId,
+  })
+  return await db.orders.add(orderInfo);
+}
+
 var logger = {}
 var autoLoginQuota = {}
-var mLoginUrl = "https://wqs.jd.com/my/indexv2.shtml"
+var mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
 var priceProPage = null
 var mobileUAType = getSetting('uaType', 1)
 
@@ -49,7 +71,6 @@ chrome.runtime.onInstalled.addListener(function (object) {
     });
   }
 });
-
 
 var popularPhoneUA = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1 jdjr-app ios',
@@ -303,12 +324,11 @@ function savePrice(price) {
 }
 
 function log(type, message, details) {
-  if (logger[type]) {
-    logger[type].info(message, details)
-  } else {
+  if (!logger[type]) {
     logger[type] = new Logline(type)
-    console.log(type, message, details)
   }
+  logger[type].info(message, details)
+  console.log(new Date(), type, message, details)
 }
 
 function resetIframe(domId) {
@@ -374,9 +394,16 @@ function removeExpiredLocalStorageItems() {
   }
 }
 
+function setDefaultSetting() {
+  let priceProDays = localStorage.getItem("price_pro_days")
+  if (!priceProDays) {
+    saveSetting("price_pro_days", 15)
+  }
+}
+
 
 $( document ).ready(function() {
-  log('background', "document ready")
+  log('background', "document ready", new Date())
   // 每10分钟运行一次定时任务
   chrome.alarms.create('cycleTask', {
     periodInMinutes: 10
@@ -396,6 +423,9 @@ $( document ).ready(function() {
 
   // 清理 LocalStorage
   removeExpiredLocalStorageItems()
+
+  // 设置默认值
+  setDefaultSetting()
 })
 
 // 用手机模式打开
@@ -639,8 +669,20 @@ function loadSettingsToLocalStorage(key) {
   })
 }
 
+
+async function updateOrders() {
+  let proDays = getSetting('price_pro_days', 15)
+  let proTime = Date.now() - 60*60*1000*24*proDays;
+  let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
+  saveSetting('jjb_orders', orders)
+  chrome.runtime.sendMessage({
+    action: "orders_updated",
+    orders: orders
+  });
+}
+
 // 处理消息通知
-chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) {
   if (!msg.action) {
     msg.action = msg.text
   }
@@ -655,7 +697,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
       setTimeout(() => {
         openByIframe(url, 'temporary')
-      }, rand(20) * 1000);
+      }, rand(5) * 1000);
 
       sendResponse({
         working: true
@@ -1008,14 +1050,20 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         })
       }
       break;
-    case 'orders':
-      localStorage.setItem('jjb_orders', msg.content);
-      localStorage.setItem('jjb_last_check', new Date().getTime());
-
-      chrome.runtime.sendMessage({
-        action: "orders_updated",
-        data: msg.content
-      });
+    // 发现新订单
+    case 'findOrder':
+      await findOrder(msg.orderId, msg.order);
+      break;
+    // 新的订单商品
+    case 'findGood':
+      await findGood(msg.orderId, msg.good);
+      setTimeout(async () => {
+        await updateOrders()
+      }, 3000);
+      break;
+    // 查询商品列表
+    case 'getOrders':
+      await updateOrders()
       break;
     case 'clearUnread':
       updateUnreadCount(-999)

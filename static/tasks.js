@@ -25,7 +25,7 @@ const tasks = [
     title: '价格保护',
     description: "价格保护默认只申请15天内下单的商品",
     mode: 'iframe',
-    type: ['m', 'pc'],
+    type: ['pc', 'm'],
     frequencyOption: ['2h', '5h', 'daily', 'never'],
     frequency: '5h',
     location: {
@@ -279,7 +279,7 @@ let findTaskPlatform = function (task) {
 
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('task-parameters', [])
-  let parameters = (taskParameters && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
+  let parameters = (Array.isArray(taskParameters) && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
   let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
   let year = new Date().getFullYear()
   let today = DateTime.local().toFormat("o")

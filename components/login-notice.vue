@@ -39,7 +39,7 @@
                 </div>
               </a>
               <a
-                data-url="https://wqs.jd.com/my/indexv2.shtml"
+                data-url="https://home.m.jd.com/myJd/newhome.action"
                 v-tippy
                 :class="`${state['m'].state} login-type_m openMobilePage`"
                 :title="state['m'].description"
