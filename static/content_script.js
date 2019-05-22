@@ -510,8 +510,8 @@ function getPlusCoupon(task) {
       let that = $(this)
       let getBtn = $(this).find('.btn-txt')
       if (getBtn.text().indexOf("立即领取") > -1) {
-        let coupon_name = that.find('.descr').text()
-        let coupon_price = that.find('.money').text() + ' (' + that.find('.rule').text() + ')'
+        let coupon_name = that.find('.descr').text().trim()
+        let coupon_price = that.find('.money').text().trim() + ' (' + that.find('.rule').text().trim() + ')'
         setTimeout(function () {
           getBtn.trigger("click")
           setTimeout(function () {
@@ -548,8 +548,8 @@ function getCommonUseCoupon(task) {
     $("#quanlist .quan-item").each(function () {
       let that = $(this)
       if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("全品类") > -1) {
-        let coupon_name = that.find('.q-range').text()
-        let coupon_price = that.find('.q-price strong').text() + '元 (' + that.find('.q-limit').text() + ')'
+        let coupon_name = that.find('.q-range').text().trim()
+        let coupon_price = that.find('.q-price strong').text().trim() + '元 (' + that.find('.q-limit').text().trim() + ')'
         setTimeout(function () {
           $(that).find('.btn-def').trigger("click")
           setTimeout(function () {
@@ -587,8 +587,8 @@ function getTelephoneCoupon(task) {
       $("#quanlist .quan-item").each(function () {
         let that = $(this)
         if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("话费充值券") > -1) {
-          let coupon_name = that.find('.q-range').text()
-          let coupon_price = that.find('.q-price strong').text() + '元 (' + that.find('.q-limit').text() + ')'
+          let coupon_name = that.find('.q-range').text().trim()
+          let coupon_price = that.find('.q-price strong').text().trim() + '元 (' + that.find('.q-limit').text().trim() + ')'
           setTimeout(function () {
             $(that).find('.btn-def').trigger("click")
             setTimeout(function () {
@@ -714,9 +714,9 @@ function pickupCoupon(setting) {
     })
     $(".coupon_sec_body a.coupon_default").each(function () {
       let that = $(this)
-      let coupon_name = that.find('.coupon_default_name').text()
+      let coupon_name = that.find('.coupon_default_name').text().trim()
       let coupon_id = that.find("input[class=id]").val()
-      let coupon_price = that.find('.coupon_default_price').text()
+      let coupon_price = that.find('.coupon_default_price').text().trim()
       if (that.find('.coupon_default_des').text()) {
         coupon_price = that.find('.coupon_default_des').text()
       }

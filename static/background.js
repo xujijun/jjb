@@ -1080,7 +1080,7 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
   updateIcon()
   // 保存消息
   switch (msg.action) {
-    case 'coupon':
+    case 'couponReceived':
     case 'notice':
     case 'checkin_notice':
       let messages = localStorage.getItem('jjb_messages') ? JSON.parse(localStorage.getItem('jjb_messages')) : [];
