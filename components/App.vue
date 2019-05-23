@@ -600,7 +600,7 @@
                 >
                   <div class="weui-media-box weui-media-box_text">
                     <h4 class="weui-media-box__title message">
-                      <i :class="`${message.type} ${message.batch}`"></i>
+                      <i :class="`${message.type} ${message.batch} ${message.unit}`"></i>
                       {{message.title}}
                     </h4>
                     <div class="coupon-box" v-if="message.coupon">
@@ -832,7 +832,7 @@ export default {
     }, 200);
     // 渲染通知
     setTimeout(() => {
-      this.getMessages()
+      this.renderMessages()
     }, 500);
     this.dealWithLoginState()
 
@@ -847,8 +847,7 @@ export default {
           this.renderOrders(message.orders)
           break;
         case "new_message":
-          this.unreadCount = this.unreadCount + 1
-          this.messages = this.makeupMessages(JSON.parse(message.data));
+          this.renderMessages(message.messages);
           break;
         case "loginState_updated":
           this.dealWithLoginState();
@@ -902,7 +901,7 @@ export default {
       this.contentType = type
       switch (type) {
         case "messages":
-          this.getMessages()
+          this.renderMessages()
           this.readMessages()
           break;
         case "discounts":
@@ -928,19 +927,6 @@ export default {
         this.disableOrderLink = getSetting("disabled_link") == "checked" ? true : false
       }, 1000);
     },
-    makeupMessages: function(messages) {
-      if (messages) {
-        return messages.reverse().map(function(message) {
-          if (message.type == "coupon") {
-            message.coupon = JSON.parse(message.content);
-          }
-          message.time = readableTime(DateTime.fromISO(message.time));
-          return message;
-        });
-      } else {
-        return [];
-      }
-    },
     readMessages: function () {
       this.unreadCount = 0
       chrome.runtime.sendMessage({
@@ -961,6 +947,19 @@ export default {
       });
       localStorage.setItem("promotions", JSON.stringify(promotions));
       return promotions;
+    },
+    renderMessages: function(messages) {
+      if (!messages) {
+        messages = getSetting('jjb_messages', [])
+        chrome.runtime.sendMessage({ action: "getMessages" })
+      }
+      this.messages = messages.map(function(message) {
+        if (message.type == "coupon") {
+          message.coupon = message.content;
+        }
+        message.time = readableTime(DateTime.fromMillis(message.timestamp));
+        return message;
+      });
     },
     renderOrders: function(orders) {
       if (!orders) {
@@ -1014,11 +1013,6 @@ export default {
     // 任务列表
     getTaskList: async function() {
       this.taskList = getTasks()
-    },
-    getMessages: function() {
-      let messages = JSON.parse(localStorage.getItem("jjb_messages"));
-      messages = this.makeupMessages(messages);
-      this.messages = messages;
     },
     retryTask: function(task, hideNotice = false) {
       chrome.runtime.sendMessage(

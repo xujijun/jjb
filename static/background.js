@@ -7,6 +7,7 @@ import {priceProUrl, mapFrequency, getTask, getTasks} from './tasks'
 import {rand, getSetting, saveSetting} from './utils'
 import {getLoginState} from './account'
 
+
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
 //
@@ -14,6 +15,7 @@ Logline.using(Logline.PROTOCOL.INDEXEDDB)
 //
 const db = new Dexie("orders");
 db.version(1).stores({ orders: "++id,timestamp" });
+db.version(1).stores({ messages: "++id,type,timestamp" });
 
 async function findGood(orderId, good) {
   await db.orders.where('id').equals(orderId).modify(order => {
@@ -28,6 +30,42 @@ async function findOrder(orderId, data) {
     id: orderId,
   })
   return await db.orders.add(orderInfo);
+}
+
+async function updateOrders() {
+  let proDays = getSetting('price_pro_days', 15)
+  let proTime = Date.now() - 60*60*1000*24*proDays;
+  let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
+  console.log('orders', Object.assign({}, orders))
+
+  if (orders && orders.length > 0) {
+    orders = orders.filter(order => order.goods && order.goods.length > 0);
+  }
+  saveSetting('jjb_orders', orders)
+  chrome.runtime.sendMessage({
+    action: "orders_updated",
+    orders: orders
+  });
+}
+
+async function newMessage(messageId, data) {
+  let order = await db.messages.where('id').equals(messageId).toArray();
+  if (order && order.length > 0) return await db.messages.update(messageId, data)
+  let messageInfo = Object.assign(data, {
+    id: messageId,
+  })
+  return await db.messages.add(messageInfo);
+}
+
+async function updateMessages() {
+  // 最多只展示最近 30 天的消息
+  let last30Day = Date.now() - 60*60*1000*24*30;
+  let messages = await db.messages.where('timestamp').above(last30Day).reverse().sortBy('timestamp')
+  saveSetting('jjb_messages', messages)
+  chrome.runtime.sendMessage({
+    action: "messages_updated",
+    messages: messages
+  });
 }
 
 var logger = {}
@@ -137,6 +175,7 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       clearPinnedTabs()
       findJobs()
       runJob()
+      updateIcon()
       break;
     case alarm.name.startsWith('clearIframe'):
       resetIframe(taskId || 'iframe')
@@ -669,20 +708,8 @@ function loadSettingsToLocalStorage(key) {
   })
 }
 
-
-async function updateOrders() {
-  let proDays = getSetting('price_pro_days', 15)
-  let proTime = Date.now() - 60*60*1000*24*proDays;
-  let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
-  saveSetting('jjb_orders', orders)
-  chrome.runtime.sendMessage({
-    action: "orders_updated",
-    orders: orders
-  });
-}
-
 // 处理消息通知
-chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg.action) {
     msg.action = msg.text
   }
@@ -752,10 +779,10 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
       let priceProtectionSetting = getPriceProtectionSetting()
       sendResponse(priceProtectionSetting)
       break;
+    // 记住账号
     case 'saveAccount':
-      var content = JSON.parse(msg.content)
-      if (content.username && content.password) {
-        localStorage.setItem('jjb_account', msg.content);
+      if (msg.content.username && msg.content.password) {
+        saveSetting('jjb_account', msg.content);
       }
       break;
     // 自动登录
@@ -783,7 +810,7 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
         setTimeout(() => {
           localStorage.removeItem('temporary_' + msg.content)
         }, 60*5*1000);
-        return sendResponse(temporarySetting)
+        sendResponse(temporarySetting)
       }
       sendResponse(setting)
       break;
@@ -1052,18 +1079,30 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
       break;
     // 发现新订单
     case 'findOrder':
-      await findOrder(msg.orderId, msg.order);
+      setTimeout(async () => {
+        findOrder(msg.orderId, msg.order);
+      }, 50);
       break;
     // 新的订单商品
     case 'findGood':
-      await findGood(msg.orderId, msg.good);
+      setTimeout(async () => {
+        findGood(msg.orderId, msg.good);
+      }, 500);
       setTimeout(async () => {
         await updateOrders()
-      }, 3000);
+      }, 1000);
       break;
     // 查询商品列表
     case 'getOrders':
-      await updateOrders()
+      setTimeout(async () => {
+        await updateOrders()
+      }, 50);
+      break;
+    // 查询消息列表
+    case 'getMessages':
+      setTimeout(async () => {
+        await updateMessages()
+      }, 50);
       break;
     case 'clearUnread':
       updateUnreadCount(-999)
@@ -1083,34 +1122,32 @@ chrome.runtime.onMessage.addListener(async function (msg, sender, sendResponse) 
     case 'couponReceived':
     case 'notice':
     case 'checkin_notice':
-      let messages = localStorage.getItem('jjb_messages') ? JSON.parse(localStorage.getItem('jjb_messages')) : [];
       if (msg.test) {
         break;
       }
-      messages.push({
-        type: msg.text,
-        batch: msg.batch,
+      let message = {
+        type: msg.type || msg.action || msg.text, // 通知的类型
+        batch: msg.batch, // 批次，通常是优惠券的属性
+        reward: msg.reward, // 奖励的类型
+        unit: msg.unit || msg.reward || msg.batch, // 奖励的单位
+        value: msg.value, // 奖励的数量
         title: msg.title,
         content: msg.content,
-        time: new Date()
-      })
-      updateUnreadCount(1)
-      // 如果消息数大于100了，就把最老的一条消息去掉
-      if (messages.length > 100) {
-        messages.shift()
+        timestamp: Date.now()
       }
-      chrome.runtime.sendMessage({
-        action: "new_message",
-        data: JSON.stringify(messages)
-      });
-      localStorage.setItem('jjb_messages', JSON.stringify(messages));
+      let uuid = msg.uuid || Date.now()
+      updateUnreadCount(1)
+      setTimeout(async () => {
+        await newMessage(uuid, message);
+      }, 50);
+      setTimeout(async () => {
+        await updateMessages()
+      }, 3000);
       break;
   }
-
   if (msg.action != 'saveAccount') {
     log('message', msg.text, msg);
   }
-  // 如果消息 300ms 未被回复
   return true
 });
 
