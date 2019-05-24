@@ -207,6 +207,25 @@ const tasks = [
     }
   },
   {
+    id: '12', // 已经失效
+    src: {
+      m: 'https://m.jr.jd.com/integrate/signin/index.html',
+    },
+    title: '领取双签奖励',
+    description: "完成京豆和京东金融签到有一个双签奖励",
+    key: "double_check",
+    mode: 'iframe',
+    type: ['m'],
+    checkin: true,
+    location: {
+      host: ['m.jr.jd.com'],
+      pathname: ['/integrate/signin/index.html']
+    },
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    deprecated: true
+  },
+  {
     id: "18",
     src: {
       m: "https://pro.m.jd.com/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html"
@@ -280,7 +299,12 @@ let findTaskPlatform = function (task) {
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('task-parameters', [])
   let parameters = (Array.isArray(taskParameters) && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
-  let task = Object.assign({}, tasks.find(t => t.id == taskId.toString()), parameters)
+  let task = Object.assign({
+    rateLimit: {
+      daily: 10,
+      hour: 2
+    }
+  }, tasks.find(t => t.id == taskId.toString()), parameters)
   let year = new Date().getFullYear()
   let today = DateTime.local().toFormat("o")
   let hour = new Date().getHours()
@@ -302,6 +326,16 @@ let getTask = function (taskId, currentPlatform) {
       taskStatus.checkin_description = "完成于：" + readableTime(DateTime.fromISO(checkinRecord.time)) + (checkinRecord.value ? "，领到：" + checkinRecord.value : "");
     }
   }
+
+  // 如果是单次任务，则读取完成状态
+  if (task.onetimeKey) {
+    let onetimeRecord = getSetting(`task_onetime_${task.onetimeKey}`, null)
+    if (onetimeRecord) {
+      taskStatus.checked = true
+      taskStatus.checkin_description = `完成于：${readableTime(DateTime.fromISO(onetimeRecord.time))} ${onetimeRecord.message}`
+    }
+  }
+
   // 如果限定平台
   if (currentPlatform) {
     if (task.type && task.type.indexOf(currentPlatform) < 0) {
@@ -328,7 +362,7 @@ let getTasks = function (currentPlatform) {
   let taskList = tasks.map((task) => {
     return getTask(task.id, currentPlatform)
   })
-  return taskList.filter(task => (!task.unavailable));
+  return taskList.filter(task => !(task.unavailable || task.deprecated));
 }
 
 module.exports = {

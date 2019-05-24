@@ -274,6 +274,9 @@ function findJobs(platform) {
     if (task.suspended || task.deprecated) {
       return console.log(task.title, '任务已暂停')
     }
+    if (task.checked) {
+      return console.log(task.title, '任务已完成')
+    }
     switch(task.frequency){
       case '2h':
         // 如果从没运行过，或者上次运行已经过去超过2小时，那么需要运行
@@ -289,7 +292,7 @@ function findJobs(platform) {
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
-        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day')) || (task.checkin && !task.checked)) {
+        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day'))) {
           jobStack = pushJob(task, jobStack)
         }
         break;
@@ -1128,11 +1131,18 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   updateIcon()
   // 保存消息
   switch (msg.action) {
-    case 'couponReceived':
     case 'notice':
+    case 'couponReceived':
     case 'checkin_notice':
       if (msg.test) {
         break;
+      }
+      // 如果是单次任务完成的通知
+      if (msg.task && msg.task.onetimeKey) {
+        saveSetting(`task_onetime_${msg.task.onetimeKey}`, {
+          time: new Date(),
+          message: msg.message
+        })
       }
       let message = {
         type: msg.type || msg.action || msg.text, // 通知的类型

@@ -1,22 +1,15 @@
 // 京价保
 var observeDOM = (function () {
-  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
-    eventListenerSupported = window.addEventListener;
-
+  var MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   return function (obj, callback) {
-    if (MutationObserver) {
-      // define a new observer
-      var obs = new MutationObserver(function (mutations, observer) {
-        if (mutations[0].addedNodes.length || mutations[0].removedNodes.length)
-          callback();
-      });
-      // have the observer observe foo for changes in children
-      obs.observe(obj, { childList: true, subtree: true });
-    } else if (eventListenerSupported) {
-      obj.addEventListener('DOMNodeInserted', callback, false);
-      obj.addEventListener('DOMNodeRemoved', callback, false);
-      obj.addEventListener('DOMSubtreeModified', callback, false);
-    }
+    // define a new observer
+    var obs = new MutationObserver(function (mutations, observer) {
+      if (mutations[0].addedNodes.length || mutations[0].removedNodes.length) {
+        callback(observer);
+      }
+    });
+    // have the observer observe foo for changes in children
+    obs.observe(obj, { childList: true, subtree: true });
   };
 })();
 
@@ -189,12 +182,13 @@ function apply(applyBtn, priceInfo, setting) {
             });
           }
 
-          observeDOM(document.getElementById(resultId), function () {
+          observeDOM(document.getElementById(resultId), function (observer) {
             let resultText = $("#" + resultId).text()
             if (resultText && resultText.indexOf("预计") < 0 && resultText.indexOf("繁忙") < 0) {
+              if (observer) observer.disconnect();
               chrome.runtime.sendMessage({
                 batch: 'jiabao',
-                text: "notice",
+                action: "notice",
                 title: "报告老板，价保申请有结果了",
                 product_name: product_name,
                 content: "价保结果：" + resultText
@@ -636,16 +630,17 @@ function runCommonTask(task) {
         simulateClick(targetElement, true)
         if (task.selector.result) {
           let uuid = Date.now()
-          observeDOM(document.body, function () {
+          observeDOM(document.body, function (observer) {
             let resultElement = $(`${task.selector.result}`)
             if (resultElement && resultElement.text().indexOf(task.selector.successKeyWord) > -1) {
-              if (task.successMessage) {
-                chrome.runtime.sendMessage(Object.assign({}, task.successMessage, {
-                  uuid: uuid
-                }), function (response) {
-                  console.log("Response: ", response);
-                });
-              }
+              if (observer) observer.disconnect();
+              return chrome.runtime.sendMessage(Object.assign({
+                task: task,
+              }, task.successMessage, {
+                uuid: uuid
+              }), function (response) {
+                console.log("Response: ", response);
+              });
             }
           })
         }
@@ -1781,13 +1776,6 @@ function CheckDom() {
   // 16 白条签到
   if ($("#lottery .mark_btn_start").length || $("#lottery .mark_btn_start").length > 0) {
     getTask('16', baitiaoLottery)
-  };
-
-  // 双签奖励 (12:双签奖励)
-  if (window.location.host == 'm.jr.jd.com' && document.title == "双签领奖励") {
-    setTimeout(() => {
-      getSetting('job12_frequency', doubleCheck)
-    }, 500);
   };
 
   // 19 每天领钢镚
