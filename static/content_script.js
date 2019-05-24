@@ -558,6 +558,7 @@ function getCommonUseCoupon(task) {
             if ($(".tip-title").text() && $(".tip-title").text().indexOf("领取成功") > -1) {
               chrome.runtime.sendMessage({
                 action: "couponReceived",
+                type: "coupon",
                 title: "京价保自动领到一张全品类优惠券",
                 content: {
                   price: coupon_price,
@@ -590,6 +591,7 @@ function getTelephoneCoupon(task) {
         let that = $(this)
         if (that.find('.q-ops-box .q-opbtns .txt').text() == '立即领取' && that.find('.q-range').text().indexOf("话费充值券") > -1) {
           let coupon_name = that.find('.q-range').text().trim()
+          let uuid = Date.now()
           let coupon_price = that.find('.q-price strong').text().trim() + '元 (' + that.find('.q-limit').text().trim() + ')'
           setTimeout(function () {
             $(that).find('.btn-def').trigger("click")
@@ -597,6 +599,8 @@ function getTelephoneCoupon(task) {
               if ($(".tip-title").text() && $(".tip-title").text().indexOf("领取成功") > -1) {
                 chrome.runtime.sendMessage({
                   action: "couponReceived",
+                  type: "coupon",
+                  uuid: uuid,
                   title: "京价保自动领到一张话费优惠券",
                   content: {
                     price: coupon_price,
@@ -631,11 +635,14 @@ function runCommonTask(task) {
       if (targetElement && targetElement.length > 0) {
         simulateClick(targetElement, true)
         if (task.selector.result) {
+          let uuid = Date.now()
           observeDOM(document.body, function () {
             let resultElement = $(`${task.selector.result}`)
             if (resultElement && resultElement.text().indexOf(task.selector.successKeyWord) > -1) {
               if (task.successMessage) {
-                chrome.runtime.sendMessage(task.successMessage, function (response) {
+                chrome.runtime.sendMessage(Object.assign({}, task.successMessage, {
+                  uuid: uuid
+                }), function (response) {
                   console.log("Response: ", response);
                 });
               }
@@ -686,7 +693,7 @@ function doShopSign(setting) {
   if (setting != 'never') {
     console.log('店铺自动签到')
     if ($(".J_giftClose").length > 0) {
-      simulateClick($(".J_giftClose"))
+      simulateClick($(".J_giftClose"), true)
     }
     chrome.runtime.sendMessage({ text: "myTab" }, function (result) {
       console.log('tab', result.tab)
@@ -1284,7 +1291,7 @@ function resaveAccount() {
 // 登录页
 function dealLoginPage() {
   // 手机版登录页
-  if ( $(".loginPage").length > 0 ) {
+  if ( $(".loginPage").length > 0 && $("#username").length > 0) {
     getAccount('m')
     $(auto_login_html).insertAfter( ".loginPage .notice")
     // 隐藏“一键登录”
@@ -1305,7 +1312,7 @@ function dealLoginPage() {
     })
   };
   // PC版登录页
-  if ($(".login-tab-r").length > 0) {
+  if ($(".login-tab-r").length > 0 && $("#loginname").length > 0) {
     // 切换到账号登录
     simulateClick($(".login-tab-r a"), true)
     // 获取账号
@@ -1943,16 +1950,19 @@ function checkLoginState() {
   }
 }
 
-$( document ).ready(function() {
-  console.log('京价保注入页面成功');
-  checkLoginState()
-  if (!pageTaskRunning) {
-    setTimeout( function(){
-      console.log('京价保开始执行任务');
-      CheckDom()
-    }, 1200)
-  }
-});
+// 不在收银台域名下运行任何任务
+if (window.location.host != 'pcashier.jd.com') {
+  $( document ).ready(function() {
+    console.log('京价保注入页面成功');
+    checkLoginState()
+    if (!pageTaskRunning) {
+      setTimeout( function(){
+        console.log('京价保开始执行任务');
+        CheckDom()
+      }, 1200)
+    }
+  });
+}
 
 // 消息
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {

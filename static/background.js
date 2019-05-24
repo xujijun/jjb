@@ -36,7 +36,6 @@ async function updateOrders() {
   let proDays = getSetting('price_pro_days', 15)
   let proTime = Date.now() - 60*60*1000*24*proDays;
   let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
-  console.log('orders', Object.assign({}, orders))
 
   if (orders && orders.length > 0) {
     orders = orders.filter(order => order.goods && order.goods.length > 0);
@@ -49,8 +48,8 @@ async function updateOrders() {
 }
 
 async function newMessage(messageId, data) {
-  let order = await db.messages.where('id').equals(messageId).toArray();
-  if (order && order.length > 0) return await db.messages.update(messageId, data)
+  let message = await db.messages.where('id').equals(messageId).toArray();
+  if (message && message.length > 0) return await db.messages.update(messageId, data)
   let messageInfo = Object.assign(data, {
     id: messageId,
   })
@@ -164,7 +163,7 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
   switch(true){
     // 计划任务
     case alarm.name.startsWith('runScheduleJob'):
-      runJob(taskId, true)
+      runJob(taskId)
       break;
     // 定时任务
     case alarm.name.startsWith('runJob'):
@@ -222,8 +221,8 @@ function findTasksByLocation(location) {
 
 
 function scheduleJob(task) {
+  let hour = DateTime.local().hour;
   for (var i = 0, len = task.schedule.length; i < len; i++) {
-    let hour = DateTime.local().hour;
     let scheduledHour = task.schedule[i]
     if (scheduledHour > hour) {
       let scheduledTime = DateTime.local().set({
@@ -234,17 +233,31 @@ function scheduleJob(task) {
       chrome.alarms.create('runScheduleJob_' + task.id, {
         when: scheduledTime
       })
-      return log('background', "schedule job created", {
+      log('background', "schedule job created", {
         job: task,
         time: scheduledHour,
         when: scheduledTime
       })
+      break;
     }
-    // 如果当前已经过了最晚的运行时段，则放弃运行
-    return log('background', "pass schedule job", {
-      job: task
-    })
   }
+}
+
+
+function pushJob(task, jobStack) {
+  if (task.schedule) {
+    chrome.alarms.get('runScheduleJob_' + task.id, function (alarm) {
+      if (!alarm || alarm.scheduledTime < Date.now()) {
+        return scheduleJob(task)
+      } else {
+        console.log("job already scheduled ", alarm)
+      }
+    })
+    return jobStack
+  } else {
+    jobStack.push(task.id)
+  }
+  return jobStack
 }
 
 // 寻找乔布斯
@@ -256,33 +269,23 @@ function findJobs(platform) {
     if (task.suspended || task.deprecated) {
       return console.log(task.title, '任务已暂停')
     }
-    // 如果任务有时间安排，则把任务安排到最近的下一个时段
-    if (task.schedule) {
-      return chrome.alarms.get('runScheduleJob_' + task.id, function (alarm) {
-        if (!alarm || alarm.scheduledTime < Date.now()) {
-          return scheduleJob(task)
-        } else {
-          console.log("job already scheduled ", alarm)
-        }
-      })
-    }
     switch(task.frequency){
       case '2h':
         // 如果从没运行过，或者上次运行已经过去超过2小时，那么需要运行
         if (!task.last_run_at || (DateTime.local() > DateTime.fromMillis(task.last_run_at).plus({ hours: 2 }))) {
-          jobStack.push(task.id)
+          jobStack = pushJob(task, jobStack)
         }
         break;
       case '5h':
         // 如果从没运行过，或者上次运行已经过去超过5小时，那么需要运行
         if (!task.last_run_at || (DateTime.local() > DateTime.fromMillis(task.last_run_at).plus({ hours: 5 }))) {
-          jobStack.push(task.id)
+          jobStack = pushJob(task, jobStack)
         }
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
         if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day')) || (task.checkin && !task.checked)) {
-          jobStack.push(task.id)
+          jobStack = pushJob(task, jobStack)
         }
         break;
       default:
@@ -331,7 +334,7 @@ function runJob(taskId, force = false) {
   if ((task.suspended || task.deprecated) && !force) {
     return log('job', task.title, '由于账号未登录已暂停运行')
   }
-  if (task && (task.frequency != 'never' || force)) {
+  if (task.frequency != 'never' || force) {
     log('background', "run", task)
     incrementUsage(task)
     if (task.mode == 'iframe') {

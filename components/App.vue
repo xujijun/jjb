@@ -694,7 +694,7 @@ import Vue from "vue";
 import { DateTime } from 'luxon'
 import { getLoginState } from '../static/account'
 import { tasks, frequencyOptionText, findJobPlatform, getTasks } from "../static/tasks";
-import { getSetting, versionCompare, readableTime } from "../static/utils";
+import { getSetting, versionCompare, readableTime, saveSetting } from "../static/utils";
 import { rewards, notices, stateText, recommendServices } from "../static/variables";
 
 function tippyElement(el) {
@@ -846,7 +846,7 @@ export default {
         case "orders_updated":
           this.renderOrders(message.orders)
           break;
-        case "new_message":
+        case "messages_updated":
           this.renderMessages(message.messages);
           break;
         case "loginState_updated":
@@ -945,7 +945,7 @@ export default {
           DateTime.fromJSDate(new Date(promotion.validDate)) < DateTime.local()
         );
       });
-      localStorage.setItem("promotions", JSON.stringify(promotions));
+      saveSetting("promotions", promotions);
       return promotions;
     },
     renderMessages: function(messages) {
@@ -1037,10 +1037,7 @@ export default {
     },
     dismiss: function(order) {
       this.hiddenPromotionIds.push(order.id);
-      localStorage.setItem(
-        "hiddenPromotionIds",
-        JSON.stringify(this.hiddenPromotionIds)
-      );
+      saveSetting("hiddenPromotionIds", this.hiddenPromotionIds);
       this.$forceUpdate();
     },
     toggleOrder: function(order) {
@@ -1049,10 +1046,7 @@ export default {
       } else {
         this.hiddenOrderIds.push(order.id);
       }
-      localStorage.setItem(
-        "hiddenOrderIds",
-        JSON.stringify(this.hiddenOrderIds)
-      );
+      saveSetting("hiddenOrderIds", this.hiddenOrderIds);
       this.$forceUpdate();
     },
     toggleSuspend: function (order, good, index) {

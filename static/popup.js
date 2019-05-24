@@ -162,7 +162,7 @@ function showJEvent(rateLimit) {
 $( document ).ready(function() {
   const paid = localStorage.getItem('jjb_paid');
   const account = localStorage.getItem('jjb_account');
-  const displayRecommend = localStorage.getItem('displayRecommend')
+  const displayRecommend = getSetting('displayRecommend', false)
   const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
     rate: 7,
     limit: 1
@@ -213,7 +213,7 @@ $( document ).ready(function() {
     let skipBuildId = localStorage.getItem('skipBuildId')
     let localBuildId = skipBuildId || "{{buildid}}"
     // 如果有新版
-    if (localBuildId < lastVersion.buildId) {
+    if (localBuildId < lastVersion.buildId && lastVersion.notice) {
       localStorage.setItem('newVersion', lastVersion.versionCode)
       // 如果新版是主要版本，而且当前版本需要被提示
       if (lastVersion.major && localBuildId < lastVersion.noticeBuildId) {
