@@ -17,6 +17,11 @@ const db = new Dexie("orders");
 db.version(1).stores({ orders: "++id,timestamp" });
 db.version(1).stores({ messages: "++id,type,timestamp" });
 
+db.version(2).stores({
+  orders: "++id,timestamp",
+  messages: "++id,type,timestamp",
+});
+
 async function findGood(orderId, good) {
   await db.orders.where('id').equals(orderId).modify(order => {
     order.goods.push(good);
@@ -468,6 +473,7 @@ $( document ).ready(function() {
 
   // 设置默认值
   setDefaultSetting()
+
 })
 
 // 用手机模式打开
