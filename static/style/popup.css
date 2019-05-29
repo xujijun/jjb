@@ -842,7 +842,7 @@ button.Button.messages-tab.Button--plain:focus {
     margin-bottom: -3px;
 }
 
-.message .checkin_notice {
+.message .checkin_notice, .message .goldCoinReceived {
     background: url(../image/bean.png) no-repeat;
     width: 20px;
     height: 20px;
@@ -850,7 +850,7 @@ button.Button.messages-tab.Button--plain:focus {
     display: inline-block;
     margin-bottom: -3px;
 }
-.message .checkin_notice.coin {
+.message .checkin_notice.coin, .message .goldCoinReceived.goldCoin {
     background-image: url(../image/coin.png);
 }
 
@@ -1123,6 +1123,22 @@ button.Button.messages-tab.Button--plain:focus {
     display: none;
 }
 
+.setting-icon{
+    background: url(../image/setting.svg) no-repeat center center;
+    width: 17px;
+    height: 17px;
+    color: #dcdcdc;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -3px;
+    margin-left: 1px;
+    background-size: 16px;
+}
+
+.weui-navbar__item{
+    line-height: 22px;
+}
+
 .request-permissions-icon.weui-icon-warn {
     color: #FFC107;
     font-size: 22px;
@@ -1144,10 +1160,6 @@ button.Button.messages-tab.Button--plain:focus {
 
 .el-tag--plus a{
     color: #da8d00;
-}
-
-.settings .weui-cells_form{
-    margin-top: .8em;
 }
 
 .help_btns .el-tag a{

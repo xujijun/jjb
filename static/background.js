@@ -305,9 +305,11 @@ function findJobs(platform) {
 
 function incrementUsage(task) {
   let year = new Date().getFullYear()
+  let week = DateTime.local().weekNumber
   let today = DateTime.local().toFormat("o")
   let hour = new Date().getHours()
   saveSetting(`temporary:usage-${task.id}_${year}d:${today}:h:${hour}`, task.usage.hour + 1)
+  saveSetting(`temporary:usage-${task.id}_${year}w:${week}`, task.usage.weekly  + 1)
   saveSetting(`temporary:usage-${task.id}_${year}d:${today}`, task.usage.daily  + 1)
 }
 
@@ -335,7 +337,7 @@ function runJob(taskId, force = false) {
 
   // 如果任务已暂停
   if (task.pause) {
-    return log('job', task.title, '由于运行次数超限而被暂停')
+    return log('job', task.title, '已被暂停')
   }
 
   // 如果任务已挂起或已经弃用 且不是强制执行
@@ -1133,6 +1135,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   switch (msg.action) {
     case 'notice':
     case 'couponReceived':
+    case 'goldCoinReceived':
     case 'checkin_notice':
       if (msg.test) {
         break;

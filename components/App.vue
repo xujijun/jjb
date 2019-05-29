@@ -1,403 +1,6 @@
 <template>
   <div>
-    <div class="settings">
-      <div class="weui-tab">
-        <div :class="`${scienceOnline} weui-navbar`">
-          <div class="weui-navbar__item weui-bar__item_on" data-type="frequency_settings">任务设置</div>
-          <div class="weui-navbar__item" data-type="notice_settings">通知设置</div>
-          <div class="weui-navbar__item" data-type="other_settings">高级设置</div>
-        </div>
-        <div class="weui-tab__panel">
-          <form
-            id="settings"
-            data-persist="garlic"
-            data-domain="true"
-            data-destroy="false"
-            method="POST"
-          >
-            <div class="frequency_settings settings_box">
-              <div class="weui-cells weui-cells_form">
-                <div
-                  class="weui-cell weui-cell_select weui-cell_select-after"
-                  v-for="task in taskList"
-                  :key="task.id"
-                >
-                  <div class="weui-cell__bd job-m">
-                    <span :title="task.description" v-tippy>
-                      <a
-                        v-if="task.platform == 'm'"
-                        class="openMobilePage"
-                        :data-url="task.url"
-                      >{{task.title}}</a>
-                      <a v-else :href="task.baseUrl || task.url" target="_blank">{{task.title}}</a>
-                    </span>
-                    <span v-show="task.suspended && !task.checked" v-tippy title="因账号未登录任务已暂停运行">
-                      <i class="job-state weui-icon-waiting-circle" @click="showLoginState = true"></i>
-                    </span>
-                    <i
-                      v-show="task.checked"
-                      v-tippy
-                      :title="task.checkin_description"
-                      class="today weui-icon-success-circle"
-                    ></i>
-                    <i
-                      v-show="!task.checked && !task.suspended"
-                      @click="retryTask(task)"
-                      class="reload-icon"
-                      v-tippy
-                      :title="task.last_run_description"
-                    ></i>
-                  </div>
-                  <div class="weui-cell__bd">
-                    <select class="weui-select" v-auto-save :name="`job${task.id}_frequency`">
-                      <option
-                        v-for="option in task.frequencyOption"
-                        :value="option"
-                        :key="option"
-                      >{{ frequencyOptionText[option] }}</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div class="tips bottom-tips">
-                <p class="page__desc">
-                  <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
-                  <a
-                    href="#"
-                    class="weui-btn weui-btn_mini weui-btn_primary"
-                    data-to="weixin"
-                    data-target="ming"
-                  >打赏</a>
-                </p>
-              </div>
-            </div>
-            <div class="notice_settings settings_box" style="display: none">
-              <div class="weui-cells weui-cells_form">
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">不再提示签到通知</div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" v-auto-save type="checkbox" name="mute_checkin">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">不再提示领券通知</div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" v-auto-save type="checkbox" name="mute_coupon">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">隐藏价保商品信息</div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="hide_good">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="开启后不再晚上12点至凌晨6点发送浏览器通知"
-                    >开启夜晚防打扰</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="mute_night">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span>
-                      播放提示音效
-                      <i
-                        id="listen"
-                        class="weui-icon-info-circle tippy"
-                        data-tippy-content="试听全部提示音效"
-                      ></i>
-                    </span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="play_audio">
-                  </div>
-                </div>
-              </div>
-              <div class="other_actions">
-                <div class="recommendation">
-                  <h3 style="text-align: center;color: #666;">服务推荐</h3>
-                  <p class="recommendServices">
-                    <span
-                      :class="service.class"
-                      v-for="service in recommendServices"
-                      :key="service.title"
-                    >
-                      <a
-                        target="_blank"
-                        v-tippy
-                        :title="service.description"
-                        :href="service.link"
-                      >{{service.title}}</a>
-                    </span>
-                  </p>
-                  <div class="recommendedLink">
-                    <p v-for="link in recommendedLinks" :key="link.title">
-                      <a
-                        v-if="link.mobile"
-                        class="openMobilePage"
-                        :style="link.style"
-                        :data-url="link.url"
-                      >{{link.title}}</a>
-                      <a
-                        v-else
-                        :href="link.url"
-                        :style="link.style"
-                        class="weui-form-preview__btn weui-form-preview__btn_primary"
-                        target="_blank"
-                      >{{link.title}}</a>
-                    </p>
-                  </div>
-                </div>
-                <h3 style="text-align: center;color: #666;">关注京价保</h3>
-                <p style="text-align: center;margin-top: -10px;">
-                  <a
-                    href="https://t.me/jingjiabao"
-                    class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
-                    data-tippy-placement="top-start"
-                    data-tippy-content="通过电报群接收京价保的最新消息"
-                    target="_blank"
-                  >京价保@Telegram</a>
-                  <a
-                    href="#"
-                    id="openWechatCard"
-                    class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
-                    data-tippy-placement="top-start"
-                    data-tippy-content="关注京价保的公众号"
-                  >京价保公众号</a>
-                </p>
-              </div>
-            </div>
-            <div class="other_settings settings_box" style="display: none">
-              <div class="weui-cells weui-cells_form">
-                <div class="weui-cell weui-cell_select weui-cell_select-after">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="京东价格保护的时间不同商品不同，大部分商品是7天价保"
-                    >监控订单范围</span>
-                  </div>
-                  <div class="weui-cell__bd">
-                    <select class="weui-select" v-auto-save name="price_pro_days">
-                      <option value="7">最近7天</option>
-                      <option value="15">最近15天</option>
-                      <option value="30">最近30天</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_select weui-cell_select-after">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="商品降价小于“最小价差”时将不会自动申请价保"
-                    >最小价差</span>
-                  </div>
-                  <div class="weui-cell__bd">
-                    <select class="weui-select" v-auto-save name="price_pro_min">
-                      <option value="0.1">0.1元</option>
-                      <option value="0.5">0.5元</option>
-                      <option value="1">1元</option>
-                      <option value="5">5元</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="如果您是Plus会员，在价保时会选择使用Plus价格来做对比"
-                    >我是Plus会员</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="is_plus">
-                  </div>
-                </div>
-                <!-- @if Browser='chrome' -->
-                <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="开启剁手保护模式后，每次购物时京价保将向你发起灵魂质问，帮你极致省钱"
-                    >剁手保护模式</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="hand_protection">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="京东热卖是带有推荐的链接落地页，开启本选项后将自动为你把该页面跳转到商品页"
-                    >自动跳转热卖页</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="auto_gobuy">
-                  </div>
-                </div>
-                <!-- @endif -->
-
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请（不推荐开启此选项）"
-                    >被动价保模式</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input
-                      class="weui-switch"
-                      type="checkbox"
-                      v-auto-save="{ notice: '开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请' }"
-                      name="prompt_only"
-                    >
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      v-tippy
-                      title="在右侧“最近订单”中京价保提供的商品链接包含了京东联盟的跳转，它不会影响你，却能给开发者提供一些收入，帮助京价保保持更新。"
-                    >停用最近订单的链接</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input
-                      class="weui-switch"
-                      type="checkbox"
-                      v-on:change="updateDisableOrderLink"
-                      v-auto-save="{
-                        notice: '京价保展示的最近订单商品链接带有京东联盟的返利，使用该链接购买能给开发者提供一些收入，帮助京价保保持更新。确认要停用该链接吗？'
-                      }"
-                      name="disabled_link"
-                    >
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="停用价格走势功能将停止上报京价保在本地获取到的商品价格同时停止展示价格走势图"
-                    >停用价格走势图</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input
-                      class="weui-switch"
-                      type="checkbox"
-                      v-auto-save="{ notice: '停用价格走势功能将停止上报京价保在本地获取到的商品价格，同时也会停止展示价格走势图' }"
-                      name="disable_pricechart"
-                    >
-                  </div>
-                </div>
-              </div>
-              <div class="other_actions">
-                <p class="help_btns" style="text-align: center;">
-                  <span class="el-tag el-tag--success">
-                    <a
-                      href="#"
-                      id="openFeedback"
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="向作者提供功能建议或京东活动的地址，帮助京价保及时更新"
-                    >建议反馈</a>
-                  </span>
-                  <span class="el-tag el-tag--warning">
-                    <a
-                      href="https://blog.jjb.im/faq.html"
-                      target="_blank"
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="了解一些常见问题的解答"
-                    >常见问题</a>
-                  </span>
-                </p>
-                <p style="text-align: center;">
-                  <a
-                    href="#"
-                    id="clearAccount"
-                    class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
-                    data-tippy-placement="top-start"
-                    data-tippy-content="在登录时勾选记住密码可保存新的密码"
-                  >清除账号密码和记录</a>
-                </p>
-              </div>
-              <p
-                class="text-tips version showChangelog tippy"
-                @click="showChangelog"
-                data-tippy-content="点击查看版本更新记录"
-              >
-                当前版本：{{currentVersion}}
-                <span class="weui-badge weui-badge_dot" v-if="newChangelog"></span>
-                <span class="weui-badge new-version" v-if="newVersion">有新版</span>
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-      <div class="bottom-box">
-        <div class="avatar">
-          <a
-            id="loginState"
-            :class="`${loginState.class} login-state`"
-            v-tippy
-            @click="showLoginState = true"
-            :title="loginStateDescription"
-          ></a>
-        </div>
-        <div class="links">
-          <span class="el-tag el-tag--success">
-            <a
-              href="#"
-              class="switch-paymethod tippy"
-              data-tippy-placement="top-start"
-              data-tippy-content="打赏开发者"
-              data-to="
-              wechat"
-              data-target="ming"
-            >打赏开发者</a>
-          </span>
-          <span class="el-tag el-tag--danger">
-            <a
-              href="#"
-              class="switch-paymethod"
-              title="天天领支付宝红包"
-              v-tippy
-              data-to="alipay"
-              data-target="redpack"
-            >支付宝红包</a>
-          </span>
-          <span class="el-tag el-tag--warning">
-            <a
-              href="#"
-              id="openjEventCard"
-              data-tippy-placement="top-start"
-              class="tippy"
-              data-tippy-content="热门的促销活动推荐"
-            >活动推荐</a>
-          </span>
-          <span class="el-tag">
-            <a
-              data-tippy-placement="top-start"
-              class="tippy"
-              data-tippy-content="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取"
-              href="https://plus.jd.com/coupon/index"
-              target="_blank"
-            >领PLUS券</a>
-          </span>
-        </div>
-      </div>
-    </div>
+    <settings :login-state="loginState" @show-login="showLoginState = true" @update-order-link="updateDisableOrderLink"></settings>
     <div class="contents">
       <div class="weui-tab">
         <div class="weui-navbar">
@@ -646,7 +249,7 @@
             class="showChangelog weui-tabbar__item"
             @click="showChangelog"
             v-tippy
-            title="查看京价保最近更新记录"
+            :title="`当前版本：${currentVersion}，查看京价保最近更新记录`"
             style="position: relative;"
           >
             <img src="../static/image/update.png" alt="" class="weui-tabbar__icon">
@@ -693,9 +296,8 @@ import Vue from "vue";
 
 import { DateTime } from 'luxon'
 import { getLoginState } from '../static/account'
-import { tasks, frequencyOptionText, findJobPlatform, getTasks } from "../static/tasks";
 import { getSetting, versionCompare, readableTime, saveSetting } from "../static/utils";
-import { rewards, notices, stateText, recommendServices } from "../static/variables";
+import { stateText } from "../static/variables";
 
 function tippyElement(el) {
   setTimeout(() => {
@@ -733,6 +335,7 @@ Vue.directive("autoSave", {
         el.value = current;
       }
     }
+    let autoSaveEvent = new Event('auto-save');
     function saveToLocalStorage(el, binding) {
       if (el.type == "checkbox") {
         if (el.checked) {
@@ -743,6 +346,7 @@ Vue.directive("autoSave", {
       } else {
         localStorage.setItem(el.name, el.value);
       }
+      el.dispatchEvent(autoSaveEvent);
       weui.toast("设置已保存", 500);
     }
     revertValue(el);
@@ -772,40 +376,35 @@ Vue.directive("autoSave", {
 
 import loginNotice from './login-notice.vue';
 import discounts from './discounts.vue';
+import settings from './settings.vue';
 import guide from './guide.vue';
 
 export default {
   name: "App",
-  components: { loginNotice, discounts, guide },
+  components: { loginNotice, discounts, settings, guide },
   data() {
     return {
-      taskList: [],
       messages: [],
       orders: [],
       skuPriceList: {},
-      recommendedLinks: getSetting("recommendedLinks", []),
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
-      scienceOnline: false,
       showLoginState: false,
-      frequencyOptionText: frequencyOptionText,
       currentVersion: "{{version}}",
-      currentBrowser: "{{browser}}",
-      recommendServices: getSetting("recommendServices", recommendServices),
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
       newChangelog: versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") < 0,
       hiddenOrderIds: getSetting("hiddenOrderIds", []),
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
       selectedTab: null,
       contentType: 'orders',
-      loginStateDescription: "未能获取登录状态",
       newVersion: getSetting("newVersion", null),
       unreadCount: getSetting("unreadCount", null),
       olduser: getSetting('jjb_admission-test', false),
       showGuideAt: getSetting('showGuideAt', false),
       loginState: {
         default: true,
+        description: "未能获取登录状态",
         m: {
           state: "unknown"
         },
@@ -816,8 +415,6 @@ export default {
     };
   },
   mounted: async function() {
-    // 准备数据
-    this.getTaskList();
     // 渲染订单
     setTimeout(() => {
       this.renderOrders()
@@ -826,10 +423,6 @@ export default {
     setTimeout(() => {
       this.getLastDiscount()
     }, 100);
-    // 测试是否科学上网
-    setTimeout(() => {
-      this.tryGoogle()
-    }, 200);
     // 渲染通知
     setTimeout(() => {
       this.renderMessages()
@@ -851,30 +444,11 @@ export default {
           break;
         case "loginState_updated":
           this.dealWithLoginState();
-          setTimeout(() => {
-            this.getTaskList();
-          }, 1000);
           break;
         default:
           break;
       }
     });
-  },
-  watch: {
-    loginState: function(newState, oldState) {
-      if (
-        oldState.m.state != "alive" &&
-        oldState.pc.state != "alive" &&
-        !oldState.default
-      ) {
-        if (newState.m.state == "alive" || newState.pc.state == "alive") {
-          if (this.orders.length < 1) {
-            this.loadingOrder = true;
-            this.retryTask(tasks[0], true);
-          }
-        }
-      }
-    }
   },
   computed: {
     showGuide: function() {
@@ -912,14 +486,6 @@ export default {
           break;
         default:
           break;
-      }
-    },
-    tryGoogle: async function() {
-      let response = await fetch("https://www.googleapis.com/discovery/v1/apis?name=abusiveexperiencereport");
-      if ( response.status == "200" ) {
-        this.scienceOnline = true;
-      } else {
-        this.scienceOnline = false;
       }
     },
     updateDisableOrderLink: function() {
@@ -1003,34 +569,12 @@ export default {
 
       this.loginState["pc"].description = "当前登录状态" + getStateDescription(loginState, "pc");
       this.loginState["m"].description = "当前登录状态" + getStateDescription(loginState, "m");
-      this.loginStateDescription = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
+      this.loginState.description = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
 
       // 如果登录失败，那么显示提示
       if (loginState.class == "failed") {
         this.showLoginState = true
       }
-    },
-    // 任务列表
-    getTaskList: async function() {
-      this.taskList = getTasks()
-    },
-    retryTask: function(task, hideNotice = false) {
-      chrome.runtime.sendMessage(
-        {
-          action: "runTask",
-          hideNotice: hideNotice,
-          taskId: task.id
-        },
-        function(response) {
-          if (!hideNotice) {
-            if (response.result == "success") {
-              weui.toast("手动运行成功", 3000);
-            } else if (response.message) {
-              weui.alert(response.message, { title: '任务暂未运行' })
-            }
-          }
-        }
-      );
     },
     selectType: function(type) {
       this.selectedTab = type;

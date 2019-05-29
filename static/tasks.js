@@ -32,6 +32,7 @@ const tasks = [
       host: ['pcsitepp-fm.jd.com', 'msitepp-fm.jd.com']
     },
     rateLimit:{
+      weekly: 55,
       daily: 10,
       hour: 2
     }
@@ -53,7 +54,8 @@ const tasks = [
       host: ['a.jd.com']
     },
     rateLimit:{
-      daily: 10,
+      weekly: 36,
+      daily: 5,
       hour: 2
     }
   },
@@ -73,7 +75,8 @@ const tasks = [
       pathname: ['/index']
     },
     rateLimit:{
-      daily: 10,
+      weekly: 14,
+      daily: 5,
       hour: 2
     }
   },
@@ -88,7 +91,8 @@ const tasks = [
     type: ['m'],
     frequency: '5h',
     rateLimit:{
-      daily: 10,
+      weekly: 14,
+      daily: 5,
       hour: 2
     }
   },
@@ -114,7 +118,8 @@ const tasks = [
       successKeyWord: "成功",
     },
     rateLimit:{
-      daily: 10,
+      weekly: 14,
+      daily: 5,
       hour: 2
     }
   },
@@ -132,6 +137,7 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
@@ -149,6 +155,7 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
@@ -167,6 +174,7 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
@@ -185,6 +193,7 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
@@ -202,6 +211,7 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
@@ -243,7 +253,8 @@ const tasks = [
       pathname: ['/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html']
     },
     rateLimit:{
-      daily: 10,
+      weekly: 14,
+      daily: 5,
       hour: 2
     }
   },
@@ -261,6 +272,7 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
@@ -277,10 +289,33 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'never',
     rateLimit:{
+      weekly: 14,
       daily: 5,
       hour: 2
     }
   },
+  {
+    id: '22',
+    src: {
+      m: 'https://m.jr.jd.com/member/gcmall/',
+    },
+    title: '领取金融金币',
+    description: "领取京东金融各种返金币",
+    mode: 'iframe',
+    type: ['m'],
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    location: {
+      host: ['m.jr.jd.com'],
+      pathname: ['/member/gcmall/']
+    },
+    new: true,
+    rateLimit:{
+      weekly: 14,
+      daily: 3,
+      hour: 2
+    }
+  }
 ]
 
 // 根据登录状态选择任务模式
@@ -298,14 +333,17 @@ let findTaskPlatform = function (task) {
 
 let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('task-parameters', [])
+  let taskSettings = getSetting(`task-${taskId}:settings`, {})
   let parameters = (Array.isArray(taskParameters) && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
   let task = Object.assign({
     rateLimit: {
-      daily: 10,
+      weekly: 21,
+      daily: 5,
       hour: 2
     }
-  }, tasks.find(t => t.id == taskId.toString()), parameters)
+  }, tasks.find(t => t.id == taskId.toString()), parameters, taskSettings)
   let year = new Date().getFullYear()
+  let week = DateTime.local().weekNumber
   let today = DateTime.local().toFormat("o")
   let hour = new Date().getHours()
   let taskStatus = {}
@@ -313,7 +351,8 @@ let getTask = function (taskId, currentPlatform) {
   taskStatus.frequency = getSetting(`job${taskId}_frequency`, task.frequency)
   taskStatus.usage = {
     hour: getSetting(`temporary:usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
-    daily: getSetting(`temporary:usage-${taskId}_${year}d:${today}`, 0)
+    daily: getSetting(`temporary:usage-${taskId}_${year}d:${today}`, 0),
+    weekly: getSetting(`temporary:usage-${taskId}_${year}w:${week}`, 0)
   }
   taskStatus.last_run_at = localStorage.getItem(`job${task.id}_lasttime`) ? parseInt(localStorage.getItem(`job${task.id}_lasttime`)) : null
   taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
@@ -352,7 +391,11 @@ let getTask = function (taskId, currentPlatform) {
     taskStatus.platform = task.type[0];
   }
   // 如果超出限制
-  if (taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
+  if ((task.rateLimit.weekly && taskStatus.usage.weekly >= task.rateLimit.weekly) || taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
+    taskStatus.pause = true;
+  }
+  // 如果是新任务
+  if (task.new) {
     taskStatus.pause = true;
   }
   return Object.assign(task, taskStatus)

@@ -1191,21 +1191,20 @@ function autoLogin(account, type) {
         if ($("#username").val() && $("#password").val()) {
           login('m')
           // 是否需要滑动验证
-          setTimeout(function () {
-            let slidemsg = $("#captcha_body .sp_msg").text()
-            if (slidemsg) {
+          observeDOM(document.body, function (observer) {
+            let slideMsg = $("#captcha_body .sp_msg").text()
+            if (slideMsg && slideMsg.length > 0) {
+              if (observer) observer.disconnect();
               dealLoginFailed("m", "需要完成登录验证")
             }
-          }, 1000)
+          })
           // 监控失败提示
           setTimeout(function () {
-            observeDOM($(".notice")[0], function () {
-              let errorMsg = $(".notice").text()
-              if (errorMsg && errorMsg.length > 0) {
-                dealLoginFailed("m", errorMsg)
-              }
-            })
-          }, 500)
+            let errorMsg = $(".notice").text() ? $(".notice").text().trim() : null
+            if (errorMsg && errorMsg.length > 0) {
+              dealLoginFailed("m", errorMsg)
+            }
+          }, 2000)
         }
       }, 500)
     }
@@ -1639,6 +1638,42 @@ function jrIndex(setting) {
   }
 }
 
+// 金币
+function getGoldCoin(task) {
+  if (task && task.frequency != 'never') {
+    let time = 0;
+    console.log('开始领取金币')
+    $("#content .set-coin-item a.btn").each(function () {
+      let that = $(this)
+      if (that.text() == '立即领取') {
+        setTimeout(function () {
+          simulateClick($(that))
+          let uuid = Date.now()
+          observeDOM(document.body, function (observer) {
+            let resultElement = $(".draw-dialog-content-top .draw-dialog-coin-num")
+            if (resultElement && resultElement.text().indexOf('成功') > -1) {
+              let value = resultElement.text().replace(/[^0-9\.-]+/g, "")
+              if (observer) observer.disconnect();
+              return chrome.runtime.sendMessage({
+                task: task,
+                action: "goldCoinReceived",
+                title: "京价保自动为您领取金币",
+                value: value,
+                reward: "goldCoin",
+                content: `恭喜您领到了${value}个金币`,
+                uuid: uuid
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          })
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
 
 // ************
 // 主体任务
@@ -1666,6 +1701,10 @@ function triggerTask(task) {
     // 21:话费券
     case '21':
       getTelephoneCoupon(task)
+      break;
+    // 22:金币
+    case '22':
+      getGoldCoin(task)
       break;
     default:
       break;
