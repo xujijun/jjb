@@ -321,8 +321,8 @@ Vue.directive("tippy", {
 
 Vue.directive("autoSave", {
   bind(el, binding, vnode) {
-    function revertValue(el) {
-      let current = getSetting(el.name, null);
+    function revertValue(el, binding) {
+      let current = getSetting(el.name, (binding.value && binding.value.current) ? binding.value.current : null);
       if (el.type == "checkbox") {
         if (current == "checked") {
           el.checked = true;
@@ -349,7 +349,7 @@ Vue.directive("autoSave", {
       el.dispatchEvent(autoSaveEvent);
       weui.toast("设置已保存", 500);
     }
-    revertValue(el);
+    revertValue(el, binding);
     el.addEventListener("change", function(event) {
       if (binding.value && binding.value.notice && el.checked) {
         weui.confirm(
@@ -360,7 +360,7 @@ Vue.directive("autoSave", {
           function() {
             event.preventDefault();
             setTimeout(() => {
-              revertValue(el);
+              revertValue(el, binding);
             }, 50);
           },
           {
@@ -632,6 +632,24 @@ export default {
 </script>
 
 <style scoped>
+/* width */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #ccc; 
+  border-radius: 6px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #eee; 
+}
+.contents .weui-tab__panel{
+  overflow: hidden;
+}
 .order-good.suspended{
   opacity: 0.5
 }

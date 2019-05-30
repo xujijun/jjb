@@ -119,6 +119,8 @@ a:hover {
 .other_actions{
     padding: 10px;
     padding-bottom: 0;
+    height: 280px;
+    overflow: hidden;
 }
 
 .other_actions p{

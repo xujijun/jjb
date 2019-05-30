@@ -261,7 +261,7 @@ $( document ).ready(function() {
       $("#dialogs").hide()
     }
     // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
-    if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > displayRecommendRateLimit.rate) {
+    if (isNoDialog() && displayRecommend && time[time.length - 1] > displayRecommendRateLimit.rate) {
       showJEvent(displayRecommendRateLimit)
     }
 

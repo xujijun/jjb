@@ -105,7 +105,7 @@
                         ></i>
                       </div>
                       <div class="weui-cell__bd">
-                        <select class="weui-select" @auto-save="getTaskList" v-auto-save :name="`job${task.id}_frequency`">
+                        <select class="weui-select" @auto-save="getTaskList" v-auto-save="{ current: `${task.frequency}` }" :name="`job${task.id}_frequency`">
                           <option
                             v-for="option in task.frequencyOption"
                             :value="option"
@@ -573,7 +573,7 @@ export default {
 </script>
 <style scoped>
 .frequency_settings .weui-select {
-  width: 10em;
+  width: 9em;
 }
 .settings .task-list{
   margin-top: 5px;
@@ -625,8 +625,9 @@ export default {
 }
 
 .frequency_settings .weui-cell_select .weui-cell__bd:after {
-  right: 4em;
+  right: 60px;
 }
+
 
 .task-type {
   margin-top: 12px;
