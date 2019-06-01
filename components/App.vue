@@ -46,7 +46,7 @@
         </div>
         <div class="weui-tab__panel">
           <div id="orders" v-if="contentType == 'orders'" class="weui-cells contents-box orders">
-            <div v-if="orders && orders.length > 0">
+            <ul v-if="orders && orders.length > 0">
               <li
                 v-for="order in orders"
                 :key="order.id"
@@ -152,7 +152,7 @@
                   title="点击了解京东价格保护政策"
                 >只显示在价保监控范围内且下单金额大于0的订单（默认15天内）</a>
               </p>
-            </div>
+            </ul>
             <div class="no_order" v-else>
               <div v-if="loadingOrder">
                 <h4>正在加载最近订单</h4>
@@ -165,34 +165,55 @@
           </div>
           <div id="messages" v-if="contentType == 'messages'" class="weui-cells contents-box messages">
             <div class="messages-top">
-              <div class="messages-header">
-                <button
-                  :class="[selectedTab == 'checkin_notice' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']"
-                  data-tippy-content="签到记录"
-                  data-type="checkin_notice"
-                  type="button"
-                  @click="selectType('checkin_notice')"
-                >
-                  <span class="checkin"></span>
-                </button>
-                <button
-                  :class="[selectedTab == 'notice' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']"
-                  data-tippy-content="价保记录"
-                  data-type="notice"
-                  type="button"
-                  @click="selectType('notice')"
-                >
-                  <span class="notice"></span>
-                </button>
-                <button
-                  :class="[selectedTab == 'coupon' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']"
-                  data-tippy-content="领券记录"
-                  data-type="coupon"
-                  type="button"
-                  @click="selectType('coupon')"
-                >
-                  <span class="coupon"></span>
-                </button>
+              <div class="messages-header message-type">
+                <div role="radiogroup" class="el-radio-group">
+                  <label
+                    role="radio"
+                    tabindex="-1"
+                    class="el-radio-button el-radio-button--mini is-active"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedTab"
+                      tabindex="-1"
+                      class="el-radio-button__orig-radio"
+                      value="checkin_notice"
+                    >
+                    <span class="el-radio-button__inner">签到记录</span>
+                  </label>
+                  <label
+                    role="radio"
+                    aria-disabled="true"
+                    tabindex="-1"
+                    class="el-radio-button el-radio-button--mini"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedTab"
+                      tabindex="-1"
+                      class="el-radio-button__orig-radio"
+                      value="notice"
+                    >
+                    <span class="el-radio-button__inner">价保记录</span>
+                  </label>
+                  <label
+                    role="radio"
+                    aria-disabled="true"
+                    tabindex="-1"
+                    class="el-radio-button el-radio-button--mini"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedTab"
+                      tabindex="-1"
+                      class="el-radio-button__orig-radio"
+                      value="coupon"
+                    >
+                    <div class="el-radio-button__inner">
+                      领券记录
+                    </div>
+                  </label>
+              </div>
               </div>
             </div>
             <div class="message-items" v-if="messages && messages.length > 0">
@@ -632,28 +653,40 @@ export default {
 </script>
 
 <style scoped>
-/* width */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #ccc; 
-  border-radius: 6px;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #eee; 
-}
-.contents .weui-tab__panel{
+.orders, .messages, .discounts{
   overflow: hidden;
+  height: 510px;
+  width: 417px;
+}
+
+.contents-box.orders ul{
+  height: 510px;
+  overflow-y: auto;
+}
+.message-items {
+  margin-top: 45px;
+  height: 460px;
+  overflow-y: auto;
 }
 .order-good.suspended{
   opacity: 0.5
 }
 .weui-navbar.true .weui-navbar__item.weui-bar__item_on{
   background-image: linear-gradient(180deg,#09bb07,#06a90c94);
+}
+
+.messages-header {
+    display: flex;
+    border-bottom: 1px solid #ebeef5;
+    height: 32px;
+    padding-top: 6px;
+    position: fixed;
+    width: 432px;
+    background: #fafafa;
+    z-index: 10;
+}
+
+.el-radio-group{
+  margin: 0 auto;
 }
 </style>

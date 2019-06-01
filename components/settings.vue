@@ -572,13 +572,25 @@ export default {
 };
 </script>
 <style scoped>
+.settings_box{
+  overflow: hidden;
+  height: 510px;
+}
+
+.settings .page__desc{
+    font-size: 12px;
+    height: 40px;
+    line-height: 18px;
+    color: #666;
+}
+
 .frequency_settings .weui-select {
   width: 9em;
 }
 .settings .task-list{
   margin-top: 5px;
   height: 425px;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .task-item{
@@ -624,80 +636,17 @@ export default {
   cursor: pointer;
 }
 
+.other_settings .other_actions{
+  height: 140px;
+}
+
 .frequency_settings .weui-cell_select .weui-cell__bd:after {
   right: 60px;
 }
 
-
 .task-type {
-  margin-top: 12px;
+  margin-top: 6px;
   text-align: center
 }
 
-.el-radio-group {
-    display: inline-block;
-    line-height: 1;
-    vertical-align: middle;
-    font-size: 0;
-}
-.el-radio-button, .el-radio-button__inner {
-    position: relative;
-    display: inline-block;
-    outline: none;
-}
-.el-radio-button__orig-radio {
-    opacity: 0;
-    outline: none;
-    position: absolute;
-    z-index: -1;
-}
-.el-radio-button__orig-radio:disabled+.el-radio-button__inner {
-    color: #c0c4cc;
-    cursor: not-allowed;
-    background-image: none;
-    background-color: #fff;
-    border-color: #ebeef5;
-    box-shadow: none;
-}
-.el-radio-button__orig-radio:checked+.el-radio-button__inner {
-    color: #fff;
-    background-color: #409eff;
-    border-color: #409eff;
-    box-shadow: -1px 0 0 0 #409eff;
-}
-.el-radio-button:first-child .el-radio-button__inner {
-    border-left: 1px solid #dcdfe6;
-    border-radius: 4px 0 0 4px;
-    box-shadow: none!important;
-}
-.el-radio-button--mini .el-radio-button__inner {
-    padding: 7px 15px;
-    font-size: 12px;
-    border-radius: 0;
-}
-.el-radio-button__inner {
-    line-height: 1;
-    white-space: nowrap;
-    vertical-align: middle;
-    background: #fff;
-    border: 1px solid #dcdfe6;
-    font-weight: 500;
-    border-left: 0;
-    color: #606266;
-    -webkit-appearance: none;
-    text-align: center;
-    box-sizing: border-box;
-    margin: 0;
-    cursor: pointer;
-    transition: all .3s cubic-bezier(.645,.045,.355,1);
-    padding: 12px 20px;
-    font-size: 14px;
-    border-radius: 0;
-}
-.el-radio-button__orig-radio:disabled:checked+.el-radio-button__inner {
-    background-color: #f2f6fc;
-}
-.el-radio-button:last-child .el-radio-button__inner {
-    border-radius: 0 4px 4px 0;
-}
 </style>

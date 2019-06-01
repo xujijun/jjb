@@ -322,7 +322,7 @@ export default {
 
 .select-tag,
 .search {
-  width: 230px;
+  width: 220px;
   float: right;
   line-height: 50px;
   font-size: 14px;
@@ -347,7 +347,7 @@ export default {
   transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
   width: 70%;
   margin-top: 12px;
-  margin-right: 6px;
+  margin-right: 16px;
 }
 
 .search input:focus {
@@ -394,7 +394,7 @@ export default {
 .discount-list {
   margin-top: 50px;
   overflow-y: auto;
-  height: 465px;
+  height: 460px;
 }
 .loading {
   margin-top: 45px;
