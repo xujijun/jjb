@@ -162,13 +162,6 @@ function showJEvent(rateLimit) {
 $( document ).ready(function() {
   const paid = localStorage.getItem('jjb_paid');
   const account = localStorage.getItem('jjb_account');
-  const displayRecommend = getSetting('displayRecommend', false)
-  const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
-    rate: 7,
-    limit: 1
-  })
-  let windowWidth = Number(document.body.offsetWidth)
-  let time = Date.now().toString()
   let loginState = getLoginState()
 
   // tippy
@@ -176,36 +169,6 @@ $( document ).ready(function() {
 
   // 随机显示 Tips
   changeTips()
-
-  $('body').width(windowWidth-1)
-  // 窗口 resize
-  setTimeout(() => {
-    $('body').width(windowWidth)
-  }, 100);
-
-  // 查询推荐设置
-  $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
-    if (json.display) {
-      localStorage.setItem('displayRecommend', json.display)
-    }
-    if (json.ratelimit) {
-      localStorage.setItem('displayRecommendRateLimit', JSON.stringify(json.ratelimit))
-    }
-    if (json.announcements && json.announcements.length > 0) {
-      localStorage.setItem('announcements', JSON.stringify(json.announcements))
-    }
-    if (json.promotions) {
-      localStorage.setItem('promotions', JSON.stringify(json.promotions))
-    }
-    if (json.recommendedLinks && json.recommendedLinks.length > 0) {
-      localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
-    } else {
-      localStorage.removeItem('recommendedLinks')
-    }
-    if (json.recommendServices && json.recommendServices.length > 0) {
-      localStorage.setItem('recommendServices', JSON.stringify(json.recommendServices))
-    }
-  });
 
   // 查询最新版本
   $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {
@@ -259,10 +222,6 @@ $( document ).ready(function() {
   setTimeout(() => {
     if (paid) {
       $("#dialogs").hide()
-    }
-    // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
-    if (isNoDialog() && displayRecommend && time[time.length - 1] > displayRecommendRateLimit.rate) {
-      showJEvent(displayRecommendRateLimit)
     }
 
     // 没有弹框 且 未登录账号
@@ -416,10 +375,8 @@ $( document ).ready(function() {
   })
 
   $("#clearAccount").on("click", function () {
-    weui.confirm('清除密码将移除本地存储的账号密码、订单记录、消息记录；清除后若需继续使用请重新登录并选择让京价保记住密码', function () {
+    weui.confirm('清除密码将移除本地存储的账号密码；清除后若需继续使用请重新登录并选择让京价保记住密码', function () {
       localStorage.removeItem('jjb_account')
-      localStorage.removeItem('jjb_orders')
-      localStorage.removeItem('jjb_messages')
       chrome.tabs.create({
         url: "https://passport.jd.com/uc/login"
       })

@@ -1289,7 +1289,7 @@ function dealLoginPage() {
     $(auto_login_html).insertAfter( ".loginPage .notice")
     // 隐藏“一键登录”
     $("#loginOneStep").hide()
-    // 点击让京价保自动登陆
+    // 点击让京价保自动登录
     $('.loginPage').on('click', '.jjb-login', function (e) {
       window.event ? window.event.returnValue = false : e.preventDefault();
       var username = $("#username").val()
@@ -1368,9 +1368,11 @@ function baitiaoLottery(task) {
     setTimeout(() => {
       simulateClick($("#lottery .mark_btn_start"), true)
     }, 1500);
-    observeDOM(document.body, function () {
-      if ($(".layer_wrap_header").text() == '恭喜你获得') {
-        let result = $(".layer_wrap_content").text()
+    observeDOM(document.body, function (observer) {
+      let resultElement = $('.layer_wrap_header')
+      if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
+        if (observer) observer.disconnect();
+        let result = resultElement.text()
         markCheckinStatus('baitiao', result, () => {
           chrome.runtime.sendMessage({
             action: "checkin_notice",
@@ -1399,8 +1401,10 @@ function dailyPaipai(task) {
     setTimeout(() => {
       if ($(".signIn_btnTxt").text() == '签到') {
         simulateClick($(".signIn_btnTxt"))
-        observeDOM(document.body, function () {
-          if ($(".signIn_pop").height() > 0 && $(".signIn_pop .signIn_Title").text() == '签到成功') {
+        observeDOM(document.body, function (observer) {
+          let resultElement = $('.signIn_pop .signIn_Title')
+          if (resultElement && resultElement.text().indexOf('成功') > -1) {
+            if (observer) observer.disconnect();
             let value = $(".signIn_pop .signIn_bean").text() ? $(".signIn_pop .signIn_bean").text().replace(/[^0-9\.-]+/g, "") : null
             if (value && value > 0) {
               markCheckinStatus('paipai', value + '京豆', () => {

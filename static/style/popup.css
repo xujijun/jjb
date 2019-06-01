@@ -14,6 +14,13 @@ a:hover {
     color: #006da5;
 }
 
+html, body {
+    min-height: 580px;
+    min-width: 780px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
 .popup{
     height: 600px;
     width: 800px;
@@ -53,6 +60,7 @@ a:hover {
 }
 .settings{
     width: 365px;
+    height: 600px;
     float: left;
     background: #fbfbfb;
     border-right: 1px solid #eee;
@@ -73,10 +81,10 @@ a:hover {
 
 .contents {
     width: 432px;
+    height: 600px;
     float: right;
     overflow: hidden;
     background: #fafafa;
-    height: 600px;
 }
 
 .contents .weui-navbar__item.weui-bar__item_on {

@@ -473,8 +473,8 @@ $( document ).ready(function() {
   // 加载任务参数
   loadSettingsToLocalStorage('task-parameters')
 
-  // 清理 LocalStorage
-  removeExpiredLocalStorageItems()
+  // 加载推荐设置
+  loadRecommendSettingsToLocalStorage()
 
   // 设置默认值
   setDefaultSetting()
@@ -489,6 +489,16 @@ function openWebPageAsMobile(url) {
     url: url,
     type: "popup"
   });
+}
+
+function openLoginPage(loginState) {
+  if (loginState.m.state != 'alive') {
+    openWebPageAsMobile(mLoginUrl)
+  } else {
+    chrome.tabs.create({
+      url: "https://home.jd.com"
+    })
+  }
 }
 
 // 清除不需要的tab
@@ -582,7 +592,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
   }
 })
 
-// 根据登陆状态调整图标显示
+// 根据登录状态调整图标显示
 function updateIcon() {
   let loginState = getLoginState()
   switch (loginState.class) {
@@ -603,6 +613,7 @@ function updateIcon() {
           "38": "static/image/icon/jjb38x.png"
         }
       });
+      chrome.contextMenus.removeAll();
       break;
     case 'failed':
       chrome.browserAction.setBadgeBackgroundColor({
@@ -612,7 +623,7 @@ function updateIcon() {
         text: "X"
       });
       chrome.browserAction.setTitle({
-        title: "账号登陆失效"
+        title: "账号登录失效"
       })
       chrome.browserAction.setIcon({
         path : {
@@ -620,6 +631,15 @@ function updateIcon() {
           "38": "static/image/icon/offline38x.png"
         }
       });
+      chrome.contextMenus.removeAll();
+      chrome.contextMenus.create({
+        title: "账号登录失效，点击登录",
+        contexts: ["browser_action"],
+        onclick: function() {
+          openLoginPage(loginState)
+        }
+      });
+      break;
     case 'warning':
       chrome.browserAction.setBadgeBackgroundColor({
         color: "#EE7E1B"
@@ -633,13 +653,21 @@ function updateIcon() {
           "38": "static/image/icon/partial-offline38x.png"
         }
       });
+      chrome.contextMenus.removeAll();
+      chrome.contextMenus.create({
+        title: "登录部分失效，点击登录",
+        contexts: ["browser_action"],
+        onclick: function() {
+          openLoginPage(loginState)
+        }
+      });
       break;
     default:
       break;
   }
 }
 
-// 保存登陆状态
+// 保存登录状态
 function saveLoginState(loginState) {
   let previousState = getLoginState()
   localStorage.setItem('jjb_login-state_' + loginState.type, JSON.stringify({
@@ -721,6 +749,31 @@ function loadSettingsToLocalStorage(key) {
     saveSetting(key, json)
   })
 }
+// 加载推荐设置
+function loadRecommendSettingsToLocalStorage() {
+  $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
+    if (json.displayPopup) {
+      saveSetting('displayPopup', json.displayPopup)
+    }
+    if (json.events) {
+      saveSetting('events', json.events)
+    }
+    if (json.announcements && json.announcements.length > 0) {
+      saveSetting('announcements', json.announcements)
+    }
+    if (json.promotions) {
+      saveSetting('promotions', json.promotions)
+    }
+    if (json.recommendedLinks && json.recommendedLinks.length > 0) {
+      saveSetting('recommendedLinks', json.recommendedLinks)
+    } else {
+      localStorage.removeItem('recommendedLinks')
+    }
+    if (json.recommendServices && json.recommendServices.length > 0) {
+      saveSetting('recommendServices', json.recommendServices)
+    }
+  });
+}
 
 // 处理消息通知
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
@@ -780,12 +833,12 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       }
       sendResponse(priceInfo)
       break;
-    // 保存登陆状态
+    // 保存登录状态
     case 'saveLoginState':
       saveLoginState(msg)
       sendResponse(msg)
       break;
-    // 获取登陆状态
+    // 获取登录状态
     case 'getLoginState':
       sendResponse(loginState)
       break;
@@ -859,13 +912,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       })
       break;
     case 'openLogin':
-      if (loginState.m.state != 'alive') {
-        openWebPageAsMobile(mLoginUrl)
-      } else {
-        chrome.tabs.create({
-          url: "https://home.jd.com"
-        })
-      }
+      openLoginPage(loginState)
       break;
     case 'openUrlAsMoblie':
       openWebPageAsMobile(msg.url)
@@ -1174,3 +1221,4 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 });
 
 Logline.keep(3);
+

@@ -305,6 +305,7 @@
     <div class="dialogs">
       <guide v-if="showGuide" :login-state="loginState"></guide>
       <login-notice v-if="showLoginState" :state="loginState" @close="showLoginState = false"></login-notice>
+      <popup v-if="showPopup" @close="showPopup = false"></popup>
     </div>
   </div>
 </template>
@@ -399,10 +400,11 @@ import loginNotice from './login-notice.vue';
 import discounts from './discounts.vue';
 import settings from './settings.vue';
 import guide from './guide.vue';
+import popup from './popup.vue';
 
 export default {
   name: "App",
-  components: { loginNotice, discounts, settings, guide },
+  components: { loginNotice, discounts, settings, guide, popup },
   data() {
     return {
       messages: [],
@@ -411,6 +413,7 @@ export default {
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
+      showPopup: true,
       showLoginState: false,
       currentVersion: "{{version}}",
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
@@ -656,7 +659,7 @@ export default {
 .orders, .messages, .discounts{
   overflow: hidden;
   height: 510px;
-  width: 417px;
+  width: 431px;
 }
 
 .contents-box.orders ul{

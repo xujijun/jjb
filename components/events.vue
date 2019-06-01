@@ -1,6 +1,6 @@
 <template>
   <hooper>
-    <slide v-for="event in events" :key="event.id">
+    <slide v-for="(event, index)  in events" :key="event.id" :index="index">
       <a :href="`${event.goodLink}`" target="_blank">
         <img :src="event.banner || event.photo" :title="event.title" height="120"/>
         <p class="title">{{event.title}}</p>
