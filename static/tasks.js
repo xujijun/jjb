@@ -38,28 +38,6 @@ const tasks = [
     }
   },
   {
-    id: '15',
-    src: {
-      pc: 'https://jjb.zaoshu.so/event/coupon',
-    },
-    baseUrl: 'https://a.jd.com',
-    title: '全品类券',
-    description: "每天整天领取全平台通用券（105减5/500减20/1000减30）",
-    schedule: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-    mode: 'iframe',
-    type: ['pc'],
-    frequencyOption: ['2h', '5h', 'daily', 'never'],
-    frequency: '2h',
-    location: {
-      host: ['a.jd.com']
-    },
-    rateLimit:{
-      weekly: 36,
-      daily: 5,
-      hour: 2
-    }
-  },
-  {
     id: '3',
     src: {
       m: 'https://plus.m.jd.com/index',
@@ -107,8 +85,8 @@ const tasks = [
     mode: 'iframe',
     type: ['pc'],
     schedule: [10, 12, 14, 18, 20],
-    frequencyOption: ['2h', '5h', 'daily', 'never'],
-    frequency: '2h',
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
     location: {
       host: ['a.jd.com']
     },

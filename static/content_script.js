@@ -768,25 +768,24 @@ function getCoin(setting) {
       sendTouchEvent(startX + 70, rect.y + 10, canvas, 'touchend');
 
       // 监控结果
-      setTimeout(function () {
-        if (($('.popup_reward_container .popup_gb_line').text() && $(".popup_reward_container .popup_gb_line").text().indexOf("获得") > -1)) {
-          let re = /^[^-0-9.]+([0-9.]+)[^0-9.]+$/
-          let rawValue = $(".popup_reward_container .popup_gb_line").text()
-          let value = re.exec(rawValue)
-          markCheckinStatus('coin', value[1] + '个钢镚', () => {
+      observeDOM(document.body, function (observer) {
+        let resultElement = $(".package_c .popup_line1")
+        if (resultElement && resultElement.text().indexOf("成功") > -1) {
+          if (observer) observer.disconnect();
+          markCheckinStatus('coin', '～0.02个钢镚', () => {
             chrome.runtime.sendMessage({
               action: "checkin_notice",
               title: "京价保自动为您签到抢钢镚",
-              value: value[1],
+              value: 0.02,
               reward: "coin",
               unit: 'coin',
-              content: "恭喜您领到了" + value[1] + "个钢镚"
+              content: "恭喜您领到了～0.02个钢镚"
             }, function (response) {
               console.log("Response: ", response);
             })
           })
         }
-      }, 1000)
+      })
     } else {
       markCheckinStatus('coin')
     }
@@ -1527,28 +1526,31 @@ function beanCheckin(setting) {
       let targetEle = $(this)
       if (targetEle.text() == '签到领京豆') {
         simulateClick(targetEle, true)
-        setTimeout(() => {
-          let beanCheckinRes = $(".gradBackground").text()
-          if (beanCheckinRes && beanCheckinRes.indexOf("恭喜您获得") > -1){
-            markCheckinStatus('bean', null, () => {
+        observeDOM(document.body, function (observer) {
+          let resultElement = $('span:contains("签到成功 恭喜获得")')
+          if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
+            if (observer) observer.disconnect();
+            let value = resultElement.parent().next().text().replace(/[^0-9\.-]+/g, "")
+            markCheckinStatus('bean', value + '京豆', () => {
               chrome.runtime.sendMessage({
                 action: "checkin_notice",
                 batch: "bean",
                 reward: "bean",
+                value: value,
                 unit: 'bean',
                 title: "京价保自动为您签到领京豆",
-                content: "恭喜您获得了一两个京豆奖励"
+                content: `恭喜您获得了${value}个京豆奖励`
               }, function (response) {
                 console.log("Response: ", response);
               })
             })
           }
-        }, 500);
+        })
       }
     })
 
     const beanCheckinRes = $(".gradBackground").text()
-    if (beanCheckinRes && beanCheckinRes.indexOf("恭喜您获得") > -1){
+    if (beanCheckinRes && beanCheckinRes.indexOf("恭喜") > -1){
       markCheckinStatus('bean')
     }
 
