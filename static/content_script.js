@@ -505,8 +505,8 @@ function getPlusCoupon(task) {
       let that = $(this)
       let getBtn = $(this).find('.btn-txt')
       if (getBtn.text().indexOf("立即领取") > -1) {
-        let coupon_name = that.find('.descr').text().trim().replace(/[\r\n]/g,"")
-        let coupon_price = that.find('.money').text().trim().replace(/[\r\n]/g,"") + ' (' + that.find('.rule').text().trim().replace(/[\r\n]/g,"") + ')'
+        let coupon_name = that.find('.descr').text().trim().replace(/[\r|\n|\\s]/g,"")
+        let coupon_price = that.find('.money').text().trim().replace(/[\r|\n|\\s]/g,"") + ' (' + that.find('.rule').text().trim().replace(/[\r|\n|\\s]/g,"") + ')'
         setTimeout(function () {
           getBtn.trigger("click")
           setTimeout(function () {
@@ -1355,7 +1355,7 @@ function vipCheckin(task) {
   }
 }
 
-// 16: 白条签到（baitiao）
+// 16: 白条免息红包（baitiao）
 function baitiaoLottery(task) {
   if (task.frequency != 'never') {
     console.log('白条签到（baitiao）')
@@ -1369,10 +1369,10 @@ function baitiaoLottery(task) {
       simulateClick($("#lottery .mark_btn_start"), true)
     }, 1500);
     observeDOM(document.body, function (observer) {
-      let resultElement = $('.layer_wrap_header')
+      let resultElement = $('.layer_wrap_header:visible')
       if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
         if (observer) observer.disconnect();
-        let result = resultElement.text()
+        let result = $('.layer_wrap_content p:visible').first().text()
         markCheckinStatus('baitiao', result, () => {
           chrome.runtime.sendMessage({
             action: "checkin_notice",
@@ -1530,33 +1530,9 @@ function beanCheckin(setting) {
       let targetEle = $(this)
       if (targetEle.text() == '签到领京豆') {
         simulateClick(targetEle, true)
-        observeDOM(document.body, function (observer) {
-          let resultElement = $('span:contains("签到成功 恭喜获得")')
-          if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
-            if (observer) observer.disconnect();
-            let value = resultElement.parent().next().text().replace(/[^0-9\.-]+/g, "")
-            markCheckinStatus('bean', value + '京豆', () => {
-              chrome.runtime.sendMessage({
-                action: "checkin_notice",
-                batch: "bean",
-                reward: "bean",
-                value: value,
-                unit: 'bean',
-                title: "京价保自动为您签到领京豆",
-                content: `恭喜您获得了${value}个京豆奖励`
-              }, function (response) {
-                console.log("Response: ", response);
-              })
-            })
-          }
-        })
+        observerBeanCheckinResult()
       }
     })
-
-    const beanCheckinRes = $(".gradBackground").text()
-    if (beanCheckinRes && beanCheckinRes.indexOf("恭喜") > -1){
-      markCheckinStatus('bean')
-    }
 
     $("#m_common_content .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view .react-view span").each(function () {
       if ($(this).text() == '已连续签到') {
@@ -1564,6 +1540,29 @@ function beanCheckin(setting) {
       }
     })
   }
+}
+
+function observerBeanCheckinResult() {
+  observeDOM(document.body, function (observer) {
+    let resultElement = $('span:contains("签到成功 恭喜获得")')
+    if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
+      if (observer) observer.disconnect();
+      let value = resultElement.parent().next().text().replace(/[^0-9\.-]+/g, "")
+      markCheckinStatus('bean', value + '京豆', () => {
+        chrome.runtime.sendMessage({
+          action: "checkin_notice",
+          batch: "bean",
+          reward: "bean",
+          value: value,
+          unit: 'bean',
+          title: "京价保自动为您签到领京豆",
+          content: `恭喜您获得了${value}个京豆奖励`
+        }, function (response) {
+          console.log("Response: ", response);
+        })
+      })
+    }
+  })
 }
 
 // 6: 金融钢镚签到
@@ -1617,25 +1616,25 @@ function jrIndex(setting) {
     if ($("#sign2main .sign-btn").length > 0 && $("#sign2main .sign-btn").text().indexOf('签到') > -1) {
       simulateClick($("#sign2main .sign-btn"), true)
       // 监控结果
-      setTimeout(function () {
-        if ($("#fengkong .goldcolor").text() && $("#fengkong .goldcolor").text() > 0 ) {
+      observeDOM(document.body, function (observer) {
+        let resultElement = $('.signDialog h1:visible')
+        if (resultElement && resultElement.text().indexOf('成功') > -1) {
+          if (observer) observer.disconnect();
           let rawValue = $("#fengkong .goldcolor").text()
-          let coin = priceFormatter(rawValue)
-          markCheckinStatus('jr-index', coin + "个钢镚", () => {
+          markCheckinStatus('jr-index', rawValue + "个钢镚", () => {
             chrome.runtime.sendMessage({
               action: "checkin_notice",
               title: "京价保自动为您签到京东金融",
               value: Number(rawValue),
               unit: 'coin',
               reward: "coin",
-              content: "恭喜您！领到了" + coin + "个钢镚"
+              content: "恭喜您！领到了" + rawValue + "个钢镚"
             }, function (response) {
               console.log("Response: ", response);
             })
           })
         }
-        console.log($(".jr-dialog").text())
-      }, 1000)
+      })
     } else {
       if ($("#sign2main .sign-btn").text().indexOf('再签') == 0) {
         markCheckinStatus('jr-index')
@@ -1658,8 +1657,8 @@ function getGoldCoin(task) {
           observeDOM(document.body, function (observer) {
             let resultElement = $(".draw-dialog-content-top .draw-dialog-coin-num")
             if (resultElement && resultElement.text().indexOf('成功') > -1) {
-              let value = resultElement.text().replace(/[^0-9\.-]+/g, "")
               if (observer) observer.disconnect();
+              let value = resultElement.text().replace(/[^0-9\.-]+/g, "")
               return chrome.runtime.sendMessage({
                 task: task,
                 action: "goldCoinReceived",
@@ -1840,7 +1839,8 @@ function CheckDom() {
   // 京豆签到 (11:京豆签到)
   if (window.location.host == 'bean.m.jd.com') {
     getSetting('job11_frequency', beanCheckin)
-  };
+    observerBeanCheckinResult()
+  }
 
   // 京东金融慧赚钱签到 (6:金融慧赚钱签到)
   if ($(".assets-wrap .gangbeng").length > 0) {
