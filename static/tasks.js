@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { getLoginState } from './account'
 import { getSetting, readableTime } from './utils'
+import { getTaskUsageImmediately } from './db'
 
 const priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
 const frequencyOptionText = {
@@ -84,13 +85,17 @@ const tasks = [
   {
     id: '4',
     src: {
-      m: 'https://m.jr.jd.com/mjractivity/rn/couponCenter/index.html?RN=couponCenter&tab=20',
+      m: 'https://m.jr.jd.com/member/rightsCenter/#/coupon',
     },
     title: '精选白条券',
     mode: 'iframe',
     frequencyOption: ['2h', '5h', 'daily', 'never'],
     type: ['m'],
     frequency: '5h',
+    location: {
+      host: ['m.jr.jd.com'],
+      pathname: ['/member/rightsCenter/']
+    },
     rateLimit:{
       weekly: 32,
       daily: 4,
@@ -155,6 +160,10 @@ const tasks = [
     type: ['m'],
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
+    location: {
+      host: ['coin.jd.com'],
+      pathname: ['/m/gb/index.html']
+    },
     rateLimit:{
       weekly: 32,
       daily: 4,
@@ -162,7 +171,7 @@ const tasks = [
     }
   },
   {
-    id: '6',
+    id: '6', // 已失效
     src: {
       m: 'https://m.jr.jd.com/spe/qyy/main/index.html?userType=41',
     },
@@ -344,18 +353,10 @@ let getTask = function (taskId, currentPlatform) {
       hour: 2
     }
   }, tasks.find(t => t.id == taskId.toString()), parameters, taskSettings)
-  let year = new Date().getFullYear()
-  let week = DateTime.local().weekNumber
-  let today = DateTime.local().toFormat("o")
-  let hour = new Date().getHours()
   let taskStatus = {}
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`job${taskId}_frequency`, task.frequency)
-  taskStatus.usage = {
-    hour: getSetting(`temporary:usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
-    daily: getSetting(`temporary:usage-${taskId}_${year}d:${today}`, 0),
-    weekly: getSetting(`temporary:usage-${taskId}_${year}w:${week}`, 0)
-  }
+  taskStatus.usage = getTaskUsageImmediately(taskId)
   taskStatus.last_run_at = localStorage.getItem(`job${task.id}_lasttime`) ? parseInt(localStorage.getItem(`job${task.id}_lasttime`)) : null
   taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
 
@@ -395,10 +396,13 @@ let getTask = function (taskId, currentPlatform) {
   // 如果超出限制
   if ((task.rateLimit.weekly && taskStatus.usage.weekly >= task.rateLimit.weekly) || taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
     taskStatus.pause = true;
+    taskStatus.pause_description = `超出频率限制`
+
   }
   // 如果是新任务
   if (task.new) {
     taskStatus.pause = true;
+    taskStatus.pause_description = `新任务`
   }
   return Object.assign(task, taskStatus)
 }
