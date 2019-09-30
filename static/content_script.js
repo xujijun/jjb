@@ -1229,9 +1229,9 @@ function autoLogin(account, type) {
       if (type == 'pc') {
         simulateClick($(".login-btn a"), true)
       } else {
-        simulateClick($("#loginBtn"), true)
+        simulateClick($(".page a.btn.J_ping"), true)
       }
-    }, 1000);
+    }, 1200);
   }
 
   if (type == 'pc') {
@@ -1299,12 +1299,14 @@ function autoLogin(account, type) {
   // 手机登录
   } else {
     $("#username").val(account.username)
-    $("#password").val(account.password)
-    $("#loginBtn").addClass("btn-active")
+    $("#pwd").val(account.password)
+    $("#username")[0].dispatchEvent(new Event('input', { bubbles: true }))
+    $("#pwd")[0].dispatchEvent(new Event('input', { bubbles: true }))
+    $(".page a.btn.J_ping").addClass("btn-active")
     // 自动登录
     function mLogin() {
       setTimeout(function () {
-        if ($("#username").val() && $("#password").val()) {
+        if ($("#username").val() && $("#pwd").val()) {
           login('m')
           // 是否需要滑动验证
           observeDOM(document.body, function (observer) {
@@ -1321,6 +1323,8 @@ function autoLogin(account, type) {
               dealLoginFailed("m", errorMsg)
             }
           }, 2000)
+        } else {
+          console.log("missing username or password", $("#username").val(), $("#password").val())
         }
       }, 500)
     }
@@ -1401,16 +1405,14 @@ function resaveAccount() {
 // 登录页
 function dealLoginPage() {
   // 手机版登录页
-  if ( $(".loginPage").length > 0 && $("#username").length > 0) {
+  if ( $(".quick-btn").length > 0 && $("#username").length > 0) {
     getAccount('m')
-    $(auto_login_html).insertAfter( ".loginPage .notice")
-    // 隐藏“一键登录”
-    $("#loginOneStep").hide()
+    $(auto_login_html).insertAfter( ".page .notice")
     // 点击让京价保自动登录
-    $('.loginPage').on('click', '.jjb-login', function (e) {
+    $('.page').on('click', '.jjb-login', function (e) {
       window.event ? window.event.returnValue = false : e.preventDefault();
-      var username = $("#username").val()
-      var password = $("#password").val()
+      let username = $("#username").val()
+      let password = $("#pwd").val()
       // 保存账号和密码
       if (username && password) {
         saveAccount({
@@ -1418,7 +1420,7 @@ function dealLoginPage() {
           password: password
         })
       }
-      simulateClick($("#loginBtn"), true)
+      simulateClick($(".page a.btn.J_ping"), true)
     })
   };
   // PC版登录页
@@ -1669,6 +1671,90 @@ function getGoldCoin(task) {
   }
 }
 
+function pineappleCheckIn(task) {
+  if (task && task.frequency != 'never') {
+    let time = 0;
+    runStatus(task)
+    $(".get_btn_title").each(function () {
+      let that = $(this)
+      if (that.text() == '领钢镚') {
+        setTimeout(function () {
+          simulateClick($(that))
+          let uuid = Date.now()
+          observeDOM(document.body, function (observer) {
+            let resultElement = $(".reward_title")
+            if (resultElement && resultElement.text().indexOf('领取成功') > -1) {
+              if (observer) observer.disconnect();
+              let value = $(".reward_hasnum>span").text()
+              if (value !== '') {
+                return markCheckinStatus('pineapple', `${value}个钢蹦`, () => {
+                  chrome.runtime.sendMessage({
+                    task: task,
+                    log: true,
+                    action: "checkin_notice",
+                    title: "京价保自动为您领取钢镚",
+                    value: value,
+                    reward: "coin",
+                    content: `恭喜您领到了${value}个钢蹦`,
+                    uuid: uuid
+                  }, function (response) {
+                    console.log("Response: ", response);
+                  });
+                })
+              }
+            }
+            let errorMsg = $(".error_content")
+            if (errorMsg && errorMsg.text().indexOf('明天再来') > -1) {
+              markCheckinStatus('pineapple')
+            }
+          })
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
+function swingCheckIn(task) {
+  if (task && task.frequency != 'never') {
+    let time = 0;
+    runStatus(task)
+    $(".rewardBoxBot").each(function () {
+      let that = $(this)
+      if (that.text() == '摇一摇 有惊喜') {
+        setTimeout(function () {
+          simulateClick($(that))
+          let uuid = Date.now()
+          observeDOM(document.body, function (observer) {
+            let resultElement = $(".rewardPopupT")
+            if (resultElement && resultElement.text().indexOf('小盒子送你') > -1) {
+              if (observer) observer.disconnect();
+              let value = $(".rewardPopupT>em").text()
+              if (value !== '') {
+                return markCheckinStatus('swing-reward', `${value}个京豆`, () => {
+                  chrome.runtime.sendMessage({
+                    task: task,
+                    log: true,
+                    action: "checkin_notice",
+                    title: "京价保自动为您领取京豆",
+                    value: value,
+                    reward: "bean",
+                    content: `恭喜您领到了${value}个京豆`,
+                    uuid: uuid
+                  }, function (response) {
+                    console.log("Response: ", response);
+                  });
+                });
+              }
+            }
+          })
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
 
 // ************
 // 主体任务
@@ -1704,6 +1790,14 @@ function triggerTask(task) {
     // 22:金币
     case '22':
       getGoldCoin(task)
+      break;
+    // 29: 每日镚一镚
+    case '29':
+      pineappleCheckIn(task)
+      break;
+    // 30: 摇一摇领京豆
+    case '30':
+      swingCheckIn(task)
       break;
     default:
       break;

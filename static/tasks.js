@@ -41,12 +41,12 @@ const tasks = [
   {
     id: '15',
     src: {
-      pc: 'https://jjb.zaoshu.so/event/coupon',
+      pc: 'https://a.jd.com',
     },
     url: 'https://a.jd.com',
     title: '全品类券',
     description: "每天尝试领取全品类券（29减2/105减5/500减20/1000减30）",
-    schedule: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    schedule: [10, 12, 14, 16, 18, 20, 22],
     mode: 'iframe',
     location: {
       host: ['a.jd.com'],
@@ -128,6 +128,30 @@ const tasks = [
       daily: 4,
       hour: 2
     }
+  },
+  {
+    id: '29',
+    src: {
+      m: 'https://red-e.jd.com/resources/pineapple/index.html',
+    },
+    title: '每日镚一镚',
+    key: "pineapple",
+    description: "京东每日镚一镚领取钢镚",
+    mode: 'iframe',
+    type: ['m'],
+    checkin: true,
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    location: {
+      host: ['red-e.jd.com'],
+      pathname: ['/resources/pineapple/index.html']
+    },
+    new: true,
+    rateLimit:{
+      weekly: 14,
+      daily: 3,
+      hour: 2
+    },
   },
   {
     id: '5',
@@ -304,6 +328,30 @@ const tasks = [
       daily: 5,
       hour: 2
     }
+  },
+  {
+    id: '30',
+    src: {
+      m: 'https://vip.jd.com/newPage/reward',
+    },
+    key: "swing-reward",
+    title: '摇一摇领京豆',
+    description: "摇一摇领领京豆",
+    mode: 'iframe',
+    type: ['m'],
+    checkin: true,
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    location: {
+      host: ['vip.jd.com'],
+      pathname: ['/newPage/reward']
+    },
+    new: true,
+    rateLimit:{
+      weekly: 14,
+      daily: 30,
+      hour: 20
+    },
   },
   {
     id: '22',
