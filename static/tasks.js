@@ -77,8 +77,8 @@ const tasks = [
       pathname: ['/index']
     },
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -246,8 +246,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -288,8 +288,8 @@ const tasks = [
       pathname: ['/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html']
     },
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -307,8 +307,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -324,8 +324,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'never',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -348,9 +348,9 @@ const tasks = [
     },
     new: true,
     rateLimit:{
-      weekly: 14,
-      daily: 30,
-      hour: 20
+      weekly: 32,
+      daily: 4,
+      hour: 2
     },
   },
   {

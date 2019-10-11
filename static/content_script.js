@@ -1310,8 +1310,8 @@ function autoLogin(account, type) {
           login('m')
           // 是否需要滑动验证
           observeDOM(document.body, function (observer) {
-            let slideMsg = $("#captcha_body .sp_msg").text()
-            if (slideMsg && slideMsg.length > 0) {
+            let captchaMsg = $("#captcha_dom .captcha_header").text()
+            if (captchaMsg && captchaMsg.length > 0) {
               if (observer) observer.disconnect();
               dealLoginFailed("m", "需要完成登录验证")
             }
@@ -1729,14 +1729,14 @@ function swingCheckIn(task) {
             let resultElement = $(".rewardPopupT")
             if (resultElement && resultElement.text().indexOf('小盒子送你') > -1) {
               if (observer) observer.disconnect();
-              let value = $(".rewardPopupT>em").text()
+              let value = $(".rewardBeanPopContent em").text()
               if (value !== '') {
                 return markCheckinStatus('swing-reward', `${value}个京豆`, () => {
                   chrome.runtime.sendMessage({
                     task: task,
                     log: true,
                     action: "checkin_notice",
-                    title: "京价保自动为您领取京豆",
+                    title: "京价保自动为您摇一摇领京豆",
                     value: value,
                     reward: "bean",
                     content: `恭喜您领到了${value}个京豆`,
@@ -1745,6 +1745,8 @@ function swingCheckIn(task) {
                     console.log("Response: ", response);
                   });
                 });
+              } else {
+                markCheckinStatus('swing-reward')
               }
             }
           })
