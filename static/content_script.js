@@ -911,6 +911,42 @@ function getCoin(task) {
   }
 }
 
+
+// 生鲜价保模式
+function modifyRefundType(mode = "m") {
+  getSetting('refund_type', (setting) => {
+    if (!setting || setting == "") setting = "1"
+    if (mode == "pc") {
+      $("select.modifyRefundType").each(function(index) {
+        if ($(this).val() == setting) return
+        setTimeout(() => {
+          $(this).val(setting)
+          $(this)[0].dispatchEvent(new Event('change', { bubbles: true }))
+        }, 1000 * index);
+      });
+    }
+    if (mode == "m") {
+      $("a.type-modify").each(function(index) {
+        setTimeout(() => {
+          simulateClick($(this))
+          setTimeout(() => {
+            $(".type-wrapper .list .item").each(function() {
+              if ($(this).attr("value") == setting) {
+                if ($(this).hasClass("selected")) return
+                simulateClick($(this))
+                setTimeout(() => {
+                  simulateClick($(".type-wrapper .close-modfiy-type"))
+                }, 500);
+              }
+            })
+          }, 1000);
+
+        }, 5000 * index);
+      });
+    }
+  })
+}
+
 // 1: 价格保护
 function priceProtect(task) {
   if (task.frequency != 'never') {
@@ -928,6 +964,9 @@ function priceProtect(task) {
       setTimeout(() => {
         document.getElementById("mescroll0").scrollTop =0
       }, 6500);
+      setTimeout(() => {
+        modifyRefundType(mode)
+      }, 7500);
     }
     if (document.getElementById("dataList")) {
       mode = "pc"
@@ -941,6 +980,9 @@ function priceProtect(task) {
       setTimeout(() => {
         $(window).scrollTop(0)
       }, 6500);
+      setTimeout(() => {
+        modifyRefundType(mode)
+      }, 7500);
     }
 
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
