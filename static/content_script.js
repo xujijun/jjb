@@ -2053,10 +2053,10 @@ function checkLoginState() {
     accountAlive('pc', 'PC网页检测到用户名')
   };
   // M 是否登录
-  if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
+  if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($("#myHeader .my_header_name") && $("#myHeader .my_header_name").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
     accountAlive('m', '移动网页检测到登录')
   };
-  if (location.href == "https://home.m.jd.com/myJd/newhome.action" && document.title == "个人中心") {
+  if (location.href == "https://home.m.jd.com/myJd/newhome.action") {
     accountAlive('m', '移动网页打开个人中心')
   }
 }
