@@ -24,19 +24,6 @@ $.each(['show', 'hide'], function (i, ev) {
   };
 });
 
-// 试听通知
-function listenVoice(type, batch) {
-  chrome.runtime.sendMessage({
-    text: type,
-    batch: batch,
-    test: true,
-    title: "京价保通知试听",
-    content: "并没有钱，这只是假象，你不要太当真"
-  }, function (response) {
-    console.log("Response: ", response);
-  });
-}
-
 // 换 Tips
 function changeTips() {
   let announcements = (localStorage.getItem('announcements') ? JSON.parse(localStorage.getItem('announcements')) : []).concat(notices)
@@ -342,9 +329,6 @@ $( document ).ready(function() {
     })
   })
 
-  $(".listenVoice").on("click", function () {
-    listenVoice($(this).data('type'), $(this).data('batch'))
-  })
 
   $(".showApplyAlipayCode").on("click", function () {
     weui.dialog({

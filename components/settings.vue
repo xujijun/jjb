@@ -477,7 +477,7 @@
           <div class="weui-dialog__bd">
             <div class="weui-cells">
               <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" data-type="notice" data-batch="jiabao">
+                <div class="weui-cell__bd message listenVoice" @click="listenVoice('priceProtectionNotice', 'jiabao')">
                   <span>
                     <i class="notice jiabao"></i>发现价格保护机会
                   </span>
@@ -485,19 +485,13 @@
                 <div class="weui-cell__ft"></div>
               </div>
               <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" data-type="notice" data-batch="rebate">
-                  <span><i class="notice rebate"></i>金融会员领取到返利</span>
-                </div>
-                <div class="weui-cell__ft"></div>
-              </div>
-              <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" data-type="checkin_notice" data-batch="bean">
+                <div class="weui-cell__bd message listenVoice" @click="listenVoice('checkin_notice', 'bean')">
                   <span><i class="checkin_notice bean"></i>签到成功，京豆入账</span>
                 </div>
                 <div class="weui-cell__ft"></div>
               </div>
               <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" data-type="checkin_notice" data-batch="coin">
+                <div class="weui-cell__bd message listenVoice" @click="listenVoice('checkin_notice', 'coin')">
                   <span><i class="checkin_notice coin"></i>金融签到，钢镚掉落</span>
                 </div>
                 <div class="weui-cell__ft"></div>
@@ -595,6 +589,18 @@ export default {
       } catch (error) {
         this.scienceOnline = false;
       }
+    },
+    // 试听通知
+    listenVoice: function (type, batch) {
+      chrome.runtime.sendMessage({
+        action: type,
+        batch: batch,
+        test: true,
+        title: "京价保通知试听",
+        content: "并没有钱，这只是假象，你不要太当真"
+      }, function (response) {
+        console.log("Response: ", response);
+      });
     },
     showLogin: function() {
       this.$emit("show-login");
