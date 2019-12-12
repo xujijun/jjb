@@ -424,7 +424,7 @@
           :title="loginState.description"
         ></a>
       </div>
-      <div class="links">
+      <div class="action-list">
         <span class="el-tag el-tag--success">
           <a
             href="#"
@@ -443,24 +443,7 @@
             v-tippy
           >支付宝红包</a>
         </span>
-        <span class="el-tag el-tag--warning">
-          <a
-            href="#"
-            id="openjEventCard"
-            data-tippy-placement="top-start"
-            class="tippy"
-            data-tippy-content="热门的促销活动推荐"
-          >活动推荐</a>
-        </span>
-        <span class="el-tag">
-          <a
-            data-tippy-placement="top-start"
-            class="tippy"
-            data-tippy-content="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取"
-            href="https://plus.jd.com/coupon/index"
-            target="_blank"
-          >领PLUS券</a>
-        </span>
+        <links></links>
       </div>
     </div>
     <support v-if="showSupport" @close="showSupport = false" :initialPaymethod="paymethod" :initialTarget="target"></support>
@@ -518,12 +501,13 @@ import { recommendServices } from "../static/variables";
 import { getSetting, saveSetting } from "../static/utils";
 import taskSetting from "./task-setting.vue";
 import support from './support.vue';
+import links from './links.vue';
 
 import weui from "weui.js";
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting, support },
+  components: { taskSetting, support, links },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,

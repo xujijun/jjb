@@ -52,33 +52,6 @@ chrome.runtime.onInstalled.addListener(function (object) {
   }
 });
 
-var popularPhoneUA = [
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1 jdjr-app ios',
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1 jdjr-app ios',
-  'Mozilla/5.0 (iPhone9,4; U; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 Safari/602.1 jdjr-app ios',
-  'Mozilla/5.0 (Linux; Android 6.0.1; SM-G920V Build/MMB29K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.98 Mobile Safari/537.36 jdjr-app'
-];
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  function (details) {
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
-      if (details.requestHeaders[i].name === 'User-Agent') {
-        details.requestHeaders[i].value = popularPhoneUA[mobileUAType];
-        break;
-      }
-    }
-    return {
-      requestHeaders: details.requestHeaders
-    };
-  }, {
-    urls: [
-      "*://*.m.jd.com/*",
-      "*://m.jr.jd.com/*",
-      "*://wq.jd.com/*",
-      "*://wqs.jd.com/*",
-      "*://msitepp-fm.jd.com/*"
-    ]
-  }, ['blocking', 'requestHeaders']);
-
 
 // 判断浏览器
 try {
@@ -87,17 +60,6 @@ try {
   })
 } catch (error) {}
 
-
-// 阻止打开京东金融App的代码
-chrome.webRequest.onBeforeRequest.addListener(
-  function (details) {
-    if (details.url == "https://m.jr.jd.com/statics/downloadApp/newdl/newdl.js")
-      return {
-        cancel: (details.url.indexOf("://m.jr.jd.com/") != -1)
-      };
-  }, {
-    urls: ["*://m.jr.jd.com/*", "*://m.jd.com/*"]
-  }, ["blocking"]);
 
 // 定时任务
 chrome.alarms.onAlarm.addListener(function( alarm ) {
@@ -402,6 +364,7 @@ $( document ).ready(function() {
 
   // 加载任务参数
   loadSettingsToLocalStorage('task-parameters')
+  loadSettingsToLocalStorage('action-links')
 
   // 加载推荐设置
   loadRecommendSettingsToLocalStorage()

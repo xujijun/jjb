@@ -329,19 +329,6 @@ $( document ).ready(function() {
     })
   })
 
-
-  $(".showApplyAlipayCode").on("click", function () {
-    weui.dialog({
-      title: '申请支付宝收款码',
-      content: `<img src="https://jjbcdn.zaoshu.so/chrome/applyAlipayCode.jpg" style="width: 270px;"></img>`,
-      className: 'apply-alipay-code',
-      buttons: [{
-        label: '完成',
-        type: 'primary'
-      }]
-    })
-  })
-
 })
 
 // 防止缩放
