@@ -1277,6 +1277,7 @@ function autoLogin(account, type) {
     }, 1200);
   }
 
+  // PC 网页登录
   if (type == 'pc') {
     // 自动补全填入
     $("#loginname").val(account.username)
@@ -1449,6 +1450,9 @@ function resaveAccount() {
 function dealLoginPage() {
   // 手机版登录页
   if ( $(".quick-btn").length > 0 && $("#username").length > 0) {
+    // 切换登录模式
+    simulateClick($(".planBLogin"), true)
+
     getAccount('m')
     $(auto_login_html).insertAfter( ".page .notice")
     // 点击让京价保自动登录

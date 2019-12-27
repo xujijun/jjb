@@ -3,7 +3,7 @@ import * as _ from "lodash"
 import Logline from 'logline'
 import {DateTime} from 'luxon'
 import {priceProUrl, mapFrequency, getTask, getTasks} from './tasks'
-import {rand, getSetting, saveSetting} from './utils'
+import {rand, getSetting, saveSetting, macId} from './utils'
 import {getLoginState} from './account'
 
 import {findGood, findOrder, updateOrders, newMessage, updateMessages, addTaskLog, findAndUpdateTaskResult} from './db'
@@ -14,7 +14,10 @@ var logger = {}
 var autoLoginQuota = {}
 var mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
 var priceProPage = null
-var mobileUAType = getSetting('uaType', 1)
+
+$.ajaxSetup({
+  headers: { 'x-machine-id': macId() }
+});
 
 // This is to remove X-Frame-Options header, if present
 chrome.webRequest.onHeadersReceived.addListener(
@@ -35,23 +38,17 @@ chrome.webRequest.onHeadersReceived.addListener(
   ['blocking', 'responseHeaders']
 );
 
-chrome.runtime.onInstalled.addListener(function (object) {
+chrome.runtime.onInstalled.addListener(function () {
   let installed = localStorage.getItem('jjb_installed')
-  let uaType = localStorage.getItem('uaType')
   if (installed) {
-    if (!uaType) {
-      localStorage.setItem('uaType', 1);
-    }
     console.log("已经安装")
   } else {
-    localStorage.setItem('jjb_installed', 'Y');
-    localStorage.setItem('uaType', rand(3));
+    localStorage.setItem('jjb_installed', new Date());
     chrome.tabs.create({url: "/start.html"}, function (tab) {
       console.log("京价保安装成功！");
     });
   }
 });
-
 
 // 判断浏览器
 try {
@@ -124,7 +121,6 @@ function findTasksByLocation(location) {
   })
   return matchedTasks
 }
-
 
 function scheduleJob(task) {
   let hour = DateTime.local().hour;

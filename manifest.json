@@ -62,7 +62,6 @@
     "notifications"
   ],
   "optional_permissions": [
-    "*://*.jdpay.com/*",
     "bookmarks"
   ]
 }
