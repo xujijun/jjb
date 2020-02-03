@@ -97,7 +97,7 @@ async function findAndUpdateTaskResult(taskId, result) {
   const lastRunLog = (await db.taskLogs.where('timestamp').above(lastTwoMinute).reverse().sortBy('timestamp')).find((log) => {
     return log.taskId == taskId
   })
-  console.log('lastRunLog', lastRunLog)
+  console.log('lastRunLog', taskId, lastRunLog, result)
   if (lastRunLog) {
     await db.taskLogs.where('id').equals(lastRunLog.id).modify(log => {
       log.results.push(result);

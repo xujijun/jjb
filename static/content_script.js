@@ -1330,14 +1330,14 @@ function autoLogin(account, type) {
               console.log("Response: ", response);
             });
           }
-        }, 2500)
+        }, 3000)
         // 监控登录失败
         setTimeout(function () {
           let errorMsg = $('.login-box .msg-error').text()
           if (errorMsg && errorMsg.length > 0) {
             dealLoginFailed("pc", errorMsg)
           }
-        }, 3000)
+        }, 4000)
       }
     }
   // 手机登录

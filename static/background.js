@@ -169,7 +169,7 @@ function findJobs(platform) {
   console.log('taskList', taskList)
 
   taskList.forEach(function(task) {
-    if (task.suspended || task.deprecated) {
+    if (task.suspended || task.deprecated || task.pause) {
       return console.log(task.title, '任务已暂停')
     }
     if (task.checked) {
@@ -575,14 +575,12 @@ function saveLoginState(loginState) {
   // 如果登录状态从失败转换到了在线
   if (previousState[loginState.type].state != 'alive' && loginState.state == "alive") {
     setTimeout(() => {
-      findJobs(loginState.type)
-    }, 30000);
-  }
-  // 如果账号首次登录，马上运行一次价保
-  if (previousState.class == 'unknown' && loginState.state == "alive") {
-    setTimeout(() => {
+      log('background', "login alive run job 1")
       runJob('1')
     }, 15000);
+    setTimeout(() => {
+      findJobs(loginState.type)
+    }, 30000);
   }
 }
 
