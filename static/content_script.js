@@ -502,6 +502,13 @@ async function getAllOrders(mode, setting) {
     let time = 0
     $( "#dataList0 li").each(function() {
       let orderElement = $(this)
+
+      const validApplyButtons = orderElement.find('.apply').toArray().filter((btn) => {
+        return !$(btn).hasClass('disable-apply')
+      })
+
+      if (validApplyButtons.length < 1) return
+
       setTimeout(async () => {
         try {
           await dealOrder(orderElement, setting)
@@ -519,11 +526,22 @@ async function getAllOrders(mode, setting) {
       setTimeout(async () => {
         let orderDom = $(this)
         let product = $(this).next()
-        orderDom = orderDom.add(product)
+        let products = [product]
+
         while (product.next().hasClass('co-th')) {
-          orderDom = orderDom.add(product.next())
           product = product.next()
+          products.push(product)
         }
+
+        // 排除已经超过价保周期的商品
+        const validProducts = products.filter((p) => {
+          return p.find("#overTime").length < 1
+        })
+
+        if (validProducts.length < 1) return
+
+        orderDom = orderDom.add(validProducts)
+
         try {
           await dealOrder(orderDom, setting)
         } catch (error) {
@@ -538,6 +556,7 @@ async function getAllOrders(mode, setting) {
 }
 
 // 4：领取白条券
+// TODO: 优化
 function CheckBaitiaoCouponDom(task) {
   if (task.frequency != 'never') {
     console.log('开始领取白条券')
