@@ -416,14 +416,8 @@ const tasks = [
 // 根据登录状态选择任务模式
 let findTaskPlatform = function (task) {
   let loginState = getLoginState()
-  let platform = null
-  for (var i = 0; i < task.type.length; i++) {
-    if (loginState[task.type[i]].state == 'alive') {
-      platform = task.type[i];
-      break;
-    }
-  }
-  return platform
+
+  return task.type.find((platform) => loginState[platform].state == 'alive')
 }
 
 let getTask = function (taskId, currentPlatform) {
@@ -491,7 +485,6 @@ let getTask = function (taskId, currentPlatform) {
   if ((task.rateLimit.weekly && taskStatus.usage.weekly >= task.rateLimit.weekly) || taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
     taskStatus.pause = true;
     taskStatus.pause_description = `超出频率限制`
-
   }
   // 如果是新任务
   if (task.new) {

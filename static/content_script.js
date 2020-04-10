@@ -540,7 +540,7 @@ async function getAllOrders(mode, setting) {
           console.error(error)
         }
       }, time);
-      time += 500;
+      time += 1000;
     });
   }
 

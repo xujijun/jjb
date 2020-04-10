@@ -83,18 +83,19 @@ async function getTodayMessagesByTaskId(taskId) {
 
 async function addTaskLog(task) {
   const timestamp = Date.now()
-  await db.taskLogs.add({
+  const log = await db.taskLogs.add({
     id: timestamp,
     taskId: task.id,
     timestamp: timestamp,
     mode: task.mode,
     results: []
   });
+  console.log('addTaskLog', log, timestamp)
 }
 
 async function findAndUpdateTaskResult(taskId, result) {
-  let lastTwoMinute = Date.now() - 60*60*5;
-  const lastRunLog = (await db.taskLogs.where('timestamp').above(lastTwoMinute).reverse().sortBy('timestamp')).find((log) => {
+  let last5Minute = Date.now() - 60*5*1000;
+  const lastRunLog = (await db.taskLogs.where('timestamp').above(last5Minute).reverse().sortBy('timestamp')).find((log) => {
     return log.taskId == taskId
   })
   console.log('lastRunLog', taskId, lastRunLog, result)

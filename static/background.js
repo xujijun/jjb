@@ -10,10 +10,11 @@ import {findGood, findOrder, updateOrders, newMessage, updateMessages, addTaskLo
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
-var logger = {}
-var autoLoginQuota = {}
-var mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
-var priceProPage = null
+let logger = {}
+let autoLoginQuota = {}
+let mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
+let priceProPage = null
+let currentTask = null
 
 $.ajaxSetup({
   headers: { 'x-machine-id': macId() }
@@ -111,7 +112,6 @@ function saveJobStack(jobStack) {
 // 根据页面查找匹配的任务
 function findTasksByLocation(location) {
   let taskList = getTasks()
-  console.log('taskList', taskList)
   let locationTask = taskList.filter(task => task.location && Object.keys(task.location).length > 0)
   let matchedTasks =[]
   locationTask.forEach((task) => {
@@ -166,11 +166,10 @@ function pushJob(task, jobStack) {
 function findJobs(platform) {
   let jobStack = getSetting('jobStack', [])
   let taskList = getTasks(platform)
-  console.log('taskList', taskList)
 
   taskList.forEach(function(task) {
     if (task.suspended || task.deprecated || task.pause) {
-      return console.log(task.title, '任务已暂停')
+      return console.log(task.title, '任务已暂停', task)
     }
     if (task.checked) {
       return console.log(task.title, '任务已完成')
@@ -232,8 +231,14 @@ async function runJob(taskId, force = false) {
   if ((task.suspended || task.deprecated) && !force) {
     return log('job', task, '由于账号未登录已暂停运行')
   }
+
+  // 开始运行任务
   if (task.frequency != 'never' || force) {
     log('background', "run", task)
+    currentTask = task
+    setTimeout(() => {
+      currentTask = null
+    }, 2 * 60 * 1000);
     await addTaskLog(task)
     if (task.mode == 'iframe') {
       openByIframe(task.url, 'job')
@@ -343,6 +348,7 @@ function setDefaultSetting() {
 
 
 $( document ).ready(function() {
+  currentTask = null
   log('background', "document ready", new Date())
   // 每10分钟运行一次定时任务
   chrome.alarms.create('cycleTask', {
@@ -576,7 +582,9 @@ function saveLoginState(loginState) {
   if (previousState[loginState.type].state != 'alive' && loginState.state == "alive") {
     setTimeout(() => {
       log('background', "login alive run job 1")
-      runJob('1')
+      if (!currentTask || currentTask.id != '1') {
+        runJob('1')
+      }
     }, 15000);
     setTimeout(() => {
       findJobs(loginState.type)
@@ -653,6 +661,7 @@ function loadSettingsToLocalStorage(key) {
     saveSetting(key, json)
   })
 }
+
 // 加载推荐设置
 function loadRecommendSettingsToLocalStorage() {
   $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
