@@ -452,66 +452,61 @@ async function dealProduct(product, orderInfo, setting) {
   applyBtn.attr('product_name', product_name)
 }
 
-async function dealOrder(order, setting) {
-  console.log('dealOrder', order)
+async function dealOrder(order, validProducts, setting) {
+  console.log('dealOrder', order, validProducts)
 
   let order_time = order.find('span.time').text() ? new Date(order.find('span.time').text()) : new Date(order.find('.title span').last().text().trim().split('：')[1])
   let order_id = order.find('span.order').text() ? order.find('span.order').text().replace(/[^0-9\.-]+/g, "") : order.find('.title .order-code').text().trim().split('：')[1]
 
-  console.log('订单:', order_id, order_time, setting)
-  let proTime = Date.now() - 60*60*1000*24*Number(setting.pro_days);
-  // 如果订单时间在设置的价保监控范围以内
-  if (order_time.getTime() > proTime) {
-    let orderInfo = {
-      id: order_id,
-      timestamp: order_time.getTime(),
-      goods: []
-    }
-    chrome.runtime.sendMessage({
-      action: "findOrder",
-      task: {
-        id: "1"
-      },
-      log: true,
-      title: `发现有效的订单：${order_id} 下单时间：${order_time}`,
-      orderId: order_id,
-      order: orderInfo
-    }, function(response) {
-      console.log("good Response: ", response);
-    });
-    let productList = order.find('.product-item').length > 0 ? order.find('.product-item') : order.filter( ".co-th" )
-    let time = 500
-    productList.each(function () {
-      let productElement = $(this)
-      setTimeout(async () => {
-        try {
-          await dealProduct(productElement, orderInfo, setting)
-        } catch (error) {
-          console.error(error)
-        }
-      }, time);
-      time += 2000;
-    })
+  let orderInfo = {
+    id: order_id,
+    timestamp: order_time.getTime(),
+    goods: []
   }
+  chrome.runtime.sendMessage({
+    action: "findOrder",
+    task: {
+      id: "1"
+    },
+    log: true,
+    title: `发现有效的订单：${order_id} 商品数:${validProducts.length} 下单时间：${order_time}`,
+    orderId: order_id,
+    order: orderInfo
+  }, function(response) {
+    console.log("good Response: ", response);
+  });
+
+  let time = 500
+  validProducts.map(function (productElement) {
+    setTimeout(async () => {
+      try {
+        await dealProduct($(productElement), orderInfo, setting)
+      } catch (error) {
+        console.error(error)
+      }
+    }, time);
+    time += 2000;
+  })
 }
 
 async function getAllOrders(mode, setting) {
   console.log('京价保开始自动检查订单', mode)
   // 移动价保
   if ($( "#dataList0 li").length > 0) {
+    console.log('发现订单', $( "#dataList0 li").length)
     let time = 0
     $( "#dataList0 li").each(function() {
       let orderElement = $(this)
 
-      const validApplyButtons = orderElement.find('.apply').toArray().filter((btn) => {
-        return !$(btn).hasClass('disable-apply')
+      const validProducts = orderElement.find('.product-item').toArray().filter((product) => {
+        return !$(product).find('.apply').hasClass('disable-apply')
       })
 
-      if (validApplyButtons.length < 1) return
+      if (validProducts.length < 1) return
 
       setTimeout(async () => {
         try {
-          await dealOrder(orderElement, setting)
+          await dealOrder(orderElement, validProducts, setting)
         } catch (error) {
           console.error(error)
         }
@@ -522,28 +517,25 @@ async function getAllOrders(mode, setting) {
   // PC价保
   if ($( "#dataList .tr-th").length > 0) {
     let time = 0
+    console.log('发现订单', $( "#dataList .tr-th").length)
     $( "#dataList .tr-th").each(function() {
+      let orderDom = $(this).clone()
+      let product = $(this).next()
+      let products = [product]
+      while (product.next().hasClass('co-th')) {
+        product = product.next()
+        products.push(product)
+      }
+      // 排除已经超过价保周期的商品
+      const validProducts = products.filter((p) => {
+        return p.find("#overTime").length < 1
+      })
+
+      if (validProducts.length < 1) return console.log('排除无效订单', orderDom)
+
       setTimeout(async () => {
-        let orderDom = $(this)
-        let product = $(this).next()
-        let products = [product]
-
-        while (product.next().hasClass('co-th')) {
-          product = product.next()
-          products.push(product)
-        }
-
-        // 排除已经超过价保周期的商品
-        const validProducts = products.filter((p) => {
-          return p.find("#overTime").length < 1
-        })
-
-        if (validProducts.length < 1) return
-
-        orderDom = orderDom.add(validProducts)
-
         try {
-          await dealOrder(orderDom, setting)
+          await dealOrder(orderDom, validProducts, setting)
         } catch (error) {
           console.error(error)
         }
@@ -1014,7 +1006,7 @@ function priceProtect(task) {
       }, function (response) {
         setTimeout(function () {
           getAllOrders(mode, response)
-        }, 8000)
+        }, 10 * 1000)
         console.log("getPriceProtectionSetting Response: ", response);
       });
     } else {

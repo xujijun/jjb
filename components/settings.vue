@@ -241,22 +241,6 @@
                   <span
                     data-tippy-placement="top-start"
                     class="tippy"
-                    data-tippy-content="京东价格保护的时间不同商品不同，大部分商品是7天价保"
-                  >监控订单范围</span>
-                </div>
-                <div class="weui-cell__bd">
-                  <select class="weui-select" v-auto-save name="price_pro_days">
-                    <option value="7">最近7天</option>
-                    <option value="15">最近15天</option>
-                    <option value="30">最近30天</option>
-                  </select>
-                </div>
-              </div>
-              <div class="weui-cell weui-cell_select weui-cell_select-after">
-                <div class="weui-cell__bd">
-                  <span
-                    data-tippy-placement="top-start"
-                    class="tippy"
                     data-tippy-content="商品降价小于“最小价差”时将不会自动申请价保"
                   >最小价差</span>
                 </div>
