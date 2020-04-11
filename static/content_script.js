@@ -963,38 +963,30 @@ function priceProtect(task) {
   if (task.frequency != 'never') {
     weui.toast('京价保运行中', 3500);
     let mode = "m"
-    // 加载第二页
+    let maxPageHeight = 4000 * 20
+    let mainContainer = $(window)
     if (document.getElementById("mescroll0")) {
-      document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      setTimeout(() => {
-        document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      }, 3000);
-      setTimeout(() => {
-        document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      }, 6000);
-      setTimeout(() => {
-        document.getElementById("mescroll0").scrollTop =0
-      }, 6500);
-      setTimeout(() => {
-        modifyRefundType(mode)
-      }, 7500);
+      mainContainer = $("#mescroll0")
     }
+
     if (document.getElementById("dataList")) {
       mode = "pc"
-      $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      setTimeout(() => {
-        $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      }, 3000);
-      setTimeout(() => {
-        $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      }, 6000);
-      setTimeout(() => {
-        $(window).scrollTop(0)
-      }, 6500);
-      setTimeout(() => {
-        modifyRefundType(mode)
-      }, 7500);
     }
+
+    // 加载更多
+    mainContainer.scrollTop(maxPageHeight);
+    setTimeout(() => {
+      mainContainer.scrollTop(maxPageHeight);
+    }, 3000);
+    setTimeout(() => {
+      mainContainer.scrollTop(maxPageHeight);
+    }, 6000);
+    setTimeout(() => {
+      mainContainer.scrollTop(0)
+    }, 6500);
+    setTimeout(() => {
+      modifyRefundType(mode)
+    }, 7500);
 
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
       console.log('成功获取价格保护商品列表', new Date())
@@ -1308,15 +1300,6 @@ function autoLogin(account, type) {
       $(".tips-inner .cont-wrapper p").text('由于在' + account.loginState.displayTime + '自动登录失败（原因：' + account.loginState.message + '），京价保暂停自动登录').css('color', '#f73535').css('font-size', '14px')
       $(".login-wrap .tips-wrapper").hide()
       $("#content .tips-wrapper").css('background', '#fff97a')
-      chrome.runtime.sendMessage({
-        text: "highlightTab",
-        content: JSON.stringify({
-          url: window.location.href,
-          pinned: "true"
-        })
-      }, function (response) {
-        console.log("Response: ", response);
-      });
     } else {
       // 如果显示需要验证
       if ($("#s-authcode").height() > 0) {
@@ -1330,16 +1313,6 @@ function autoLogin(account, type) {
           let slideMsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
           if (slideMsg && slideMsg.length > 0) {
             dealLoginFailed("pc", "需要完成登录验证")
-            chrome.runtime.sendMessage({
-              text: "highlightTab",
-              content: JSON.stringify({
-                title: "需要完成滑动拼图以登录",
-                url: window.location.href,
-                pinned: "true"
-              })
-            }, function (response) {
-              console.log("Response: ", response);
-            });
           }
         }, 3000)
         // 监控登录失败
@@ -1503,6 +1476,7 @@ function dealLoginPage() {
     })
   };
 }
+
 // 签到领京豆（vip）
 function vipCheckin(task) {
   if (task.frequency != 'never') {
@@ -1651,8 +1625,6 @@ function beanCheckin(task) {
     })
   }
 }
-
-
 
 // 9: 金融会员签到
 function jrIndexCheckin(task) {
@@ -2073,15 +2045,6 @@ function CheckDom() {
   // 手机验证码
   if ($('.tip-box').length > 0 && $(".tip-box").text().indexOf("账户存在风险") > -1) {
     dealLoginFailed("pc", "需要手机验证码")
-    chrome.runtime.sendMessage({
-      text: "highlightTab",
-      content: JSON.stringify({
-        url: window.location.href,
-        pinned: "true"
-      })
-    }, function(response) {
-      console.log("Response: ", response);
-    });
   }
 
   // 验证码

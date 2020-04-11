@@ -32,7 +32,7 @@ const tasks = [
       pc: "https://pcsitepp-fm.jd.com/rest/pricepro/priceapply"
     },
     title: '价格保护',
-    description: "价格保护默认只申请15天内下单的商品",
+    description: "价格保护只显示京东系统尚在价保有效期内的商品",
     mode: 'iframe',
     type: ['pc', 'm'],
     frequencyOption: ['2h', '5h', 'daily', 'never'],

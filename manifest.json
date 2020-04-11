@@ -57,11 +57,7 @@
     "webRequest",
     "webRequestBlocking",
     "alarms",
-    "tabs",
     "contextMenus",
     "notifications"
-  ],
-  "optional_permissions": [
-    "bookmarks"
   ]
 }

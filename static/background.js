@@ -74,7 +74,6 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       break;
     // 周期运行（10分钟）
     case alarm.name == 'cycleTask':
-      clearPinnedTabs()
       findJobs()
       runJob()
       updateIcon()
@@ -240,24 +239,7 @@ async function runJob(taskId, force = false) {
       currentTask = null
     }, 2 * 60 * 1000);
     await addTaskLog(task)
-    if (task.mode == 'iframe') {
-      openByIframe(task.url, 'job')
-    } else {
-      chrome.tabs.create({
-        index: 1,
-        url: task.url,
-        active: false,
-        pinned: true
-      }, function (tab) {
-        // 将标签页静音
-        chrome.tabs.update(tab.id, {
-          muted: true
-        }, function (result) {
-          log('background', "muted tab", result)
-        })
-        chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
-      })
-    }
+    openByIframe(task.url, 'job')
   }
 }
 
@@ -339,14 +321,6 @@ function removeExpiredLocalStorageItems() {
   }
 }
 
-function setDefaultSetting() {
-  let priceProDays = localStorage.getItem("price_pro_days")
-  if (!priceProDays) {
-    saveSetting("price_pro_days", 15)
-  }
-}
-
-
 $( document ).ready(function() {
   currentTask = null
   log('background', "document ready", new Date())
@@ -370,9 +344,6 @@ $( document ).ready(function() {
 
   // 加载推荐设置
   loadRecommendSettingsToLocalStorage()
-
-  // 设置默认值
-  setDefaultSetting()
 
   // 移除临时缓存项（只在20点～8点运行）
   if (new Date().getHours() > 20 || new Date().getHours() < 8) {
@@ -398,24 +369,6 @@ function openLoginPage(loginState) {
       url: "https://home.jd.com"
     })
   }
-}
-
-// 清除不需要的tab
-function clearPinnedTabs() {
-  chrome.tabs.query({
-    pinned: true
-  }, function (tabs) {
-    var tabIds = $.map(tabs, function (tab) {
-      if (tab && tab.url.indexOf('jd.com') !== -1) {
-        return tab.id
-      }
-    })
-
-    // opera doesn't remove pinned tabs, so lets first unpin
-    $.map(tabIds, function (tabId) {
-        chrome.tabs.update(tabId, {"pinned":false}, function(theTab){ chrome.tabs.remove(theTab.id); });
-    })
-  })
 }
 
 // 点击通知
@@ -608,14 +561,12 @@ function sendChromeNotification(id, content) {
 // 价保设置
 function getPriceProtectionSetting() {
   let pro_min = getSetting('price_pro_min', 0.1);
-  let pro_days = getSetting('price_pro_days', 15)
   let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (getSetting('jjb_plus') == 'Y')
   let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
   let suspendedApplyIds = getSetting("suspendedApplyIds", []);
   return {
     pro_min,
     prompt_only,
-    pro_days,
     is_plus,
     suspendedApplyIds
   }
@@ -989,40 +940,6 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
           log('background', "muted tab", result)
         })
         chrome.alarms.create('closeTab_' + tab.id, { delayInMinutes: 1 })
-      })
-      break;
-    case 'remove_tab':
-      chrome.tabs.query({
-        url: msg.content.url,
-        pinned: msg.content.pinned
-      }, function (tabs) {
-        let tabIds = $.map(tabs, function (tab) {
-          return tab.id
-        })
-        chrome.tabs.remove(tabIds)
-      })
-      break;
-    // 高亮Tab
-    case 'highlightTab':
-      var content = JSON.parse(msg.content)
-      chrome.tabs.query({
-        url: content.url,
-        pinned: content.pinned == 'true'
-      }, function (tabs) {
-        $.map(tabs, function (tab) {
-          chrome.tabs.update(tab.id, { pinned: false }, function (newTab) {
-            sendChromeNotification(new Date().getTime().toString(), {
-              type: "basic",
-              title: content.title ? content.title : "京价保未能自动完成任务",
-              message: "需要人工辅助，已将窗口切换至需要操作的标签" ,
-              iconUrl: 'static/image/128.png'
-            })
-            chrome.tabs.highlight({
-              tabs: newTab.index
-            })
-          })
-          return tab.id
-        })
       })
       break;
     case 'couponReceived':

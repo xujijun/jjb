@@ -37,9 +37,7 @@ async function findOrder(orderId, data) {
 }
 
 async function updateOrders() {
-  let proDays = getSetting('price_pro_days', 15)
-  let proTime = Date.now() - 60*60*1000*24*proDays;
-  let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
+  let orders = await db.orders.where('timestamp').above(Date.now() - 60*60*1000*24*45).reverse().sortBy('timestamp')
 
   if (orders && orders.length > 0) {
     orders = orders.filter(order => order.goods && order.goods.length > 0);

@@ -258,23 +258,6 @@ $( document ).ready(function() {
     $("#faqDialags").show()
   })
 
-  $("#clearPinnedTabs").on("click", function () {
-    chrome.tabs.query({
-      pinned: true
-    }, function (tabs) {
-      var tabIds = $.map(tabs, function (tab) {
-        if (tab && tab.url.indexOf('jd.com') !== -1) {
-            return tab.id
-        }
-      })
-
-      // opera doesn't remove pinned tabs, so lets first unpin
-      $.map(tabIds, function (tabId) {
-        chrome.tabs.update(tabId, {"pinned":false}, function(theTab){ chrome.tabs.remove(theTab.id); });
-      })
-    })
-  })
-
   $("#feedbackDialags .js-close").on("click", function () {
     $("#feedbackDialags").hide()
   })
