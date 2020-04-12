@@ -1663,13 +1663,13 @@ function jrIndexCheckin(task) {
   }
 }
 
-// 金币
+// 22: 金币
 function getGoldCoin(task) {
   if (task && task.frequency != 'never') {
     let time = 0;
     weui.toast('京价保运行中', 1000);
     runStatus(task)
-    $("#content .set-coin-item a.btn").each(function () {
+    $("#J_index .setCoin a.btn").each(function () {
       let that = $(this)
       if (that.text() == '立即领取') {
         setTimeout(function () {

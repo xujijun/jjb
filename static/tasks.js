@@ -392,7 +392,7 @@ const tasks = [
   {
     id: '22',
     src: {
-      m: 'https://m.jr.jd.com/member/gcmall/',
+      m: 'https://member.jr.jd.com/gcmall/',
     },
     title: '领取金融金币',
     description: "领取京东金融各种返金币",
@@ -401,8 +401,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     location: {
-      host: ['m.jr.jd.com'],
-      pathname: ['/member/gcmall/']
+      host: ['member.jr.jd.com'],
+      pathname: ['/gcmall/']
     },
     new: true,
     rateLimit:{
