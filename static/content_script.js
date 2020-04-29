@@ -746,91 +746,6 @@ function runCommonTask(task) {
 }
 
 
-// 自动浏览店铺（7：店铺签到）
-function autoVisitShop(task) {
-  if (task.frequency != 'never') {
-    weui.toast('京价保运行中', 1000);
-    runStatus(task)
-    var time = 0;
-    $(".bean-shop-list li").each(function () {
-      var that = $(this)
-      if ($(that).find('.s-btn').text() == '去签到') {
-        setTimeout(function () {
-          chrome.runtime.sendMessage({
-            action: "create_tab",
-            batch: "bean",
-            task: task,
-            log: true,
-            content: JSON.stringify({
-              index: 0,
-              url: $(that).find('.s-btn').attr('href'),
-              active: "false",
-              pinned: "true"
-            })
-          }, function (response) {
-            console.log("Response: ", response);
-          });
-        }, time)
-        time += 30000;
-      }
-    })
-  }
-}
-
-// 店铺签到（7：店铺签到）
-function doShopSign(task) {
-  if (task.frequency != 'never') {
-    console.log('店铺自动签到')
-    if ($(".J_giftClose").length > 0) {
-      simulateClick($(".J_giftClose"), true)
-    }
-    if ($(".jShopHeaderArea .jSign .signed").length > 0) {
-      if ($(".real-gift-tip .jingdou").length > 0) {
-        let value = $(".real-gift-tip .jingdou span").text()
-        chrome.runtime.sendMessage({
-          action: "checkin_notice",
-          task: task,
-          log: true,
-          title: "京价保自动为店铺签到领京豆",
-          reward: "bean",
-          value: Number(value),
-          content: "恭喜您获得了" + value + "京豆"
-        }, function (response) {
-          console.log("Response: ", response);
-        })
-      }
-      setTimeout(() => {
-        chrome.runtime.sendMessage({
-          action: "remove_tab",
-          task: task,
-          log: true,
-          content: {
-            url: window.location.href,
-            pinned: true
-          }
-        }, function(response) {
-          console.log("Response: ", response);
-        });
-      }, 1500);
-    } else {
-      chrome.runtime.sendMessage({ text: "myTab" }, function (result) {
-        console.log('tab', result.tab)
-        if (result.tab.pinned) {
-          if ($(".j-unsigned.j-sign").length > 0 && $(".j-unsigned.j-sign").attr("status") == 'true') {
-            simulateClick($('.j-unsigned.j-sign'))
-          } else {
-            setTimeout(function () {
-              simulateClick($('.jSign .unsigned'))
-            }, 3000)
-          }
-        } else {
-          console.log('正常访问不执行店铺自动签到')
-        }
-      });
-    }
-  }
-}
-
 function runStatus(task, parameters) {
   console.log(`${task.title}开始运行`)
   chrome.runtime.sendMessage(Object.assign({
@@ -1830,6 +1745,37 @@ function swingCheckIn(task) {
   }
 }
 
+// 31: 白条优惠券抽奖 (rights-center)
+function rightsCenterWhite(task) {
+  if (task.frequency != 'never') {
+    weui.toast('京价保运行中', 1000);
+    runStatus(task)
+    setTimeout(() => {
+      simulateClick($(".whiteGameItems .whiteGameItem.startBtn"), true)
+    }, 1500);
+    observeDOM(document.body, function (observer) {
+      let resultElement = $('.Dialog .dia3Bg p.rem20.ta-c:visible')
+      if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
+        if (observer) observer.disconnect();
+        let result = $('.Dialog .dia3Bg3R p.ellipsis:visible').first().text()
+        markCheckinStatus('baitiao', result, () => {
+          chrome.runtime.sendMessage({
+            action: "checkin_notice",
+            task: task,
+            log: true,
+            title: "京价保自动为您白条优惠券抽奖",
+            content: "恭喜您获得了" + result
+          }, function (response) {
+            console.log("Response: ", response);
+          })
+        })
+      }
+      if ($(".whiteGameItem.startBtn .auto .rem12").text() == '今日机会已用完') {
+        markCheckinStatus('rights-center')
+      }
+    })
+  }
+}
 
 // ************
 // 主体任务
@@ -1882,6 +1828,10 @@ function triggerTask(task) {
     case '9':
       jrIndexCheckin(task)
       break;
+    // 31: 白条优惠券抽奖
+    case '31':
+      rightsCenterWhite(task)
+      break;
     default:
       break;
   }
@@ -1916,6 +1866,7 @@ function CheckDom() {
     location: {
       host: window.location.host,
       href: window.location.href,
+      hash: window.location.hash,
       origin: window.location.origin,
       pathname: window.location.pathname
     }
@@ -2020,15 +1971,6 @@ function CheckDom() {
     console.log('单独的领券页面', $("#js_detail .coupon_get").find('.js_getCoupon'))
     $("#js_detail .coupon_get").find('.js_getCoupon').trigger( "tap" )
     $("#js_detail .coupon_get").find('.js_getCoupon').trigger( "click" )
-  }
-
-  // 自动访问店铺领京豆
-  if ( $(".bean-shop-list").length > 0 ) {
-    getTask('7', autoVisitShop)
-  };
-
-  if ($(".jShopHeaderArea").length > 0 && $(".jShopHeaderArea .jSign").length > 0) {
-    getTask('7', doShopSign)
   }
 
   // 领取精选券

@@ -102,7 +102,8 @@ const tasks = [
     frequency: '5h',
     location: {
       host: ['m.jr.jd.com'],
-      pathname: ['/member/rightsCenter/']
+      pathname: ['/member/rightsCenter/'],
+      hash: ["#/coupon"]
     },
     rateLimit:{
       weekly: 32,
@@ -348,24 +349,6 @@ const tasks = [
     }
   },
   {
-    id: '7', // 已移除
-    src: {
-      pc: 'https://bean.jd.com/myJingBean/list',
-    },
-    title: '浏览店铺签到',
-    description: "这个功能是自动浏览店铺签到得京豆，会开一些固定标签页",
-    mode: 'tab',
-    type: ['pc'],
-    frequencyOption: ['daily', 'never'],
-    frequency: 'never',
-    rateLimit:{
-      weekly: 32,
-      daily: 4,
-      hour: 2
-    },
-    deprecated: true
-  },
-  {
     id: '30',
     src: {
       m: 'https://vip.jd.com/newPage/reward',
@@ -410,6 +393,31 @@ const tasks = [
       daily: 3,
       hour: 2
     }
+  },
+  {
+    id: '31',
+    src: {
+      m: 'https://m.jr.jd.com/member/rightsCenter/#/white',
+    },
+    key: "rights-center",
+    title: '白条优惠券抽奖',
+    description: "京东金融权益中心白条优惠券",
+    mode: 'iframe',
+    type: ['m'],
+    checkin: true,
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    location: {
+      host: ['m.jr.jd.com'],
+      pathname: ['/member/rightsCenter/'],
+      hash: ["#/white"]
+    },
+    new: true,
+    rateLimit:{
+      weekly: 32,
+      daily: 4,
+      hour: 2
+    },
   }
 ]
 
