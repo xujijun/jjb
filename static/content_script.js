@@ -1451,49 +1451,6 @@ function baitiaoLottery(task) {
   }
 }
 
-// 18: 拍拍二手签到有礼
-function dailyPaipai(task) {
-	if (task.frequency != 'never') {
-		weui.toast('京价保运行中', 1000);
-    runStatus(task)
-    setTimeout(() => {
-      if ($(".signIn_btnTxt").text() == '签到') {
-        simulateClick($(".signIn_btnTxt"))
-        observeDOM(document.body, function (observer) {
-          let resultElement = $('.signIn_pop .signIn_Title')
-          if (resultElement && resultElement.text().indexOf('成功') > -1) {
-            if (observer) observer.disconnect();
-            let value = $(".signIn_pop .signIn_bean").text() ? $(".signIn_pop .signIn_bean").text().replace(/[^0-9\.-]+/g, "") : null
-            if (value && value > 0) {
-              markCheckinStatus('paipai', value + '京豆', () => {
-                chrome.runtime.sendMessage({
-                  action: "checkin_notice",
-                  task: task,
-                  log: true,
-                  batch: "bean",
-                  reward: "bean",
-                  value: value,
-                  unit: 'bean',
-                  title: "京价保自动为您领取拍拍签到有礼",
-                  content: "恭喜您获得了" + value + '个京豆奖励'
-                }, function (response) {
-                  console.log("Response: ", response);
-                })
-              })
-            } else {
-              markCheckinStatus('paipai')
-            }
-          }
-        })
-      } else {
-        if ($(".signIn_btnTxt").text() && $(".signIn_btnTxt").text().indexOf("连续签到") > -1){
-          markCheckinStatus('paipai')
-        }
-      }
-    }, 2000);
-  }
-}
-
 // 11: 每日京豆签到（bean）
 function beanCheckin(task) {
   function observerBeanCheckinResult() {
@@ -1799,10 +1756,6 @@ function triggerTask(task) {
     // 15:全品类券
     case '15':
       getCommonUseCoupon(task)
-      break;
-    // 18:拍拍签到有礼
-    case '18':
-      dailyPaipai(task)
       break;
     // 21:话费券
     case '21':

@@ -307,29 +307,6 @@ const tasks = [
     deprecated: true
   },
   {
-    id: "18",
-    src: {
-      m: "https://pro.m.jd.com/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html"
-    },
-    title: '拍拍签到有礼',
-    description: "拍拍二手签到有礼",
-    key: "paipai",
-    mode: 'iframe',
-    type: ['m'],
-    checkin: true,
-    frequencyOption: ['daily', 'never'],
-    frequency: 'daily',
-    location: {
-      host: ['pro.m.jd.com'],
-      pathname: ['/mall/active/3S28janPLYmtFxypu37AYAGgivfp/index.html']
-    },
-    rateLimit:{
-      weekly: 32,
-      daily: 4,
-      hour: 2
-    }
-  },
-  {
     id: '16',
     src: {
       m: 'https://m.jr.jd.com/btyingxiao/marketing/html/index.html',
