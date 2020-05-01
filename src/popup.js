@@ -2,6 +2,7 @@ import * as _ from "lodash"
 $ = window.$ = window.jQuery = require('jquery')
 import {DateTime} from 'luxon'
 import tippy from 'tippy.js'
+import 'weui';
 import weui from 'weui.js'
 import Vue from 'vue'
 
@@ -9,7 +10,7 @@ import { getSetting } from './utils'
 import { notices } from './variables'
 import { getLoginState } from './account'
 
-import App from '../components/App.vue';
+import App from './components/App.vue';
 new Vue({
   el: '#app',
   template: '<App/>',
@@ -106,10 +107,10 @@ $( document ).ready(function() {
   changeTips()
 
   // 查询最新版本
-  $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {
+  $.getJSON(`https://jjb.zaoshu.so/updates?buildid=${process.env.BUILDID}&browser=${process.env.BROWSER}`, function (lastVersion) {
     if (!lastVersion) return localStorage.removeItem('newVersion')
     let skipBuildId = localStorage.getItem('skipBuildId')
-    let localBuildId = skipBuildId || "{{buildid}}"
+    let localBuildId = skipBuildId || process.env.BUILDID
     // 如果有新版
     if (localBuildId < lastVersion.buildId && lastVersion.notice) {
       localStorage.setItem('newVersion', lastVersion.versionCode)
@@ -134,7 +135,7 @@ $( document ).ready(function() {
             type: 'primary',
             onClick: function () {
               chrome.tabs.create({
-                url: lastVersion.downloadUrl || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
+                url: lastVersion.downloadUrl || `https://jjb.zaoshu.so/updates/latest?browser=${process.env.BROWSER}`
               })
             }
           }]
@@ -239,7 +240,7 @@ $( document ).ready(function() {
   $("#openFeedback").on("click", function () {
     // 加载反馈
     if ($("#feedbackIframe").attr('src') == '') {
-      $("#feedbackIframe").attr('src', "https://i.duotai.net/forms/yovwz?version={{version}}")
+      $("#feedbackIframe").attr('src', `https://i.duotai.net/forms/yovwz?version=${process.env.VERSION}`)
       setTimeout(function () {
         $('.iframe-loading').hide()
       }, 800)

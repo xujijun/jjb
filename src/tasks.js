@@ -486,7 +486,7 @@ let getTasks = function (currentPlatform) {
   return taskList.filter(task => !(task.unavailable || task.deprecated));
 }
 
-module.exports = {
+export {
   priceProUrl,
   frequencyOptionText,
   mapFrequency,

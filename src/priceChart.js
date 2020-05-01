@@ -1,3 +1,7 @@
+import 'weui';
+import weui from 'weui.js';
+import { Chart } from '@antv/g2';
+
 $(document).ready(function () {
   let urlInfo = /(https|http):\/\/item.jd.com\/([0-9]*).html/g.exec(window.location.href);
   if (window.location.host == 're.jd.com') {
@@ -55,7 +59,9 @@ $(document).ready(function () {
       $(`#specialPromotion .controller .item__child:eq(${slideIndex-1})`).addClass('on')
     }, 10);
     console.log('showPromotions', n, slideIndex, x[slideIndex-1])
-    x[slideIndex-1].style.display = "block";
+    if (x[slideIndex-1]) {
+      x[slideIndex-1].style.display = "block";
+    }
   }
 
   function getPriceChart(sku, days) {
@@ -68,7 +74,7 @@ $(document).ready(function () {
         if (data.chart.length > 2) {
           $("#jjbPriceChart").html('')
           let specialPromotion = data.specialPromotion
-          let chart = new G2.Chart({
+          let chart = new Chart({
             container: 'jjbPriceChart',
             forceFit: true,
             padding: [50, '5%', 80, '6%'],

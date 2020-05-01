@@ -280,9 +280,7 @@
                   <input class="weui-switch" type="checkbox" v-auto-save name="is_plus">
                 </div>
               </div>
-              <!-- @if Browser='chrome' -->
-
-              <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
+              <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">
                   <span
                     data-tippy-placement="top-start"
@@ -294,19 +292,6 @@
                   <input class="weui-switch" type="checkbox" v-auto-save name="hand_protection">
                 </div>
               </div>
-              <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
-                <div class="weui-cell__bd">
-                  <span
-                    data-tippy-placement="top-start"
-                    class="tippy"
-                    data-tippy-content="京东热卖是带有推荐的链接落地页，开启本选项后将自动为你把该页面跳转到商品页"
-                  >自动跳转热卖页</span>
-                </div>
-                <div class="weui-cell__ft">
-                  <input class="weui-switch" type="checkbox" v-auto-save name="auto_gobuy">
-                </div>
-              </div>
-              <!-- @endif -->
 
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">
@@ -480,9 +465,9 @@
 </template>
 
 <script>
-import { frequencyOptionText, getTasks  } from "../static/tasks";
-import { recommendServices } from "../static/variables";
-import { getSetting, saveSetting } from "../static/utils";
+import { frequencyOptionText, getTasks  } from "../tasks";
+import { recommendServices } from "../variables";
+import { getSetting, saveSetting } from "../utils";
 import taskSetting from "./task-setting.vue";
 import support from './support.vue';
 import links from './links.vue';
@@ -497,8 +482,7 @@ export default {
       frequencyOptionText: frequencyOptionText,
       recommendServices: getSetting("recommendServices", recommendServices),
       recommendedLinks: getSetting("recommendedLinks", []),
-      currentBrowser: "{{browser}}",
-      currentVersion: "{{version}}",
+      currentVersion: process.env.VERSION,
       scienceOnline: false,
       listenAudio: false,
       taskType: 'enabled',
@@ -620,7 +604,7 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style lang="less" scoped>
 .settings_box{
   overflow: hidden;
   height: 510px;

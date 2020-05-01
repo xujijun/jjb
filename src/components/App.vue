@@ -36,7 +36,7 @@
             <span class="weui-badge" v-if="unreadCount > 0">{{unreadCount}}</span>
           </div>
           <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
-            <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
+            <img src="../../static/image/zaoshu.png" alt="" class="zaoshu-icon">
             枣树集惠
             <span
               class="weui-badge weui-badge_dot new-discounts"
@@ -263,7 +263,7 @@
       <div class="bottom">
         <div class="weui-tabbar">
           <a id="pricePro" class="weui-tabbar__item" v-tippy title="打开京东价格保护页面">
-            <img src="../static/image/money.png" alt="" class="weui-tabbar__icon">
+            <img src="../../static/image/money.png" alt="" class="weui-tabbar__icon">
             <p class="weui-tabbar__label">价保页面</p>
           </a>
           <a
@@ -273,7 +273,7 @@
             :title="`当前版本：${currentVersion}，查看京价保最近更新记录`"
             style="position: relative;"
           >
-            <img src="../static/image/update.png" alt="" class="weui-tabbar__icon">
+            <img src="../../static/image/update.png" alt="" class="weui-tabbar__icon">
             <p class="weui-tabbar__label">
               最近更新
               <span
@@ -296,7 +296,7 @@
             title="点击查看本插件的全部代码"
             target="_blank"
           >
-            <img src="../static/image/github.png" alt="" class="weui-tabbar__icon">
+            <img src="../../static/image/github.png" alt="" class="weui-tabbar__icon">
             <p class="weui-tabbar__label">源代码</p>
           </a>
         </div>
@@ -316,10 +316,13 @@ import tippy from "tippy.js";
 import weui from "weui.js";
 import Vue from "vue";
 
+import "weui";
+import '../../static/style/popup.css'
+
 import { DateTime } from 'luxon'
-import { getLoginState } from '../static/account'
-import { getSetting, versionCompare, readableTime, saveSetting } from "../static/utils";
-import { stateText } from "../static/variables";
+import { getLoginState } from '../account'
+import { getSetting, versionCompare, readableTime, saveSetting } from "../utils";
+import { stateText } from "../variables";
 
 function tippyElement(el) {
   setTimeout(() => {
@@ -415,9 +418,9 @@ export default {
       loadingOrder: false,
       showPopup: true,
       showLoginState: false,
-      currentVersion: "{{version}}",
+      currentVersion: process.env.VERSION,
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
-      newChangelog: versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") < 0,
+      newChangelog: versionCompare(getSetting("changelog_version", "2.0"), process.env.VERSION) < 0,
       hiddenOrderIds: getSetting("hiddenOrderIds", []),
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
       selectedTab: null,
@@ -639,7 +642,7 @@ export default {
       weui.dialog({
         title: "更新记录",
         content: `
-          <iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId={{buildid}}&browser={{browser}}" style="width: 100%;min-height: 350px;"
+          <iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId=${process.env.BUILDID}&browser=${process.env.BROWSER}" style="width: 100%;min-height: 350px;"
           ></iframe>
         `,
         className: "changelog",
@@ -655,7 +658,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .orders, .messages, .discounts{
   overflow: hidden;
   height: 510px;

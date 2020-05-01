@@ -32,7 +32,7 @@ export default {
   methods: {}
 };
 </script>
-<style scoped>
+<style lang="less" scoped>
 .hooper{
   height: 120px;
 }

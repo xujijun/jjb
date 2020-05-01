@@ -94,8 +94,8 @@
 <script>
 import weui from "weui.js";
 import { DateTime } from "luxon";
-import { getSetting, saveSetting, readableTime } from "../static/utils";
-import { getTaskLog } from '../static/db';
+import { getSetting, saveSetting, readableTime } from "../utils";
+import { getTaskLog } from '../db';
 
 export default {
   name: "taskSetting",
@@ -169,7 +169,7 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style lang="less" scoped>
 
 .rate-setting .weui-input{
   border: 0.5px solid #eee;
@@ -189,7 +189,6 @@ export default {
 
 .action {
   display: inline-block;
-  float: right;
   cursor: pointer;
   padding: 0 .5em;
 }

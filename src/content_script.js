@@ -1,4 +1,8 @@
 // 京价保
+import 'weui';
+import weui from 'weui.js';
+import '../static/style/content.css'
+
 var observeDOM = (function () {
   var MutationObserver = window.MutationObserver || window.WebKitMutationObserver
   return function (obj, callback) {
@@ -984,7 +988,6 @@ function showPriceChart(disable) {
 // 剁手保护模式
 function handProtection(setting, priceInfo) {
   if (setting == "checked") {
-    injectScript(chrome.extension.getURL('/static/dialog-polyfill.js'), 'body');
     console.log('剁手保护模式')
     let buyDom = $("#InitCartUrl").length > 0 ? $("#InitCartUrl") : $("#btn-reservation")
     let item = $(".ellipsis").text()
@@ -1707,6 +1710,9 @@ function rightsCenterWhite(task) {
   if (task.frequency != 'never') {
     weui.toast('京价保运行中', 1000);
     runStatus(task)
+    if ($(".whiteGameItem.startBtn .auto .rem12").text() == '今日机会已用完') {
+      return markCheckinStatus('rights-center')
+    }
     setTimeout(() => {
       simulateClick($(".whiteGameItems .whiteGameItem.startBtn"), true)
     }, 1500);
@@ -1727,10 +1733,8 @@ function rightsCenterWhite(task) {
           })
         })
       }
-      if ($(".whiteGameItem.startBtn .auto .rem12").text() == '今日机会已用完') {
-        markCheckinStatus('rights-center')
-      }
     })
+
   }
 }
 

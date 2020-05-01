@@ -110,7 +110,7 @@
 
 <script>
 import { DateTime } from "luxon";
-import { getSetting, readableTime } from "../static/utils";
+import { getSetting, readableTime } from "../utils";
 import loading from "./loading.vue";
 import report from "./report.vue";
 import events from "./events.vue";
@@ -243,7 +243,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .tabs {
   height: 40px;
   width: 210px;

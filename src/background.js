@@ -10,6 +10,11 @@ import {findGood, findOrder, updateOrders, newMessage, updateMessages, addTaskLo
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
+import moneyIcon from '../static/image/money.png';
+import coinIcon from '../static/image/coin.png';
+import beanIcon from '../static/image/bean.png';
+import couponIcon from '../static/image/coupon.png';
+
 let logger = {}
 let autoLoginQuota = {}
 let mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
@@ -461,8 +466,8 @@ function updateIcon() {
       })
       chrome.browserAction.setIcon({
         path : {
-          "19": "static/image/icon/jjb19x.png",
-          "38": "static/image/icon/jjb38x.png"
+          "19": "static/image/jjb19x.png",
+          "38": "static/image/jjb38x.png"
         }
       });
       chrome.contextMenus.removeAll();
@@ -479,8 +484,8 @@ function updateIcon() {
       })
       chrome.browserAction.setIcon({
         path : {
-          "19": "static/image/icon/offline19x.png",
-          "38": "static/image/icon/offline38x.png"
+          "19": "static/image/offline19x.png",
+          "38": "static/image/offline38x.png"
         }
       });
       chrome.contextMenus.removeAll();
@@ -501,8 +506,8 @@ function updateIcon() {
       });
       chrome.browserAction.setIcon({
         path : {
-          "19": "static/image/icon/partial-offline19x.png",
-          "38": "static/image/icon/partial-offline38x.png"
+          "19": "static/image/partial-offline19x.png",
+          "38": "static/image/partial-offline38x.png"
         }
       });
       chrome.contextMenus.removeAll();
@@ -863,7 +868,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         type: "basic",
         title: msg.title,
         message: msg.content,
-        iconUrl: 'static/image/money.png'
+        iconUrl: moneyIcon
       })
       break;
     case 'checkin_notice':
@@ -880,9 +885,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
           }
           myAudio.play();
         }
-        let icon = 'static/image/bean.png'
+        let icon = beanIcon
         if (msg.batch == 'coin') {
-          icon = 'static/image/coin.png'
+          icon = coinIcon
         }
         sendChromeNotification( new Date().getTime().toString() + '_' + msg.batch, {
           type: "basic",
@@ -953,7 +958,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
           title: msg.title,
           message: coupon.name + coupon.price,
           isClickable: true,
-          iconUrl: 'static/image/coupon.png'
+          iconUrl: couponIcon
         })
       }
       break;

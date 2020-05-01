@@ -23,7 +23,7 @@
               >
                 <div class="weui-cell">
                   <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
-                    <img src="../static/image/pc.svg" style="width: 30px;display: block">
+                    <img src="../../static/image/pc.svg" style="width: 30px;display: block">
                   </div>
                   <div class="weui-cell__bd">
                     <p>PC 网页</p>
@@ -46,7 +46,7 @@
               >
                 <div class="weui-cell">
                   <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
-                    <img src="../static/image/m.png" style="width: 30px;display: block">
+                    <img src="../../static/image/m.png" style="width: 30px;display: block">
                   </div>
                   <div class="weui-cell__bd">
                     <p>移动网页</p>
@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import { stateText } from "../static/variables";
+import { stateText } from "../variables";
 
 export default {
   name: "loginNotice",

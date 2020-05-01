@@ -26,7 +26,7 @@
 
 <script>
 import weui from "weui.js";
-import { getSetting } from "../static/utils";
+import { getSetting } from "../utils";
 export default {
   name: "links",
   data() {
@@ -82,7 +82,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="less" scoped>
   .links {
     display: inline-block;
   }

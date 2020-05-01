@@ -102,7 +102,7 @@ export default {
   }
 };
 </script>
-<style scoped>
+<style lang="less" scoped>
 .report-problem {
   position: absolute;
   display: inline-block;

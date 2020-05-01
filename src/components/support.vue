@@ -25,14 +25,14 @@
           <div class="samedi" v-if="target == 'samedi'">
             <div class="reward switch-paymethod" @click="switchPaymethod('wechat', 'ming')">
               <h4>打赏声优：Samedi</h4>
-              <img src="../static/image/samedi.png" class="qrcode">
+              <img src="../../static/image/samedi.png" class="qrcode">
               <p class="switch-tips">切换打赏 小明（作者）</p>
             </div>
           </div>
           <div class="ming" v-else>
             <div class="reward switch-paymethod" @click="switchPaymethod('wechat', 'samedi')">
               <h4>打赏插件作者：小明</h4>
-              <img src="../static/image/weixin_pay.png" class="qrcode">
+              <img src="../../static/image/weixin_pay.png" class="qrcode">
               <p class="switch-tips">切换打赏 Samedi（声优）</p>
             </div>
           </div>
@@ -65,7 +65,7 @@
           </div>
           <div class="alipay" v-else>
             <div class="switch-paymethod" @click="switchPaymethod('alipay', 'redpack')">
-              <img src="../static/image/alipay_pay.png" height="200px">
+              <img src="../../static/image/alipay_pay.png" height="200px">
               <p class="alipay_action">
                 <svg
                   t="1514045821272"
