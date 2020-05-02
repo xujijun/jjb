@@ -1,6 +1,8 @@
 // 京价保
 import 'weui';
 import weui from 'weui.js';
+import dialogPolyfill from 'dialog-polyfill'
+
 import '../static/style/content.css'
 
 var observeDOM = (function () {
@@ -994,7 +996,7 @@ function handProtection(setting, priceInfo) {
     let price = priceInfo ? (priceInfo.normal_price || priceInfo.plus_price) : ($('.p-price .price').text() ? $('.p-price .price').text().replace(/[^0-9\.-]+/g, "") : null) || ($('#jd-price').text() ? $('#jd-price').text().replace(/[^0-9\.-]+/g, "") : null)
     // 拼接提示
     let dialogMsgDOM = `<dialog id="dialogMsg" class="message">` +
-      `<p class="green-text">恭喜你省下了 ` + price + ` ！</p>` +
+      `<p class="green-text">恭喜你省下了 ¥` + price + ` ！</p>` +
       `</dialog>`
     // 写入提示消息
     $("body").append(dialogMsgDOM);
@@ -1015,7 +1017,7 @@ function handProtection(setting, priceInfo) {
         `<p>它是必须的吗？使用的频率足够高吗？</p>` +
         `<p>它真的可以解决你的需求吗？现有方案完全无法接受吗？</p>` +
         `<p>如果收到不合适，它在试用之后退款方便吗？</p>` +
-        `<p>现在购买它的价格 ` + price + ` 合适吗？</p>` +
+        `<p>现在购买它的价格 ¥` + price + ` 合适吗？</p>` +
         (Number(count) > 1 ? `<p>有必要现在购买 ` + count + `个吗？</p>` : '') +
         `</div>` +
         `<div class="actions">` +
@@ -1029,24 +1031,28 @@ function handProtection(setting, priceInfo) {
       $("body").append(dialogDOM);
       var dialog = document.getElementById('dialog');
       var dialogMsg = document.getElementById('dialogMsg');
-
+      dialogPolyfill.registerDialog(dialog);
+      dialogPolyfill.registerDialog(dialogMsg);
       dialog.showModal();
+
       document.querySelector('#dialog .close').onclick = function () {
         dialog.close();
       };
 
-      document.querySelector('#dialog .giveUp').onclick = function () {
-        dialog.close();
-        setTimeout(() => {
-          dialogMsg.showModal();
-        }, 50);
-        setTimeout(() => {
-          dialogMsg.close();
-          if (confirm("京价保剁手保护模式准备帮你关闭这个标签页，确认要关闭吗?")) {
-            window.close();
-          }
-        }, 1000);
-      };
+      dialog.addEventListener('close', function onClose() {
+        console.log('dialog close', dialog.returnValue)
+        if (dialog.returnValue == 'no') {
+          setTimeout(() => {
+            dialogMsg.showModal();
+          }, 50);
+          setTimeout(() => {
+            dialogMsg.close();
+            if (confirm("京价保剁手保护模式准备帮你关闭这个标签页，确认要关闭吗?")) {
+              window.close();
+            }
+          }, 1000);
+        }
+      });
 
       return false;
     })

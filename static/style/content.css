@@ -23,8 +23,11 @@
     margin-bottom: 5px;
 }
 
+
 dialog {
     position: fixed;
+    top: 50%;
+    transform: translate(0, -50%);
     width: 50%;
     max-width: 450px;
     min-width: 400px;

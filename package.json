@@ -13,7 +13,7 @@
     "@sunoj/touchemulator": "^0.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "dexie": "^2.0.4",
-    "dialog-polyfill": "^0.4.10",
+    "dialog-polyfill": "^0.5.1",
     "gulp": "^4.0.2",
     "gulp-clean-css": "^3.9.0",
     "gulp-concat": "^2.6.1",
