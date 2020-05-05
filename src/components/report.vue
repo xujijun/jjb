@@ -54,7 +54,7 @@
             <span class="weui-icon-checked"></span>
           </div>
         </label>
-        <button class="report-btn" @click="sendReport" v-show="code">发送反馈</button>
+        <button class="report-btn" @click="sendReport" v-show="code">{{ loading ? `发送中..`: `发送反馈`}}</button>
       </div>
     </div>
   </div>
@@ -69,7 +69,8 @@ export default {
     return {
       code: null,
       show: false,
-      leftList: false
+      leftList: false,
+      loading: false
     };
   },
   methods: {
@@ -83,6 +84,7 @@ export default {
       this.show = false;
     },
     sendReport: async function() {
+      this.loading = true
       try {
         let response = await fetch(
           `https://jjb.zaoshu.so/discount/${this.discount.id}`,
@@ -103,6 +105,8 @@ export default {
       } catch (error) {
         console.error(error);
       }
+      this.loading = false
+      this.show = false
       weui.toast("感谢反馈", 500);
     }
   }

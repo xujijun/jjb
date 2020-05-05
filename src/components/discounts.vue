@@ -1,5 +1,5 @@
 <template>
-  <div id="discounts" class="weui-cells contents-box discounts">
+  <div id="discounts" class="contents-box discounts">
     <div class="top-bar">
       <div class="tabs">
         <ul class="tab-list">
@@ -39,17 +39,17 @@
         >关注</a>
       </div>
       <div class="search" v-else>
-        <input v-model="keyword" placeholder="请输入关键词" v-on:keyup.enter="search">
+        <input v-model="keyword" placeholder="输入关键词搜索" v-on:keyup.enter="search">
         <i v-if="showClear" class="circle-close" @click="clear">&times;</i>
       </div>
     </div>
-    <div class="discount-list" v-if="discountList">
+    <div class="weui-cells discount-list" v-if="discountList">
       <events :events="events" v-if="discountTab == 'featured' && events && events.length > 0"></events>
       <div class="discounts-box" v-for="discount in discountList" :key="discount.id">
         <div :class="discount.pinned ? 'discount pinned' : 'discount'">
           <div class="title" @mouseover="discount.focus = true" @mouseout="discount.focus = false">
             <span class="merchant" v-if="discount.merchant">
-              <img :src="discount.merchant.icon" :alt="discount.merchant.name">
+              <img v-lazy="discount.merchant.icon" :alt="discount.merchant.name">
             </span>
             <a :href="`${discount.goodLink}`" target="_blank">{{discount.title}}</a>
             <span class="discount_price">{{discount.price}}</span>
@@ -59,8 +59,7 @@
             <a :href="`${discount.goodLink}`" target="_blank">
               <img
                 v-if="discount.photo"
-                :src="`${discount.photo}`"
-                @error.once="backup_picture($event)"
+                v-lazy="`${discount.photo}`"
                 width="75"
                 class="discount-photo backup_picture"
                 :alt="discount.title"
@@ -90,6 +89,10 @@
           </div>
         </div>
       </div>
+      <infinite-loading v-if="discountList.length > 20" spinner="waveDots" @infinite="infiniteHandler">
+        <div slot="no-more" class="no-more">😭暂时没有近期优惠了</div>
+         <div slot="no-results" class="no-results">😭没有更多优惠信息了</div>
+      </infinite-loading>
       <div v-if="discountTab == 'concerned' && followedTagIds.length < 1" class="no_message">
         <h4>暂时还没有关注任何标签</h4>
         <p class="tips">点击优惠信息中的标签可以筛选并关注标签哦</p>
@@ -110,6 +113,7 @@
 
 <script>
 import { DateTime } from "luxon";
+import InfiniteLoading from 'vue-infinite-loading';
 import { getSetting, readableTime } from "../utils";
 import loading from "./loading.vue";
 import report from "./report.vue";
@@ -117,13 +121,14 @@ import events from "./events.vue";
 
 export default {
   name: "discounts",
-  components: { loading, report, events },
+  components: { loading, report, events, InfiniteLoading },
   data() {
     return {
       followedTagIds: getSetting("followedTagIds", []),
       discountTab: "featured",
       discountList: null,
       selectTag: null,
+      page: 1,
       keyword: null
     };
   },
@@ -143,20 +148,52 @@ export default {
     },
     events: function() {
       return this.discountList ? this.discountList.filter(discount => discount.event) : [];
+    },
+    condition: function() {
+      if (this.keyword) {
+        return {
+          keyword: this.keyword
+        }
+      }
+      switch (this.discountTab) {
+        case "featured":
+          return {
+            all: false
+          };
+          break;
+        case "concerned":
+          if (this.followedTagIds.length > 0) {
+            return {
+              tagIds: this.followedTagIds.join(",")
+            };
+          } else {
+            return {};
+          }
+          break;
+        case "hot":
+          return {
+            hot: true
+          };
+          break;
+        default:
+          break;
+      }
+      return {}
     }
   },
   methods: {
-    backup_picture: function(e) {
-      e.currentTarget.src = "https://jjbcdn.zaoshu.so/web/img_error.png";
+    loadDiscountFormApi: async function(params) {
+      let queryParams = new URLSearchParams(params);
+      let response = await fetch(
+        `https://jjb.zaoshu.so/discount?${queryParams.toString()}`
+      );
+      return await response.json();
     },
     getDiscounts: async function(condition) {
       this.discountList = null;
       this.selectTag = null;
-      let queryParams = new URLSearchParams(condition);
-      let response = await fetch(
-        `https://jjb.zaoshu.so/discount?${queryParams.toString()}`
-      );
-      let discounts = await response.json();
+      this.page = 1
+      const discounts = await this.loadDiscountFormApi(condition)
       this.discountList = discounts.map(function(discount) {
         discount.displayTime = readableTime(
           DateTime.fromISO(discount.createdAt)
@@ -167,10 +204,27 @@ export default {
       localStorage.setItem("readDiscountAt", new Date());
       this.$forceUpdate();
     },
+    infiniteHandler: async function ($state) {
+      if (this.selectTag) return $state.complete();
+      const discounts = await this.loadDiscountFormApi(Object.assign({}, this.condition, {
+        page: this.page,
+      }))
+      if (discounts.length) {
+        this.page += 1;
+        this.discountList.push(...discounts.map(function(discount) {
+          discount.displayTime = readableTime(
+            DateTime.fromISO(discount.createdAt)
+          );
+          discount.focus = false
+          return discount;
+        }));
+        $state.loaded();
+      } else {
+        $state.complete();
+      }
+    },
     search: async function() {
-      this.getDiscounts({
-        keyword: this.keyword
-      });
+      this.getDiscounts(this.condition);
     },
     clear: async function() {
       this.keyword = null;
@@ -214,40 +268,20 @@ export default {
     switchTab: async function(type) {
       this.discountTab = type;
       this.selectTag = null;
-      switch (type) {
-        case "featured":
-          this.getDiscounts({
-            all: false,
-            time: Date.now()
-          });
-          break;
-        case "concerned":
-          if (this.followedTagIds.length > 0) {
-            this.getDiscounts({
-              tagIds: this.followedTagIds.join(",")
-            });
-          } else {
-            this.discountList = [];
-          }
-          break;
-        case "hot":
-          this.getDiscounts({
-            hot: true
-          });
-          break;
-        default:
-          break;
+      if (type == "concerned" && this.followedTagIds.length < 1) {
+        this.discountList = []
+      } else {
+        this.getDiscounts(this.condition);
       }
     }
   }
 };
 </script>
 
-<style lang="less" scoped>
+<style scoped>
 .tabs {
   height: 40px;
-  width: 210px;
-  background: #fff;
+  width: 200px;
   float: left;
 }
 
@@ -273,7 +307,6 @@ export default {
   padding: 12px 0;
   font-size: 16px;
   line-height: 22px;
-  color: #1a1a1a;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
@@ -304,7 +337,6 @@ export default {
 }
 .tag {
   font-size: 12px;
-  background: #eee;
   color: #696969;
   cursor: pointer;
   padding: 0.5em;
@@ -312,18 +344,15 @@ export default {
 }
 
 .top-bar {
-  position: fixed;
-  width: 430px;
   height: 47px;
-  background: #fff;
-  border-bottom: 1px solid #f0f2f7;
+  border-bottom: 1px solid #eeeeee3d;
   z-index: 10;
+  display: flex;
+  justify-content: space-between;
 }
 
 .select-tag,
 .search {
-  width: 220px;
-  float: right;
   line-height: 50px;
   font-size: 14px;
   text-align: right;
@@ -332,10 +361,8 @@ export default {
 
 .search input {
   -webkit-appearance: none;
-  background-color: #fff;
-  background-image: none;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #0000003d;
   box-sizing: border-box;
   color: #606266;
   display: inline-block;
@@ -345,9 +372,9 @@ export default {
   outline: none;
   padding: 0 15px;
   transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-  width: 70%;
   margin-top: 12px;
-  margin-right: 16px;
+  margin-right: 6px;
+  background: #eeeeee42;
 }
 
 .search input:focus {
@@ -377,7 +404,6 @@ export default {
 
 .select-tag span.tag-name {
   font-size: 14px;
-  background: #eee;
   padding: 6px 8px;
   vertical-align: middle;
   color: #737373;
@@ -392,13 +418,9 @@ export default {
   padding-right: 16px;
 }
 .discount-list {
-  margin-top: 50px;
   overflow-y: auto;
-  height: 460px;
-  overflow-x: hidden;
-}
-.loading {
-  margin-top: 45px;
+  height: 465px;
+  margin-top: 0;
 }
 
 .discount-list li {
@@ -407,11 +429,10 @@ export default {
 
 .discount-list h5 {
   padding: 0.2em 1em;
-  background: #f3f3f3;
 }
 
 .discount {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eeeeee3d;
   padding: 12px 8px;
   position: relative;
 }
@@ -489,5 +510,15 @@ export default {
 .discount a.go-buy:hover {
   color: #fff;
   background: #149813;
+}
+
+.weui-cells:after{
+  border-bottom: none
+}
+
+.no-more, .no-results{
+    color: #666;
+    padding: 3px;
+    font-size: 14px;
 }
 </style>

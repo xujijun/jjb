@@ -11,6 +11,13 @@ import { notices } from './variables'
 import { getLoginState } from './account'
 
 import App from './components/App.vue';
+import VueLazyload from 'vue-lazyload'
+
+Vue.use(VueLazyload, {
+  preLoad: 1.3,
+  error: 'https://jjbcdn.zaoshu.so/web/img_error.png',
+  attempt: 1
+})
 new Vue({
   el: '#app',
   template: '<App/>',
