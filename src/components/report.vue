@@ -1,58 +1,61 @@
 <template>
-  <div class="report-problem" :ref="`report-${discount.id}`" v-show="discount.focus">
-    <div class="report-icon" @click="showList">
-      <span>i</span>
-    </div>
-    <div :class="`weui-cells weui-cells_radio ${leftList ? 'turn-left': ''}`" v-if="show">
-      <label class="weui-cell weui-check__label" :for="`report-${discount.id}_expired`">
-        <div class="weui-cell__bd">
-          <p>优惠失效</p>
-        </div>
-        <div class="weui-cell__ft">
-          <input
-            type="radio"
-            v-model="code"
-            value="expired"
-            class="weui-check"
-            :name="`report-${discount.id}`"
-            :id="`report-${discount.id}_expired`"
-          >
-          <span class="weui-icon-checked"></span>
-        </div>
-      </label>
-      <label class="weui-cell weui-check__label" :for="`report-${discount.id}_soldout`">
-        <div class="weui-cell__bd">
-          <p>告罄缺货</p>
-        </div>
-        <div class="weui-cell__ft">
-          <input
-            type="radio"
-            v-model="code"
-            value="soldout"
-            :name="`report-${discount.id}`"
-            class="weui-check"
-            :id="`report-${discount.id}_soldout`"
-          >
-          <span class="weui-icon-checked"></span>
-        </div>
-      </label>
-      <label class="weui-cell weui-check__label" :for="`report-${discount.id}_wronglink`">
-        <div class="weui-cell__bd">
-          <p>链接错误</p>
-        </div>
-        <div class="weui-cell__ft">
-          <input
-            type="radio"
-            v-model="code"
-            :name="`report-${discount.id}`"
-            value="wronglink"
-            class="weui-check"
-            :id="`report-${discount.id}_wronglink`"
-          >
-          <span class="weui-icon-checked"></span>
-        </div>
-      </label>
-      <button class="report-btn" @click="sendReport" v-show="code">发送反馈</button>
+  <div class="reprot">
+    <div v-if="show" class="report-mask" @click="hide"></div>
+    <div class="report-problem" :ref="`report-${discount.id}`">
+      <div class="report-icon" @click="showList">
+        <span>i</span>
+      </div>
+      <div :class="`weui-cells weui-cells_radio ${leftList ? 'turn-left': ''}`" v-if="show">
+        <label class="weui-cell weui-check__label" :for="`report-${discount.id}_expired`">
+          <div class="weui-cell__bd">
+            <p>优惠失效</p>
+          </div>
+          <div class="weui-cell__ft">
+            <input
+              type="radio"
+              v-model="code"
+              value="expired"
+              class="weui-check"
+              :name="`report-${discount.id}`"
+              :id="`report-${discount.id}_expired`"
+            >
+            <span class="weui-icon-checked"></span>
+          </div>
+        </label>
+        <label class="weui-cell weui-check__label" :for="`report-${discount.id}_soldout`">
+          <div class="weui-cell__bd">
+            <p>告罄缺货</p>
+          </div>
+          <div class="weui-cell__ft">
+            <input
+              type="radio"
+              v-model="code"
+              value="soldout"
+              :name="`report-${discount.id}`"
+              class="weui-check"
+              :id="`report-${discount.id}_soldout`"
+            >
+            <span class="weui-icon-checked"></span>
+          </div>
+        </label>
+        <label class="weui-cell weui-check__label" :for="`report-${discount.id}_wronglink`">
+          <div class="weui-cell__bd">
+            <p>链接错误</p>
+          </div>
+          <div class="weui-cell__ft">
+            <input
+              type="radio"
+              v-model="code"
+              :name="`report-${discount.id}`"
+              value="wronglink"
+              class="weui-check"
+              :id="`report-${discount.id}_wronglink`"
+            >
+            <span class="weui-icon-checked"></span>
+          </div>
+        </label>
+        <button class="report-btn" @click="sendReport" v-show="code">发送反馈</button>
+      </div>
     </div>
   </div>
 </template>
@@ -76,26 +79,29 @@ export default {
         this.leftList = true;
       }
     },
+    hide: async function() {
+      this.show = false;
+    },
     sendReport: async function() {
       try {
         let response = await fetch(
-        `https://jjb.zaoshu.so/discount/${this.discount.id}`,
-        {
-          body: JSON.stringify({
-            code: this.code
-          }),
-          cache: 'no-cache',
-          headers: {
-            "content-type": "application/json"
-          },
-          method: "POST",
-          mode: "cors",
-          redirect: "follow"
-        }
-      );
-      let result = await response.json();
+          `https://jjb.zaoshu.so/discount/${this.discount.id}`,
+          {
+            body: JSON.stringify({
+              code: this.code
+            }),
+            cache: "no-cache",
+            headers: {
+              "content-type": "application/json"
+            },
+            method: "POST",
+            mode: "cors",
+            redirect: "follow"
+          }
+        );
+        let result = await response.json();
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
       weui.toast("感谢反馈", 500);
     }
@@ -103,9 +109,35 @@ export default {
 };
 </script>
 <style lang="less" scoped>
-.report-problem {
-  position: absolute;
+.reprot {
+  display: inline;
+}
+
+.report-icon {
+  display: none;
+}
+
+.discounts-box:hover .report-icon {
   display: inline-block;
+}
+
+.discounts-box:hover .report-problem {
+  display: inline;
+}
+
+.report-mask {
+  width: 100%;
+  height: 100%;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.report-problem {
+  z-index: 5;
+  position: absolute;
+  display: none;
   margin-left: 5px;
 }
 

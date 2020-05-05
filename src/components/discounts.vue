@@ -395,6 +395,7 @@ export default {
   margin-top: 50px;
   overflow-y: auto;
   height: 460px;
+  overflow-x: hidden;
 }
 .loading {
   margin-top: 45px;
