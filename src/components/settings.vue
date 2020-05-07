@@ -2,11 +2,9 @@
   <div class="settings">
     <div class="weui-tab">
       <div :class="`${scienceOnline} weui-navbar`">
-        <div class="weui-navbar__item weui-bar__item_on" data-type="frequency_settings">
-          任务设置
-        </div>
-        <div class="weui-navbar__item" data-type="notice_settings">通知设置</div>
-        <div class="weui-navbar__item" data-type="other_settings">高级设置</div>
+        <div :class="`weui-navbar__item ${ activeTab == 'frequency_settings' ? 'weui-bar__item_on' : ''}`" @click="switchTab('frequency_settings')">任务设置</div>
+        <div :class="`weui-navbar__item ${ activeTab == 'notice_settings' ? 'weui-bar__item_on' : ''}`" @click="switchTab('notice_settings')">通知设置</div>
+        <div :class="`weui-navbar__item ${ activeTab == 'other_settings' ? 'weui-bar__item_on' : ''}`" @click="switchTab('other_settings')">高级设置</div>
       </div>
       <div class="weui-tab__panel">
         <form
@@ -16,7 +14,7 @@
           data-destroy="false"
           method="POST"
         >
-          <div class="frequency_settings settings_box">
+          <div class="frequency_settings settings_box" v-show="activeTab == 'frequency_settings'">
             <div class="tasks">
               <div class="task-type">
                 <div role="radiogroup" class="el-radio-group">
@@ -63,9 +61,7 @@
                       class="el-radio-button__orig-radio"
                       value="new"
                     >
-                    <div class="el-radio-button__inner">
-                      新任务
-                    </div>
+                    <div class="el-radio-button__inner">新任务</div>
                   </label>
                 </div>
               </div>
@@ -75,7 +71,8 @@
                     class="task-item"
                     v-for="task in tasks"
                     :key="task.id"
-                    @mouseover="hover = task.id" @mouseleave="hover = false"
+                    @mouseover="hover = task.id"
+                    @mouseleave="hover = false"
                   >
                     <div class="weui-cell weui-cell_select weui-cell_select-after">
                       <div class="weui-cell__bd job-m">
@@ -87,7 +84,11 @@
                           >{{task.title}}</a>
                           <a v-else :href="task.baseUrl || task.url" target="_blank">{{task.title}}</a>
                         </span>
-                        <span v-show="task.suspended && !task.checked" v-tippy title="因账号未登录任务已暂停运行">
+                        <span
+                          v-show="task.suspended && !task.checked"
+                          v-tippy
+                          title="因账号未登录任务已暂停运行"
+                        >
                           <i class="job-state weui-icon-waiting-circle" @click="showLogin()"></i>
                         </span>
                         <i
@@ -105,33 +106,68 @@
                         ></i>
                       </div>
                       <div class="weui-cell__bd">
-                        <select class="weui-select" @auto-save="getTaskList" v-auto-save="{ current: `${task.frequency}` }" :name="`job${task.id}_frequency`">
+                        <select
+                          class="weui-select"
+                          @auto-save="getTaskList"
+                          v-auto-save="{ current: `${task.frequency}` }"
+                          :name="`job${task.id}_frequency`"
+                        >
                           <option
                             v-for="option in task.frequencyOption"
                             :value="option"
                             :key="option"
                           >{{ frequencyOptionText[option] }}</option>
                         </select>
-                        <span class="enabled-task" v-if="task.new" @click="enabledTask(task)" v-tippy title="点击以启用新的任务">启用</span>
-                        <i v-else v-show="hover == task.id" class="setting-task weui-icon-info-circle" @click="currentSettingTask = task.id" v-tippy title="查看任务设置"></i>
+                        <span
+                          class="enabled-task"
+                          v-if="task.new"
+                          @click="enabledTask(task)"
+                          v-tippy
+                          title="点击以启用新的任务"
+                        >启用</span>
+                        <i
+                          v-else
+                          v-show="hover == task.id"
+                          class="setting-task weui-icon-info-circle"
+                          @click="currentSettingTask = task.id"
+                          v-tippy
+                          title="查看任务设置"
+                        ></i>
                       </div>
                     </div>
-                    <task-setting :task="task" :current-task="currentSettingTask" @close="currentSettingTask = null"></task-setting>
+                    <task-setting
+                      :task="task"
+                      :current-task="currentSettingTask"
+                      @close="currentSettingTask = null"
+                    ></task-setting>
                   </div>
                 </div>
               </div>
             </div>
             <div class="tips bottom-tips">
-              <p class="page__desc">
-                <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
+              <p class="page__desc" v-if="notice">
+                <a id="notice" @dblclick="changeTips">{{notice.text}}</a>
                 <span
+                  v-if="notice.type == 'reward' && notice.button"
+                  class="weui-btn weui-btn_mini weui-btn_primary switch-paymethod"
+                  @click="switchPaymethod('wechat', notice.target)"
+                >{{notice.button}}</span>
+                <a
+                  v-if="notice.type == 'link' && notice.button && notice.mode != 'mobliepage'"
                   class="weui-btn weui-btn_mini weui-btn_primary"
-                  @click="switchPaymethod('wechat', 'ming')"
-                >打赏</span>
+                  target="_blank"
+                  :href="notice.url"
+                >{{notice.button}}</a>
+                <span
+                  v-if="notice.type == 'link' && notice.button && notice.mode == 'mobliepage'"
+                  class="weui-btn weui-btn_mini weui-btn_primary"
+                  @click="openMobilePage(notice.url)"
+                  :data-url="notice.url"
+                >{{notice.button}}</span>
               </p>
             </div>
           </div>
-          <div class="notice_settings settings_box" style="display: none">
+          <div class="notice_settings settings_box" v-show="activeTab == 'notice_settings'">
             <div class="weui-cells weui-cells_form">
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">不再提示签到通知</div>
@@ -202,8 +238,8 @@
                     <a
                       v-if="link.mobile"
                       class="openMobilePage"
+                      @click="openMobilePage(link.url)"
                       :style="link.style"
-                      :data-url="link.url"
                     >{{link.title}}</a>
                     <a
                       v-else
@@ -234,7 +270,7 @@
               </p>
             </div>
           </div>
-          <div class="other_settings settings_box" style="display: none">
+          <div class="other_settings settings_box" v-show="activeTab == 'other_settings'">
             <div class="weui-cells weui-cells_form">
               <div class="weui-cell weui-cell_select weui-cell_select-after">
                 <div class="weui-cell__bd">
@@ -292,7 +328,6 @@
                   <input class="weui-switch" type="checkbox" v-auto-save name="hand_protection">
                 </div>
               </div>
-
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">
                   <span
@@ -415,21 +450,27 @@
         <links></links>
       </div>
     </div>
-    <support v-if="showSupport" @close="showSupport = false" :initialPaymethod="paymethod" :initialTarget="target"></support>
+    <support
+      v-if="showSupport"
+      @close="showSupport = false"
+      :initialPaymethod="paymethod"
+      :initialTarget="target"
+    ></support>
     <!-- 试听音效 -->
     <div id="listenAudio" v-if="listenAudio">
       <div class="js_dialog" style="opacity: 1;">
         <div class="weui-mask"></div>
         <div class="weui-dialog">
           <div class="weui-dialog__hd">
-            <strong class="weui-dialog__title">
-              试听语言提示
-            </strong>
+            <strong class="weui-dialog__title">试听语言提示</strong>
           </div>
           <div class="weui-dialog__bd">
             <div class="weui-cells">
               <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" @click="listenVoice('priceProtectionNotice', 'jiabao')">
+                <div
+                  class="weui-cell__bd message listenVoice"
+                  @click="listenVoice('priceProtectionNotice', 'jiabao')"
+                >
                   <span>
                     <i class="notice jiabao"></i>发现价格保护机会
                   </span>
@@ -437,25 +478,39 @@
                 <div class="weui-cell__ft"></div>
               </div>
               <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" @click="listenVoice('checkin_notice', 'bean')">
-                  <span><i class="checkin_notice bean"></i>签到成功，京豆入账</span>
+                <div
+                  class="weui-cell__bd message listenVoice"
+                  @click="listenVoice('checkin_notice', 'bean')"
+                >
+                  <span>
+                    <i class="checkin_notice bean"></i>签到成功，京豆入账
+                  </span>
                 </div>
                 <div class="weui-cell__ft"></div>
               </div>
               <div class="weui-cell weui-cell_access">
-                <div class="weui-cell__bd message listenVoice" @click="listenVoice('checkin_notice', 'coin')">
-                  <span><i class="checkin_notice coin"></i>金融签到，钢镚掉落</span>
+                <div
+                  class="weui-cell__bd message listenVoice"
+                  @click="listenVoice('checkin_notice', 'coin')"
+                >
+                  <span>
+                    <i class="checkin_notice coin"></i>金融签到，钢镚掉落
+                  </span>
                 </div>
                 <div class="weui-cell__ft"></div>
               </div>
             </div>
           </div>
           <div class="weui-dialog__ft">
-            <a class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod" @click="() => {
+            <a
+              class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod"
+              @click="() => {
                 listenAudio = false;
                 switchPaymethod('wechat', 'samedi')
-              }">
-              <i class="weui-icon-success"></i> 打赏声优</a>
+              }"
+            >
+              <i class="weui-icon-success"></i>打赏声优
+            </a>
             <a class="weui-dialog__btn weui-dialog__btn_default" @click="listenAudio = false">下次吧</a>
           </div>
         </div>
@@ -465,12 +520,12 @@
 </template>
 
 <script>
-import { frequencyOptionText, getTasks  } from "../tasks";
-import { recommendServices } from "../variables";
+import { frequencyOptionText, getTasks } from "../tasks";
+import { recommendServices, notices } from "../variables";
 import { getSetting, saveSetting } from "../utils";
 import taskSetting from "./task-setting.vue";
-import support from './support.vue';
-import links from './links.vue';
+import support from "./support.vue";
+import links from "./links.vue";
 
 import weui from "weui.js";
 export default {
@@ -485,17 +540,25 @@ export default {
       currentVersion: process.env.VERSION,
       scienceOnline: false,
       listenAudio: false,
-      taskType: 'enabled',
-      paymethod: 'weixin',
-      target: 'ming',
+      activeTab: "frequency_settings",
+      taskType: "enabled",
+      paymethod: "weixin",
+      target: "ming",
       showSupport: false,
       currentSettingTask: null,
       taskList: [],
-      hover: null
+      hover: null,
+      notice: {
+        text: "京东页面经常更新，唯有你的支持才能让京价保保持更新。",
+        type: "reward",
+        target: "ming",
+        button: "打赏"
+      }
     };
   },
   mounted: async function() {
     this.getTaskList();
+    this.changeTips()
     // 测试是否科学上网
     setTimeout(() => {
       this.tryGoogle();
@@ -507,27 +570,49 @@ export default {
     }
   },
   computed: {
+    openMobilePage: function(url) {
+      chrome.runtime.sendMessage(
+        {
+          action: "openUrlAsMoblie",
+          url: url
+        },
+        function(response) {
+          console.log("Response: ", response);
+        }
+      );
+    },
     newTasks: function() {
       return this.taskList.filter(task => task.new);
     },
     tasks: function() {
       switch (this.taskType) {
-        case 'enabled':
-          return this.taskList.filter(task => (task.frequency != "never" && !task.new));
+        case "enabled":
+          return this.taskList.filter(
+            task => task.frequency != "never" && !task.new
+          );
           break;
-        case 'disabled':
+        case "disabled":
           return this.taskList.filter(task => task.frequency == "never");
           break;
-        case 'new':
+        case "new":
           return this.taskList.filter(task => task.new);
           break;
         default:
-          return this.taskList
+          return this.taskList;
           break;
       }
     }
   },
   methods: {
+    // 换 Tips
+    changeTips: function() {
+      let announcements = getSetting("announcements", []).concat(notices);
+      let tip = announcements[Math.floor(Math.random() * announcements.length)];
+      this.notice = tip;
+    },
+    switchTab: async function(tab) {
+      this.activeTab = tab
+    },
     tryGoogle: async function() {
       try {
         let response = await fetch(
@@ -543,24 +628,27 @@ export default {
       }
     },
     // 试听通知
-    listenVoice: function (type, batch) {
-      chrome.runtime.sendMessage({
-        action: type,
-        batch: batch,
-        test: true,
-        title: "京价保通知试听",
-        content: "并没有钱，这只是假象，你不要太当真"
-      }, function (response) {
-        console.log("Response: ", response);
-      });
+    listenVoice: function(type, batch) {
+      chrome.runtime.sendMessage(
+        {
+          action: type,
+          batch: batch,
+          test: true,
+          title: "京价保通知试听",
+          content: "并没有钱，这只是假象，你不要太当真"
+        },
+        function(response) {
+          console.log("Response: ", response);
+        }
+      );
     },
     showLogin: function() {
       this.$emit("show-login");
     },
     switchPaymethod: function(paymethod, target) {
-      this.paymethod = paymethod
-      this.target = target
-      this.showSupport = true
+      this.paymethod = paymethod;
+      this.target = target;
+      this.showSupport = true;
     },
     updateDisableOrderLink: function() {
       this.$emit("update-order-link");
@@ -589,44 +677,44 @@ export default {
         }
       );
     },
-    enabledTask: function (task) {
+    enabledTask: function(task) {
       saveSetting(`task-${task.id}:settings`, {
         new: false
-      })
+      });
       weui.toast("任务启用成功", 1000);
       setTimeout(() => {
         this.getTaskList();
       }, 250);
       setTimeout(() => {
-        this.taskType = "enabled"
+        this.taskType = "enabled";
       }, 500);
     }
   }
 };
 </script>
-<style lang="less" scoped>
-.settings_box{
+<style  scoped>
+.settings_box {
   overflow: hidden;
   height: 510px;
 }
 
-.settings .page__desc{
-    font-size: 12px;
-    height: 40px;
-    line-height: 18px;
-    color: #666;
+.settings .page__desc {
+  font-size: 12px;
+  height: 40px;
+  line-height: 18px;
+  color: #666;
 }
 
 .frequency_settings .weui-select {
   width: 9em;
 }
-.settings .task-list{
+.settings .task-list {
   margin-top: 5px;
   height: 425px;
   overflow-y: auto;
 }
 
-.task-item{
+.task-item {
   position: relative;
 }
 
@@ -641,13 +729,13 @@ export default {
   color: #e5e5e5;
   -webkit-transform-origin: 0 0;
   transform-origin: 0 0;
-  -webkit-transform: scaleY(.5);
-  transform: scaleY(.5);
+  -webkit-transform: scaleY(0.5);
+  transform: scaleY(0.5);
   left: 15px;
   z-index: 2;
 }
 
-.settings .task-list .weui-cells{
+.settings .task-list .weui-cells {
   margin-top: 0;
 }
 
@@ -655,13 +743,13 @@ export default {
   height: 456px;
 }
 
-.enabled-task{
-    color: #690;
-    margin-left: 6px;
-    cursor: pointer;
+.enabled-task {
+  color: #690;
+  margin-left: 6px;
+  cursor: pointer;
 }
 
-.setting-task{
+.setting-task {
   font-size: 19px;
   color: #6cc7f1;
   margin-left: 5px;
@@ -669,7 +757,7 @@ export default {
   cursor: pointer;
 }
 
-.other_settings .other_actions{
+.other_settings .other_actions {
   height: 140px;
 }
 
@@ -679,7 +767,6 @@ export default {
 
 .task-type {
   margin-top: 6px;
-  text-align: center
+  text-align: center;
 }
-
 </style>

@@ -37,7 +37,6 @@
       "all_frames": true
     }
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
   "icons": {
     "16": "static/image/16.png",
     "48": "static/image/48.png",

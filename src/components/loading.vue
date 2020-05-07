@@ -30,7 +30,7 @@ export default {
   }
 };
 </script>
-<style lang="less" scoped>
+<style  scoped>
 .timeline-item {
   background: #fff;
   border-bottom: 1px solid #f2f2f2;

@@ -169,7 +169,7 @@ export default {
   }
 };
 </script>
-<style lang="less" scoped>
+<style  scoped>
 
 .rate-setting .weui-input{
   border: 0.5px solid #eee;

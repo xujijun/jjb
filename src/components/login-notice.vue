@@ -39,10 +39,10 @@
                 </div>
               </a>
               <a
-                data-url="https://home.m.jd.com/myJd/newhome.action"
                 v-tippy
                 :class="`${state['m'].state} login-type_m openMobilePage`"
                 :title="state['m'].description"
+                @click="openMobilePage('https://home.m.jd.com/myJd/newhome.action')"
               >
                 <div class="weui-cell">
                   <div class="weui-cell__hd" style="position: relative;margin-right: 10px;">
@@ -110,6 +110,17 @@ export default {
     };
   },
   methods: {
+    openMobilePage: function(url) {
+      chrome.runtime.sendMessage(
+        {
+          action: "openUrlAsMoblie",
+          url: url
+        },
+        function(response) {
+          console.log("Response: ", response);
+        }
+      );
+    },
     done: async function(action) {
       if (action == 'openLogin') {
         chrome.runtime.sendMessage({

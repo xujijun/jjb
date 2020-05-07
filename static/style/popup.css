@@ -1109,10 +1109,6 @@ button.Button.messages-tab.Button--plain:focus {
     padding: 0 8px;
 }
 
-.tips .weui-btn{
-    display: none;
-}
-
 .tips a.weui-btn_primary.weui-btn:hover {
     color: #ffffffd6;
 }

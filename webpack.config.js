@@ -32,8 +32,8 @@ module.exports = {
   },
   resolve: {
     alias: {
-      vue: 'vue/dist/vue.esm.js'
-    }
+      'vue$': 'vue/dist/vue.runtime.js'
+    },
   },
   module: {
     rules: [
@@ -67,7 +67,7 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        use: ['style-loader', 'css-loader'],
+        use: ['vue-style-loader', 'style-loader', 'css-loader'],
       },
       {
         test: /\.vue$/,

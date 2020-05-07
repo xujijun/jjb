@@ -1,5 +1,6 @@
 import * as _ from "lodash"
 $ = window.$ = window.jQuery = require('jquery')
+
 import {DateTime} from 'luxon'
 import tippy from 'tippy.js'
 import 'weui';
@@ -7,7 +8,6 @@ import weui from 'weui.js'
 import Vue from 'vue'
 
 import { getSetting } from './utils'
-import { notices } from './variables'
 import { getLoginState } from './account'
 
 import App from './components/App.vue';
@@ -20,57 +20,8 @@ Vue.use(VueLazyload, {
 })
 new Vue({
   el: '#app',
-  template: '<App/>',
-  components: { App }
+  render: h => h(App)
 })
-
-$.each(['show', 'hide'], function (i, ev) {
-  var el = $.fn[ev];
-  $.fn[ev] = function () {
-    this.trigger(ev);
-    return el.apply(this, arguments);
-  };
-});
-
-// 换 Tips
-function changeTips() {
-  let announcements = (localStorage.getItem('announcements') ? JSON.parse(localStorage.getItem('announcements')) : []).concat(notices)
-  let tip = announcements[Math.floor(Math.random() * announcements.length)]
-  $("#notice").text(tip.text)
-  if (tip.type == "reward" && tip.button) {
-    $("#notice").removeAttr("href")
-    $("#notice").removeAttr("target")
-    $(".tips .weui-btn").css("display", "inline-block")
-    $(".tips .weui-btn").addClass("switch-paymethod")
-    $(".tips .weui-btn").text(tip.button)
-    $(".tips .weui-btn").data('target', tip.target)
-  }
-  if (tip.type == "link") {
-    if (tip.button) {
-      $(".tips .weui-btn").removeClass("switch-paymethod")
-      $(".tips .weui-btn").css("display", "inline-block")
-      $(".tips .weui-btn").text(tip.button)
-      $(".tips .weui-btn").attr("href", tip.url)
-      $(".tips .weui-btn").attr("target", "_blank")
-    } else {
-      $(".tips .weui-btn").hide()
-    }
-    $("#notice").attr("href", tip.url)
-    $("#notice").attr("target", "_blank")
-  }
-  if (tip.type == "link" && tip.mode == "mobliepage") {
-    if (tip.button) {
-      $(".tips .weui-btn").removeClass("switch-paymethod")
-      $(".tips .weui-btn").addClass("openMobilePage")
-      $(".tips .weui-btn").attr("data-url", tip.url)
-      $(".tips .weui-btn").removeAttr("href")
-      $(".tips .weui-btn").removeAttr("target")
-    }
-    $("#notice").removeAttr("href")
-    $("#notice").attr("data-url", tip.url)
-    $("#notice").addClass("openMobilePage")
-  }
-}
 
 function showJEvent(rateLimit) {
   if (rateLimit) {
@@ -109,9 +60,6 @@ $( document ).ready(function() {
 
   // tippy
   tippy('.tippy')
-
-  // 随机显示 Tips
-  changeTips()
 
   // 查询最新版本
   $.getJSON(`https://jjb.zaoshu.so/updates?buildid=${process.env.BUILDID}&browser=${process.env.BROWSER}`, function (lastVersion) {
@@ -178,28 +126,6 @@ $( document ).ready(function() {
   }, 200);
 
 
-  $('.settings .weui-navbar__item').on('click', function () {
-    $(this).addClass('weui-bar__item_on').siblings('.weui-bar__item_on').removeClass('weui-bar__item_on');
-    var type = $(this).data('type')
-    $('.settings_box').hide()
-    $('.settings_box.' + type).show()
-  });
-
-  // 授权
-  $('.settings .request-permissions-icon').on('click', function () {
-    let permissions = $(this).data('permissions')
-    chrome.runtime.sendMessage({
-      text: "requestPermissions",
-      permissions: permissions
-    }, function (response) {
-      if (response.granted) {
-        weui.toast('授权成功', 3000);
-      } else {
-        weui.alert('授权失败');
-      }
-    });
-  });
-
   $(".weui-dialog__ft a").on("click", function () {
     $("#dialogs").hide()
     $("#listenAudio").hide()
@@ -229,15 +155,6 @@ $( document ).ready(function() {
 
   $("#openjEventCard").on("click", function () {
     showJEvent()
-  })
-
-  $(document).on("click", ".openMobilePage", function () {
-    chrome.runtime.sendMessage({
-      action: "openUrlAsMoblie",
-      url: $(this).data('url')
-    }, function (response) {
-      console.log("Response: ", response);
-    });
   })
 
   $(".showLoginState").on("click", function () {
@@ -306,10 +223,6 @@ $( document ).ready(function() {
     }, function(response) {
       console.log("Response: ", response);
     });
-  })
-
-  $("#notice").on("dblclick", function () {
-    changeTips()
   })
 
   $("#pricePro").on("click", function () {

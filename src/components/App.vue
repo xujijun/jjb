@@ -658,7 +658,7 @@ export default {
 };
 </script>
 
-<style lang="less" scoped>
+<style  scoped>
 .orders, .messages, .discounts{
   overflow: hidden;
   height: 510px;

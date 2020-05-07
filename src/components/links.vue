@@ -82,7 +82,7 @@ export default {
 };
 </script>
 
-<style lang="less" scoped>
+<style  scoped>
   .links {
     display: inline-block;
   }

@@ -84,7 +84,7 @@ export default {
   }
 };
 </script>
-<style lang="less" scoped>
+<style  scoped>
 .popup-show{
   position: absolute;
   width: 100%;
