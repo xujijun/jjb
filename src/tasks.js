@@ -139,7 +139,7 @@ const tasks = [
     }
   },
   {
-    id: '29',
+    id: '29', // 已失效
     src: {
       m: 'https://red-e.jd.com/resources/pineapple/index.html',
     },
@@ -161,6 +161,7 @@ const tasks = [
       daily: 3,
       hour: 2
     },
+    deprecated: true
   },
   {
     id: '23',
@@ -204,7 +205,7 @@ const tasks = [
     }
   },
   {
-    id: '14',
+    id: '14', // 已失效
     src: {
       m: 'https://coin.jd.com/m/gb/index.html',
     },
@@ -223,7 +224,8 @@ const tasks = [
       weekly: 32,
       daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '6', // 已失效

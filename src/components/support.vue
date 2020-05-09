@@ -125,6 +125,12 @@ export default {
       this.target = target
     },
     done: async function(action) {
+      if (action == 'paid') {
+        this.$toast.show({
+          text: "🙏谢谢老板",
+          time: "1000"
+        });
+      }
       this.$emit('close')
     }
   }

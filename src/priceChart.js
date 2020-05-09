@@ -161,6 +161,7 @@ $(document).ready(function () {
           text: "disablePriceChart"
         };
         window.postMessage(data, "*");
+        $('.jjbPriceChart').hide()
       }, function () {
         console.log('no')
       }, {

@@ -879,14 +879,18 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         var play_audio = getSetting('play_audio')
         if (play_audio && play_audio == 'checked' || msg.test) {
           var myAudio = new Audio();
-          myAudio.src = "static/audio/beans.ogg";
-          if (msg.batch == 'coin') {
+          if (msg.reward == "bean") {
+            myAudio.src = "static/audio/beans.ogg";
+          }
+          if (msg.reward == 'coin') {
             myAudio.src = "static/audio/coin_drop.ogg";
           }
-          myAudio.play();
+          if (myAudio.src) {
+            myAudio.play();
+          }
         }
         let icon = beanIcon
-        if (msg.batch == 'coin') {
+        if (msg.reward == 'coin' || msg.reward == 'goldCoin') {
           icon = coinIcon
         }
         sendChromeNotification( new Date().getTime().toString() + '_' + msg.batch, {
