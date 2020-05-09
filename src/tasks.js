@@ -409,7 +409,7 @@ let getTask = function (taskId, currentPlatform) {
   let taskParameters = getSetting('task-parameters', [])
   let taskSettings = getSetting(`task-${taskId}:settings`, {})
   let parameters = (Array.isArray(taskParameters) && taskParameters.length > 0) ? taskParameters.find(t => t.id == taskId.toString()) : {}
-  let task = Object.assign({
+  let task = Object.assign({}, {
     rateLimit: {
       weekly: 21,
       daily: 5,

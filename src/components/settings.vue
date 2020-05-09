@@ -116,14 +116,14 @@
                       <div class="weui-cell__bd">
                         <select
                           class="weui-select"
-                          @auto-save="getTaskList"
-                          v-auto-save="{ current: `${task.frequency}` }"
+                          @change="taskFrequencyUpdate(task, $event)"
+                          v-model="task.frequency"
                           :name="`job${task.id}_frequency`"
                         >
                           <option
                             v-for="option in task.frequencyOption"
                             :value="option"
-                            :key="option"
+                            :key="`${task.id}${option}`"
                           >{{ frequencyOptionText[option] }}</option>
                         </select>
                         <span
@@ -180,19 +180,40 @@
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">不再提示签到通知</div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" v-auto-save type="checkbox" name="mute_checkin">
+                  <input
+                    class="weui-switch"
+                    v-model="settings['mute_checkin']"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    @change="onSettingChange('mute_checkin', $event)"
+                  >
                 </div>
               </div>
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">不再提示领券通知</div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" v-auto-save type="checkbox" name="mute_coupon">
+                  <input
+                    class="weui-switch"
+                    v-model="settings['mute_coupon']"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    @change="onSettingChange('mute_coupon', $event)"
+                  >
                 </div>
               </div>
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">隐藏价保商品信息</div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" type="checkbox" v-auto-save name="hide_good">
+                  <input
+                    class="weui-switch"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    v-model="settings['hide_good']"
+                    @change="onSettingChange('hide_good', $event)"
+                  >
                 </div>
               </div>
               <div class="weui-cell weui-cell_switch">
@@ -204,7 +225,15 @@
                   >开启夜晚防打扰</span>
                 </div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" type="checkbox" v-auto-save name="mute_night">
+                  <input
+                    class="weui-switch"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    v-model="settings['mute_night']"
+                    name="mute_night"
+                    @change="onSettingChange('mute_night', $event)"
+                  >
                 </div>
               </div>
               <div class="weui-cell weui-cell_switch">
@@ -220,7 +249,15 @@
                   </span>
                 </div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" type="checkbox" v-auto-save name="play_audio">
+                  <input
+                    class="weui-switch"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    v-model="settings['play_audio']"
+                    name="play_audio"
+                    @change="onSettingChange('play_audio', $event)"
+                  >
                 </div>
               </div>
             </div>
@@ -298,11 +335,16 @@
                   >最小价差</span>
                 </div>
                 <div class="weui-cell__bd">
-                  <select class="weui-select" v-auto-save name="price_pro_min">
-                    <option value="0.1">0.1元</option>
-                    <option value="0.5">0.5元</option>
-                    <option value="1">1元</option>
-                    <option value="5">5元</option>
+                  <select
+                    class="weui-select"
+                    name="price_pro_min"
+                    v-model="settings['price_pro_min']"
+                    @change="onSettingChange('price_pro_min', $event)"
+                  >
+                    <option :value="0.1">0.1元</option>
+                    <option :value="0.5">0.5元</option>
+                    <option :value="1">1元</option>
+                    <option :value="5">5元</option>
                   </select>
                 </div>
               </div>
@@ -315,7 +357,12 @@
                   >生鲜价保模式</span>
                 </div>
                 <div class="weui-cell__bd">
-                  <select class="weui-select" v-auto-save name="refund_type">
+                  <select
+                    class="weui-select"
+                    name="refund_type"
+                    v-model="settings['refund_type']"
+                    @change="onSettingChange('refund_type', $event)"
+                  >
                     <option value="1">原返</option>
                     <option value="2">限生鲜品类京券</option>
                   </select>
@@ -330,7 +377,15 @@
                   >我是Plus会员</span>
                 </div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" type="checkbox" v-auto-save name="is_plus">
+                  <input
+                    class="weui-switch"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    name="is_plus"
+                    v-model="settings['is_plus']"
+                    @change="onSettingChange('is_plus', $event)"
+                  >
                 </div>
               </div>
               <div class="weui-cell weui-cell_switch">
@@ -342,7 +397,15 @@
                   >剁手保护模式</span>
                 </div>
                 <div class="weui-cell__ft">
-                  <input class="weui-switch" type="checkbox" v-auto-save name="hand_protection">
+                  <input
+                    class="weui-switch"
+                    type="checkbox"
+                    true-value="checked"
+                    false-value="false"
+                    name="hand_protection"
+                    v-model="settings['hand_protection']"
+                    @change="onSettingChange('hand_protection', $event)"
+                  >
                 </div>
               </div>
               <div class="weui-cell weui-cell_switch">
@@ -357,8 +420,11 @@
                   <input
                     class="weui-switch"
                     type="checkbox"
-                    v-auto-save="{ notice: '开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请' }"
+                    true-value="checked"
+                    false-value="false"
                     name="prompt_only"
+                    v-model="settings['prompt_only']"
+                    @change="onSettingChange('prompt_only', $event)"
                   >
                 </div>
               </div>
@@ -373,10 +439,10 @@
                   <input
                     class="weui-switch"
                     type="checkbox"
-                    v-on:change="updateDisableOrderLink"
-                    v-auto-save="{
-                        notice: '京价保展示的最近订单商品链接带有京东联盟的返利，使用该链接购买能给开发者提供一些收入，帮助京价保保持更新。确认要停用该链接吗？'
-                      }"
+                    true-value="checked"
+                    false-value="false"
+                    @change="onSettingChange('disabled_link', $event)"
+                    v-model="settings['disabled_link']"
                     name="disabled_link"
                   >
                 </div>
@@ -393,8 +459,11 @@
                   <input
                     class="weui-switch"
                     type="checkbox"
-                    v-auto-save="{ notice: '停用价格走势功能将停止上报京价保在本地获取到的商品价格，同时也会停止展示价格走势图' }"
+                    true-value="checked"
+                    false-value="false"
                     name="disable_pricechart"
+                    v-model="settings['disable_pricechart']"
+                    @change="onSettingChange('disable_pricechart', $event)"
                   >
                 </div>
               </div>
@@ -554,6 +623,21 @@ import support from "./support.vue";
 import links from "./links.vue";
 import weDialog from "./we-dialog.vue";
 
+const settingKeys = [
+  "mute_checkin",
+  "play_audio",
+  "mute_night",
+  "hide_good",
+  "mute_coupon",
+  "disable_pricechart",
+  "disabled_link",
+  "prompt_only",
+  "hand_protection",
+  "is_plus",
+  "refund_type",
+  "price_pro_min"
+];
+
 export default {
   name: "settings",
   props: ["loginState"],
@@ -574,6 +658,20 @@ export default {
       currentSettingTask: null,
       taskList: [],
       hover: null,
+      settings: {
+        disable_pricechart: false,
+        disabled_link: false,
+        hand_protection: false,
+        hide_good: false,
+        is_plus: false,
+        mute_checkin: false,
+        mute_coupon: false,
+        mute_night: true,
+        play_audio: false,
+        price_pro_min: 0.5,
+        prompt_only: false,
+        refund_type: "1"
+      },
       dialog: {},
       showDialog: false,
       notice: {
@@ -587,6 +685,9 @@ export default {
   mounted: async function() {
     this.getTaskList();
     this.changeTips();
+    settingKeys.map(settingKey => {
+      this.settings[settingKey] = getSetting(settingKey);
+    });
     // 测试是否科学上网
     setTimeout(() => {
       this.tryGoogle();
@@ -621,6 +722,72 @@ export default {
     }
   },
   methods: {
+    taskFrequencyUpdate: function(task, event) {
+      saveSetting(`job${task.id}_frequency`, event.target.value);
+      this.getTaskList();
+      this.$toast.show({
+        text: "设置已保存",
+        time: "500" //显示的时间
+      });
+    },
+
+    onSettingChange: function(settingKey, event) {
+      console.log("onSettingChange", settingKey, event.target.value, event);
+      let notice = null;
+      let updateCallback = null;
+      let value = event.target.value
+      switch (settingKey) {
+        case "disable_pricechart":
+          notice =
+            "停用价格走势功能将停止上报京价保在本地获取到的商品价格，同时也会停止展示价格走势图";
+          break;
+        case "prompt_only":
+          notice =
+            "开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请";
+          break;
+        case "disabled_link":
+          notice =
+            "京价保展示的最近订单商品链接带有京东联盟的返利，使用该链接购买能给开发者提供一些收入，帮助京价保保持更新。确认要停用该链接吗？";
+          updateCallback = this.updateDisableOrderLink;
+          break;
+        default:
+          break;
+      }
+
+      // 处理 checkbox
+      if (event.target.type == "checkbox") {
+        if (event.target.checked) {
+          value = "checked"
+        } else {
+          value = false
+        }
+      }
+
+      if (notice && value) {
+        this.$msgBox
+          .showMsgBox({
+            title: "选项确认",
+            content: notice
+          })
+          .then(async val => {
+            saveSetting(settingKey, value);
+            if (updateCallback) updateCallback();
+          })
+          .catch(() => {
+            setTimeout(() => {
+              this.settings[settingKey] = getSetting(settingKey, 'false')
+              console.log(this.settings[settingKey], this.settings)
+            }, 50);
+            return console.log("取消", this.settings[settingKey], getSetting(settingKey, 'false'));
+          });
+      } else {
+        saveSetting(settingKey, value);
+      }
+      this.$toast.show({
+        text: "设置已保存",
+        time: "500" //显示的时间
+      });
+    },
     // 换 Tips
     changeTips: function() {
       let announcements = getSetting("announcements", []).concat(notices);
@@ -725,6 +892,7 @@ export default {
     // 任务列表
     getTaskList: async function() {
       this.taskList = getTasks();
+      console.log(this.taskList)
     },
     retryTask: function(task, hideNotice = false) {
       chrome.runtime.sendMessage(
@@ -733,17 +901,25 @@ export default {
           hideNotice: hideNotice,
           taskId: task.id
         },
-        (response) => {
+        response => {
           if (!hideNotice) {
             if (response.result == "success") {
               this.$toast.show({
-                  text: '手动运行成功',
-                  time:'3000'
-              })
+                text: "手动运行成功",
+                time: "3000"
+              });
             } else if (response.result == "pause") {
-              weui.alert(response.message, { title: "任务已暂停运行" });
+              this.$toast.show({
+                text: "任务已暂停运行",
+                message: response.message,
+                time: "3000"
+              });
             } else {
-              weui.alert(response.message, { title: "任务暂未运行" });
+              this.$toast.show({
+                text: "任务暂未运行",
+                message: response.message,
+                time: "3000"
+              });
             }
           }
         }
@@ -754,9 +930,9 @@ export default {
         new: false
       });
       this.$toast.show({
-          text: '任务启用成功',
-          time:'1000'
-      })
+        text: "任务启用成功",
+        time: "1000"
+      });
       setTimeout(() => {
         this.getTaskList();
       }, 250);

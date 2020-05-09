@@ -130,13 +130,13 @@ export default {
 }
 .UIdialog_hd {
   font-weight: bold;
-  font-size: 34px;
+  font-size: 24px;
   letter-spacing: 1px;
 }
 .UIdialog_bd {
   margin: 40px 0;
   text-align: center;
-  font-size: 24px;
+  font-size: 18px;
   slot,
   p {
     display: inline-block;
@@ -145,7 +145,7 @@ export default {
 }
 .UIdialog_ft {
   position: relative;
-  font-size: 28px;
+  font-size: 22px;
   color: #fff;
   display: flex;
   justify-content: center;
@@ -163,6 +163,7 @@ export default {
   background-color: #000;
   border-radius: 40px;
   padding: 12px 45px;
+      cursor: pointer;
 }
 .UIdialog_ft_one {
   text-align: center;

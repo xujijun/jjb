@@ -32,7 +32,7 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'vue$': 'vue/dist/vue.runtime.js'
+      'vue$': 'vue/dist/vue.runtime.esm.js'
     },
   },
   module: {

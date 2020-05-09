@@ -5,12 +5,13 @@
       <transition :name="translate">
         <div class="box" :class="position" v-show="show">
           <p>{{text}}</p>
+          <p v-if="message">{{message}}</p>
         </div>
       </transition>
     </div>
   </transition>
 </template>
- 
+
 <script>
 export default {
   data() {
@@ -23,6 +24,9 @@ export default {
     },
     text: { // 提醒文字
       default: 'loading'
+    },
+    message: {
+      default: null
     },
     position: { // 提醒容器位置
       default: 'center' //这里应该是middle 我没有改动画 所以暂时不用

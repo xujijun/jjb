@@ -554,7 +554,7 @@ function saveLoginState(loginState) {
 // mute_night
 function sendChromeNotification(id, content) {
   let hour = DateTime.local().hour;
-  let muteNight = getSetting('mute_night');
+  let muteNight = getSetting('mute_night', true);
   if (muteNight && hour < 6) {
     log('background', 'mute_night', content);
   } else {

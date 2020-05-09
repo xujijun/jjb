@@ -388,66 +388,6 @@ Vue.directive("tippy", {
   inserted: tippyElement
 });
 
-Vue.directive("autoSave", {
-  bind(el, binding, vnode) {
-    function revertValue(el, binding) {
-      let current = getSetting(
-        el.name,
-        binding.value && binding.value.current ? binding.value.current : null
-      );
-      if (el.type == "checkbox") {
-        if (current == "checked") {
-          el.checked = true;
-        } else {
-          el.checked = false;
-        }
-      } else if (el.type == "select-one") {
-        el.value = current || el.options[0].value;
-      } else {
-        el.value = current;
-      }
-    }
-    let autoSaveEvent = new Event("auto-save");
-    function saveToLocalStorage(el, binding) {
-      if (el.type == "checkbox") {
-        if (el.checked) {
-          localStorage.setItem(el.name, "checked");
-        } else {
-          localStorage.removeItem(el.name);
-        }
-      } else {
-        localStorage.setItem(el.name, el.value);
-      }
-      el.dispatchEvent(autoSaveEvent);
-      vnode.$toast.show({
-          text: '设置已保存',
-          time:'500', //显示的时间
-      })
-    }
-    revertValue(el, binding);
-    el.addEventListener("change", (event) => {
-      if (binding.value && binding.value.notice && el.checked) {
-        vnode.$msgBox.showMsgBox({
-          title: '选项确认',
-          content: binding.value.notice,
-        }).then(async (val) => {
-          saveToLocalStorage(el, binding);
-          console.log('确认')
-        }).catch(() => {
-          event.preventDefault();
-          setTimeout(() => {
-            revertValue(el, binding);
-          }, 50);
-          console.log('取消')
-        });
-
-      } else {
-        saveToLocalStorage(el, binding);
-      }
-    });
-  }
-});
-
 import loginNotice from "./login-notice.vue";
 import discounts from "./discounts.vue";
 import settings from "./settings.vue";
