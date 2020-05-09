@@ -2,9 +2,18 @@
   <div class="settings">
     <div class="weui-tab">
       <div :class="`${scienceOnline} weui-navbar`">
-        <div :class="`weui-navbar__item ${ activeTab == 'frequency_settings' ? 'weui-bar__item_on' : ''}`" @click="switchTab('frequency_settings')">任务设置</div>
-        <div :class="`weui-navbar__item ${ activeTab == 'notice_settings' ? 'weui-bar__item_on' : ''}`" @click="switchTab('notice_settings')">通知设置</div>
-        <div :class="`weui-navbar__item ${ activeTab == 'other_settings' ? 'weui-bar__item_on' : ''}`" @click="switchTab('other_settings')">高级设置</div>
+        <div
+          :class="`weui-navbar__item ${ activeTab == 'frequency_settings' ? 'weui-bar__item_on' : ''}`"
+          @click="switchTab('frequency_settings')"
+        >任务设置</div>
+        <div
+          :class="`weui-navbar__item ${ activeTab == 'notice_settings' ? 'weui-bar__item_on' : ''}`"
+          @click="switchTab('notice_settings')"
+        >通知设置</div>
+        <div
+          :class="`weui-navbar__item ${ activeTab == 'other_settings' ? 'weui-bar__item_on' : ''}`"
+          @click="switchTab('other_settings')"
+        >高级设置</div>
       </div>
       <div class="weui-tab__panel">
         <form
@@ -226,6 +235,16 @@
                     :key="service.title"
                   >
                     <a
+                      v-if="service.type == 'dialog'"
+                      href="#"
+                      data-tippy-placement="top-start"
+                      :data-tippy-content="service.description"
+                      :style="service.linkStyle"
+                      :class="service.linkClass"
+                      @click="openDialog(service)"
+                    >{{service.title}}</a>
+                    <a
+                      v-else
                       target="_blank"
                       v-tippy
                       :title="service.description"
@@ -261,8 +280,8 @@
                   target="_blank"
                 >京价保@Telegram</a>
                 <a
+                  @click="openWechatCard"
                   href="#"
-                  id="openWechatCard"
                   class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
                   data-tippy-placement="top-start"
                   data-tippy-content="关注京价保的公众号"
@@ -516,6 +535,14 @@
         </div>
       </div>
     </div>
+    <we-dialog
+      v-if="dialog && showDialog"
+      @close="showDialog = false"
+      :title="dialog.title"
+      :content="dialog.content"
+      :className="dialog.className"
+      :buttons="dialog.buttons"
+    ></we-dialog>
   </div>
 </template>
 
@@ -526,12 +553,13 @@ import { getSetting, saveSetting } from "../utils";
 import taskSetting from "./task-setting.vue";
 import support from "./support.vue";
 import links from "./links.vue";
+import weDialog from "./we-dialog.vue";
 
 import weui from "weui.js";
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting, support, links },
+  components: { taskSetting, support, links, weDialog },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,
@@ -548,6 +576,8 @@ export default {
       currentSettingTask: null,
       taskList: [],
       hover: null,
+      dialog: {},
+      showDialog: false,
       notice: {
         text: "京东页面经常更新，唯有你的支持才能让京价保保持更新。",
         type: "reward",
@@ -558,7 +588,7 @@ export default {
   },
   mounted: async function() {
     this.getTaskList();
-    this.changeTips()
+    this.changeTips();
     // 测试是否科学上网
     setTimeout(() => {
       this.tryGoogle();
@@ -611,7 +641,30 @@ export default {
       this.notice = tip;
     },
     switchTab: async function(tab) {
-      this.activeTab = tab
+      this.activeTab = tab;
+    },
+    openWechatCard: async function() {
+      this.dialog = {
+        title: "关注京价保公众号",
+        content: `
+          <img src="http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg" class="jjb-official tippy" data-tippy-content="微信搜索“京价保”也可以关注"  alt="jjb-official" width="280">
+          <p class="tips">主要发布更新通知，亦可在公众号留言向开发者反馈。</p>
+        `
+      };
+      this.showDialog = true;
+    },
+    openDialog: async function(action) {
+      this.dialog = {
+        title: action.title,
+        content: action,
+        buttons: [
+          {
+            label: "完成",
+            type: "primary"
+          }
+        ]
+      };
+      this.showDialog = true
     },
     tryGoogle: async function() {
       try {

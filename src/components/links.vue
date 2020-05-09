@@ -1,36 +1,55 @@
 <template>
-  <div class="links">
-    <span :class="action.class" v-for="(action, index)  in actionLinks" :key="action.id" :index="index" :style="action.style">
-      <a
-        v-if="action.type == 'dialog'"
-        href="#"
-        data-tippy-placement="top-start"
-        :data-tippy-content="action.description"
-        :style="action.linkStyle"
-        :class="action.linkClass"
-        @click="showDialog(action)"
-      >{{action.title}}
-      </a>
-      <a
-        v-if="action.type == 'link'"
-        data-tippy-placement="top-start"
-        :data-tippy-content="action.description"
-        :href="action.url"
-        :style="action.linkStyle"
-        :class="action.linkClass"
-        target="_blank"
-      >{{action.title}}</a>
-    </span>
+  <div class="links-box">
+    <div class="links">
+      <span
+        :class="action.class"
+        v-for="(action, index)  in actionLinks"
+        :key="action.id"
+        :index="index"
+        :style="action.style"
+      >
+        <a
+          v-if="action.type == 'dialog'"
+          href="#"
+          data-tippy-placement="top-start"
+          :data-tippy-content="action.description"
+          :style="action.linkStyle"
+          :class="action.linkClass"
+          @click="openDialog(action)"
+        >{{action.title}}</a>
+        <a
+          v-if="action.type == 'link'"
+          data-tippy-placement="top-start"
+          :data-tippy-content="action.description"
+          :href="action.url"
+          :style="action.linkStyle"
+          :class="action.linkClass"
+          target="_blank"
+        >{{action.title}}</a>
+      </span>
+    </div>
+    <we-dialog
+      v-if="dialog && showDialog"
+      @close="showDialog = false"
+      :title="dialog.title"
+      :content="dialog.content"
+      :className="dialog.className"
+      :buttons="dialog.buttons"
+    ></we-dialog>
   </div>
 </template>
 
 <script>
-import weui from "weui.js";
 import { getSetting } from "../utils";
+import weDialog from "./we-dialog.vue";
+
 export default {
   name: "links",
+  components: { weDialog },
   data() {
     return {
+      dialog: {},
+      showDialog: false,
       actionLinks: getSetting("action-links", [
         {
           type: "dialog",
@@ -41,34 +60,15 @@ export default {
           style: "margin-right: 3px;",
           mode: "iframe",
           url: "https://jjb.zaoshu.so/recommend"
-        },
-        {
-          type: "link",
-          class: "el-tag",
-          linkClass: "tippy",
-          title: "PLUS券",
-          description: "PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取",
-          url: "https://plus.jd.com/coupon/index"
         }
       ])
     };
   },
   methods: {
-    showDialog: async function(action) {
-      let content = ""
-      if (action.mode == "iframe") {
-        content = `
-          <iframe frameborder="0" src="${action.url}" style="width: 100%;min-height: 420px;min-width: 400px;"></iframe>
-        `
-      }
-      if (action.mode == "image") {
-        content = `
-          <img src="${action.url}" style="width: 270px;"></img>
-        `
-      }
-      weui.dialog({
+    openDialog: async function(action) {
+      this.dialog = {
         title: action.title,
-        content: content,
+        content: action,
         className: "dialog",
         buttons: [
           {
@@ -76,14 +76,15 @@ export default {
             type: "primary"
           }
         ]
-      });
-    },
+      };
+      this.showDialog = true
+    }
   }
 };
 </script>
 
 <style  scoped>
-  .links {
-    display: inline-block;
-  }
+.links-box {
+  display: inline-block;
+}
 </style>

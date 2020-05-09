@@ -17,7 +17,7 @@ import 'hooper/dist/hooper.css';
 import weui from "weui.js";
 
 export default {
-  name: "report",
+  name: "events",
   props: ["events"],
   components: {
     Hooper,

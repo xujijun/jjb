@@ -1,10 +1,17 @@
 <template>
   <div>
-    <settings :login-state="loginState" @show-login="showLoginState = true" @update-order-link="updateDisableOrderLink"></settings>
+    <settings
+      :login-state="loginState"
+      @show-login="showLoginState = true"
+      @update-order-link="updateDisableOrderLink"
+    ></settings>
     <div class="contents">
       <div class="weui-tab">
         <div class="weui-navbar">
-          <div :class="`weui-navbar__item ${contentType == 'orders' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('orders')">
+          <div
+            :class="`weui-navbar__item ${contentType == 'orders' ? 'weui-bar__item_on' : ''}`"
+            @click="switchContentType('orders')"
+          >
             最近订单
             <a
               href="https://order.jd.com/center/list.action"
@@ -31,11 +38,17 @@
               </svg>
             </a>
           </div>
-          <div :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('messages')">
+          <div
+            :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`"
+            @click="switchContentType('messages')"
+          >
             最近通知
             <span class="weui-badge" v-if="unreadCount > 0">{{unreadCount}}</span>
           </div>
-          <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
+          <div
+            :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`"
+            @click="switchContentType('discounts')"
+          >
             <img src="../../static/image/zaoshu.png" alt="" class="zaoshu-icon">
             枣树集惠
             <span
@@ -112,17 +125,30 @@
                             :alt="good.name"
                           >
                           <div class="monitoring">
-                            <span v-if="good.suspended" @click="toggleSuspend(order, good, index)" class="resume" v-tippy title="恢复价保"></span>
-                            <span v-else class="suspend" @click="toggleSuspend(order, good, index)" v-tippy title="停止价保"></span>
+                            <span
+                              v-if="good.suspended"
+                              @click="toggleSuspend(order, good, index)"
+                              class="resume"
+                              v-tippy
+                              title="恢复价保"
+                            ></span>
+                            <span
+                              v-else
+                              class="suspend"
+                              @click="toggleSuspend(order, good, index)"
+                              v-tippy
+                              title="停止价保"
+                            ></span>
                           </div>
                         </div>
                         <p v-if="good.sku">
-                          <a v-if="!disableOrderLink" :href="`https://jjb.zaoshu.so/good/${good.sku}`" target="_blank"> {{good.name}}</a>
+                          <a
+                            v-if="!disableOrderLink"
+                            :href="`https://jjb.zaoshu.so/good/${good.sku}`"
+                            target="_blank"
+                          >{{good.name}}</a>
                           <a v-else>{{good.name}}</a>
-                          <span
-                            class="count"
-                            v-if="good.quantity"
-                          >&times; {{good.quantity}}</span>
+                          <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
                         </p>
                       </div>
                     </div>
@@ -141,7 +167,11 @@
                       </div>
                     </div>
                   </div>
-                  <p :class="`log ${log.status}`" v-for="(log, index) in good.logs" :key="index">{{log.message}}</p>
+                  <p
+                    :class="`log ${log.status}`"
+                    v-for="(log, index) in good.logs"
+                    :key="index"
+                  >{{log.message}}</p>
                 </div>
               </li>
               <p class="text-tips">
@@ -163,7 +193,11 @@
               </div>
             </div>
           </div>
-          <div id="messages" v-if="contentType == 'messages'" class="weui-cells contents-box messages">
+          <div
+            id="messages"
+            v-if="contentType == 'messages'"
+            class="weui-cells contents-box messages"
+          >
             <div class="messages-top">
               <div class="messages-header message-type">
                 <div role="radiogroup" class="el-radio-group">
@@ -209,11 +243,9 @@
                       class="el-radio-button__orig-radio"
                       value="coupon"
                     >
-                    <div class="el-radio-button__inner">
-                      领券记录
-                    </div>
+                    <div class="el-radio-button__inner">领券记录</div>
                   </label>
-              </div>
+                </div>
               </div>
             </div>
             <div class="message-items" v-if="messages && messages.length > 0">
@@ -306,6 +338,14 @@
       <guide v-if="showGuide" :login-state="loginState"></guide>
       <login-notice v-if="showLoginState" :state="loginState" @close="showLoginState = false"></login-notice>
       <popup v-if="showPopup" @close="showPopup = false"></popup>
+      <we-dialog
+        v-if="dialog && showDialog"
+        @close="showDialog = false"
+        :title="dialog.title"
+        :content="dialog.content"
+        :className="dialog.className"
+        :buttons="dialog.buttons"
+      ></we-dialog>
     </div>
   </div>
 </template>
@@ -317,11 +357,16 @@ import weui from "weui.js";
 import Vue from "vue";
 
 import "weui";
-import '../../static/style/popup.css'
+import "../../static/style/popup.css";
 
-import { DateTime } from 'luxon'
-import { getLoginState } from '../account'
-import { getSetting, versionCompare, readableTime, saveSetting } from "../utils";
+import { DateTime } from "luxon";
+import { getLoginState } from "../account";
+import {
+  getSetting,
+  versionCompare,
+  readableTime,
+  saveSetting
+} from "../utils";
 import { stateText } from "../variables";
 
 function tippyElement(el) {
@@ -329,7 +374,7 @@ function tippyElement(el) {
     let title = el.getAttribute("title");
     if (title) {
       if (el._tippy) {
-        el._tippy.setContent(title)
+        el._tippy.setContent(title);
       } else {
         tippy(el, {
           content: title
@@ -347,7 +392,10 @@ Vue.directive("tippy", {
 Vue.directive("autoSave", {
   bind(el, binding, vnode) {
     function revertValue(el, binding) {
-      let current = getSetting(el.name, (binding.value && binding.value.current) ? binding.value.current : null);
+      let current = getSetting(
+        el.name,
+        binding.value && binding.value.current ? binding.value.current : null
+      );
       if (el.type == "checkbox") {
         if (current == "checked") {
           el.checked = true;
@@ -360,7 +408,7 @@ Vue.directive("autoSave", {
         el.value = current;
       }
     }
-    let autoSaveEvent = new Event('auto-save');
+    let autoSaveEvent = new Event("auto-save");
     function saveToLocalStorage(el, binding) {
       if (el.type == "checkbox") {
         if (el.checked) {
@@ -399,36 +447,43 @@ Vue.directive("autoSave", {
   }
 });
 
-import loginNotice from './login-notice.vue';
-import discounts from './discounts.vue';
-import settings from './settings.vue';
-import guide from './guide.vue';
-import popup from './popup.vue';
+import loginNotice from "./login-notice.vue";
+import discounts from "./discounts.vue";
+import settings from "./settings.vue";
+import guide from "./guide.vue";
+import popup from "./popup.vue";
+import weDialog from "./we-dialog.vue";
 
 export default {
   name: "App",
-  components: { loginNotice, discounts, settings, guide, popup },
+  components: { loginNotice, discounts, settings, guide, popup, weDialog },
   data() {
     return {
       messages: [],
       orders: [],
       skuPriceList: {},
+      dialog: {},
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
       showPopup: true,
+      showDialog: false,
       showLoginState: false,
       currentVersion: process.env.VERSION,
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
-      newChangelog: versionCompare(getSetting("changelog_version", "2.0"), process.env.VERSION) < 0,
+      newChangelog:
+        versionCompare(
+          getSetting("changelog_version", "2.0"),
+          process.env.VERSION
+        ) < 0,
       hiddenOrderIds: getSetting("hiddenOrderIds", []),
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
       selectedTab: null,
-      contentType: 'orders',
+      contentType: "orders",
       newVersion: getSetting("newVersion", null),
       unreadCount: getSetting("unreadCount", null),
-      olduser: getSetting('jjb_admission-test', false),
-      showGuideAt: getSetting('showGuideAt', false),
+      olduser: getSetting("jjb_admission-test", false),
+      showGuideAt: getSetting("showGuideAt", false),
       loginState: {
         default: true,
         description: "未能获取登录状态",
@@ -442,29 +497,29 @@ export default {
     };
   },
   mounted: async function() {
+    // 检查版本
+    setTimeout(() => {
+      this.checkUpdate();
+    }, 200);
     // 渲染订单
     setTimeout(() => {
-      this.renderOrders()
+      this.renderOrders();
     }, 50);
     // 查询最新优惠
     setTimeout(() => {
-      this.getLastDiscount()
+      this.getLastDiscount();
     }, 100);
     // 渲染通知
     setTimeout(() => {
-      this.renderMessages()
+      this.renderMessages();
     }, 500);
-    this.dealWithLoginState()
+    this.dealWithLoginState();
 
     // 接收消息
-    chrome.runtime.onMessage.addListener((
-      message,
-      sender,
-      sendResponse
-    ) => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       switch (message.action) {
         case "orders_updated":
-          this.renderOrders(message.orders)
+          this.renderOrders(message.orders);
           break;
         case "messages_updated":
           this.renderMessages(message.messages);
@@ -480,13 +535,74 @@ export default {
   computed: {
     showGuide: function() {
       if (!this.olduser && !this.showGuideAt) {
-        return true
+        return true;
       } else {
-        return false
+        return false;
       }
     }
   },
   methods: {
+    checkUpdate: async function() {
+      // 查询最新版本
+      $.getJSON(
+        `https://jjb.zaoshu.so/updates?buildid=${process.env.BUILDID}&browser=${
+          process.env.BROWSER
+        }`,
+        function(lastVersion) {
+          if (!lastVersion) return localStorage.removeItem("newVersion");
+          let skipBuildId = localStorage.getItem("skipBuildId");
+          let localBuildId = skipBuildId || process.env.BUILDID;
+          // 如果有新版
+          if (localBuildId < lastVersion.buildId && lastVersion.notice) {
+            localStorage.setItem("newVersion", lastVersion.versionCode);
+            // 如果新版是主要版本，而且当前版本需要被提示
+            if (lastVersion.major && localBuildId < lastVersion.noticeBuildId) {
+              this.dialog = {
+                title:
+                  `${lastVersion.title} <span class="dismiss">&times;</span>` ||
+                  "京价保有版本更新",
+                content:
+                  `${lastVersion.changelog}
+            <div class="changelog">
+              <span class="time">${lastVersion.time}</span>` +
+                  (lastVersion.blogUrl
+                    ? `<a class="blog" href="${
+                        lastVersion.blogUrl
+                      }" target="_blank">了解更多</a>`
+                    : "") +
+                  `</div>`,
+                className: "update",
+                buttons: [
+                  {
+                    label: "不再提醒",
+                    type: "default",
+                    onClick: function() {
+                      localStorage.setItem("skipBuildId", lastVersion.buildId);
+                    }
+                  },
+                  {
+                    label: "下载更新",
+                    type: "primary",
+                    onClick: function() {
+                      chrome.tabs.create({
+                        url:
+                          lastVersion.downloadUrl ||
+                          `https://jjb.zaoshu.so/updates/latest?browser=${
+                            process.env.BROWSER
+                          }`
+                      });
+                    }
+                  }
+                ]
+              }
+              this.showDialog = true
+            }
+          } else {
+            localStorage.removeItem("newVersion");
+          }
+        }
+      );
+    },
     getLastDiscount: async function() {
       let response = await fetch("https://jjb.zaoshu.so/discount/last");
       let lastDiscount = await response.json();
@@ -499,17 +615,17 @@ export default {
       }
     },
     switchContentType: function(type) {
-      this.contentType = type
+      this.contentType = type;
       switch (type) {
         case "messages":
-          this.renderMessages()
-          this.readMessages()
+          this.renderMessages();
+          this.readMessages();
           break;
         case "discounts":
-          this.readDiscounts()
+          this.readDiscounts();
           break;
         case "orders":
-          this.renderOrders()
+          this.renderOrders();
           break;
         default:
           break;
@@ -517,19 +633,23 @@ export default {
     },
     updateDisableOrderLink: function() {
       setTimeout(() => {
-        this.disableOrderLink = getSetting("disabled_link") == "checked" ? true : false
+        this.disableOrderLink =
+          getSetting("disabled_link") == "checked" ? true : false;
       }, 1000);
     },
-    readMessages: function () {
-      this.unreadCount = 0
-      chrome.runtime.sendMessage({
-        action: "clearUnread"
-      }, function (response) {
-        console.log("Response: ", response);
-      });
+    readMessages: function() {
+      this.unreadCount = 0;
+      chrome.runtime.sendMessage(
+        {
+          action: "clearUnread"
+        },
+        function(response) {
+          console.log("Response: ", response);
+        }
+      );
     },
     readDiscounts: function() {
-      this.newDiscounts = false
+      this.newDiscounts = false;
     },
     getPromotions: function() {
       let promotions = getSetting("promotions", []);
@@ -543,31 +663,43 @@ export default {
     },
     renderMessages: function(messages) {
       if (!messages) {
-        messages = getSetting('jjb_messages', [])
-        chrome.runtime.sendMessage({ action: "getMessages" })
+        messages = getSetting("jjb_messages", []);
+        chrome.runtime.sendMessage({ action: "getMessages" });
       }
       this.messages = messages.map(function(message) {
         if (message.type == "coupon") {
           message.coupon = message.content;
         }
-        message.time = readableTime(message.timestamp ? DateTime.fromMillis(message.timestamp) : DateTime.fromISO(message.time));
+        message.time = readableTime(
+          message.timestamp
+            ? DateTime.fromMillis(message.timestamp)
+            : DateTime.fromISO(message.time)
+        );
         return message;
       });
     },
     renderOrders: function(orders) {
       if (!orders) {
-        orders = getSetting("jjb_orders", [])
-        chrome.runtime.sendMessage({ action: "getOrders" })
+        orders = getSetting("jjb_orders", []);
+        chrome.runtime.sendMessage({ action: "getOrders" });
       }
       let skuPriceList = getSetting("skuPriceList", {});
       let suspendedApplyIds = getSetting("suspendedApplyIds", []);
       if (orders) {
         orders = orders.map(function(order) {
-          order.displayTime = readableTime(DateTime.fromMillis(order.timestamp));
+          order.displayTime = readableTime(
+            DateTime.fromMillis(order.timestamp)
+          );
           order.goods = order.goods.map(function(good, index) {
-            good.suspended = _.indexOf(suspendedApplyIds, `applyBT_${order.id}_${good.sku}_${index+1}`) > -1 ? "suspended" : false
-            return good
-          })
+            good.suspended =
+              _.indexOf(
+                suspendedApplyIds,
+                `applyBT_${order.id}_${good.sku}_${index + 1}`
+              ) > -1
+                ? "suspended"
+                : false;
+            return good;
+          });
           return order;
         });
       } else {
@@ -594,13 +726,19 @@ export default {
       let loginState = getLoginState();
       this.loginState = loginState;
 
-      this.loginState["pc"].description = "当前登录状态" + getStateDescription(loginState, "pc");
-      this.loginState["m"].description = "当前登录状态" + getStateDescription(loginState, "m");
-      this.loginState.description = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
+      this.loginState["pc"].description =
+        "当前登录状态" + getStateDescription(loginState, "pc");
+      this.loginState["m"].description =
+        "当前登录状态" + getStateDescription(loginState, "m");
+      this.loginState.description =
+        "PC网页版登录" +
+        getStateDescription(loginState, "pc") +
+        "，移动网页版登录" +
+        getStateDescription(loginState, "m");
 
       // 如果登录失败，那么显示提示
       if (loginState.class == "failed") {
-        this.showLoginState = true
+        this.showLoginState = true;
       }
     },
     selectType: function(type) {
@@ -620,16 +758,16 @@ export default {
       saveSetting("hiddenOrderIds", this.hiddenOrderIds);
       this.$forceUpdate();
     },
-    toggleSuspend: function (order, good, index) {
+    toggleSuspend: function(order, good, index) {
       // localStorage.setItem(`order_${order.id}_index_${index}`, 'suspended')
       let suspendedApplyIds = getSetting("suspendedApplyIds", []);
-      let applyId = `applyBT_${order.id}_${good.sku}_${index+1}`
+      let applyId = `applyBT_${order.id}_${good.sku}_${index + 1}`;
       if (_.indexOf(suspendedApplyIds, applyId) > -1) {
         suspendedApplyIds = _.pull(suspendedApplyIds, applyId);
-        good.suspended = false
+        good.suspended = false;
       } else {
         suspendedApplyIds.push(applyId);
-        good.suspended = "suspended"
+        good.suspended = "suspended";
       }
       localStorage.setItem(
         "suspendedApplyIds",
@@ -639,10 +777,14 @@ export default {
     showChangelog: function() {
       this.newChangelog = false;
       localStorage.setItem("changelog_version", this.currentVersion);
-      weui.dialog({
+      this.dialog = {
         title: "更新记录",
         content: `
-          <iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId=${process.env.BUILDID}&browser=${process.env.BROWSER}" style="width: 100%;min-height: 350px;"
+          <iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId=${
+            process.env.BUILDID
+          }&browser=${
+          process.env.BROWSER
+        }" style="width: 100%;min-height: 350px;"
           ></iframe>
         `,
         className: "changelog",
@@ -652,20 +794,23 @@ export default {
             type: "primary"
           }
         ]
-      });
+      };
+      this.showDialog = true;
     }
   }
 };
 </script>
 
 <style  scoped>
-.orders, .messages, .discounts{
+.orders,
+.messages,
+.discounts {
   overflow: hidden;
   height: 510px;
   width: 431px;
 }
 
-.contents-box.orders ul{
+.contents-box.orders ul {
   height: 510px;
   overflow-y: auto;
 }
@@ -674,25 +819,25 @@ export default {
   height: 460px;
   overflow-y: auto;
 }
-.order-good.suspended{
-  opacity: 0.5
+.order-good.suspended {
+  opacity: 0.5;
 }
-.weui-navbar.true .weui-navbar__item.weui-bar__item_on{
-  background-image: linear-gradient(180deg,#09bb07,#06a90c94);
+.weui-navbar.true .weui-navbar__item.weui-bar__item_on {
+  background-image: linear-gradient(180deg, #09bb07, #06a90c94);
 }
 
 .messages-header {
-    display: flex;
-    border-bottom: 1px solid #ebeef5;
-    height: 32px;
-    padding-top: 6px;
-    position: fixed;
-    width: 432px;
-    background: #fafafa;
-    z-index: 10;
+  display: flex;
+  border-bottom: 1px solid #ebeef5;
+  height: 32px;
+  padding-top: 6px;
+  position: fixed;
+  width: 432px;
+  background: #fafafa;
+  z-index: 10;
 }
 
-.el-radio-group{
+.el-radio-group {
   margin: 0 auto;
 }
 </style>
