@@ -92,7 +92,6 @@
 </template>
 
 <script>
-import weui from "weui.js";
 import { DateTime } from "luxon";
 import { getSetting, saveSetting, readableTime } from "../utils";
 import { getTaskLog } from '../db';
@@ -163,7 +162,10 @@ export default {
     save: async function() {
       let oldSetting  = getSetting(`task-${this.task.id}:settings`, {})
       saveSetting(`task-${this.task.id}:settings`, Object.assign(oldSetting, this.setting))
-      weui.toast("设置保存成功", 1000);
+      this.$toast.show({
+          text: '设置保存成功',
+          time:'1000'
+      })
       this.$emit('close')
     }
   }

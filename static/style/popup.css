@@ -999,11 +999,6 @@ button.Button.messages-tab.Button--plain:focus {
    margin-right: 2px;
 }
 
-.openMobilePage{
-    cursor: pointer;
-}
-
-
 .el-tag {
     background-color: rgba(64, 158, 255, .1);
     display: inline-block;

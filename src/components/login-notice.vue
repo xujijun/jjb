@@ -40,7 +40,7 @@
               </a>
               <a
                 v-tippy
-                :class="`${state['m'].state} login-type_m openMobilePage`"
+                :class="`${state['m'].state} login-type_m`"
                 :title="state['m'].description"
                 @click="openMobilePage('https://home.m.jd.com/myJd/newhome.action')"
               >

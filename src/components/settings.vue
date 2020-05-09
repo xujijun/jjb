@@ -88,8 +88,7 @@
                         <span :title="task.description" v-tippy>
                           <a
                             v-if="task.platform == 'm'"
-                            class="openMobilePage"
-                            :data-url="task.url"
+                            @click="openMobilePage(task.url)"
                           >{{task.title}}</a>
                           <a v-else :href="task.baseUrl || task.url" target="_blank">{{task.title}}</a>
                         </span>
@@ -256,7 +255,6 @@
                   <p v-for="link in recommendedLinks" :key="link.title">
                     <a
                       v-if="link.mobile"
-                      class="openMobilePage"
                       @click="openMobilePage(link.url)"
                       :style="link.style"
                     >{{link.title}}</a>
@@ -426,6 +424,7 @@
                 <a
                   href="#"
                   id="clearAccount"
+                  @click="clearAccount"
                   class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
                   data-tippy-placement="top-start"
                   data-tippy-content="在登录时勾选记住密码可保存新的密码"
@@ -555,7 +554,6 @@ import support from "./support.vue";
 import links from "./links.vue";
 import weDialog from "./we-dialog.vue";
 
-import weui from "weui.js";
 export default {
   name: "settings",
   props: ["loginState"],
@@ -600,17 +598,6 @@ export default {
     }
   },
   computed: {
-    openMobilePage: function(url) {
-      chrome.runtime.sendMessage(
-        {
-          action: "openUrlAsMoblie",
-          url: url
-        },
-        function(response) {
-          console.log("Response: ", response);
-        }
-      );
-    },
     newTasks: function() {
       return this.taskList.filter(task => task.new);
     },
@@ -643,6 +630,35 @@ export default {
     switchTab: async function(tab) {
       this.activeTab = tab;
     },
+    openMobilePage: function(url) {
+      chrome.runtime.sendMessage(
+        {
+          action: "openUrlAsMoblie",
+          url: url
+        },
+        function(response) {
+          console.log("Response: ", response);
+        }
+      );
+    },
+    clearAccount: async function() {
+      this.$msgBox
+        .showMsgBox({
+          title: "清除密码确认",
+          content:
+            "清除密码将移除本地存储的账号密码；清除后若需继续使用请重新登录并选择让京价保记住密码"
+        })
+        .then(async val => {
+          localStorage.removeItem("jjb_account");
+          chrome.tabs.create({
+            url: "https://passport.jd.com/uc/login"
+          });
+          console.log("确认");
+        })
+        .catch(() => {
+          console.log("取消清除");
+        });
+    },
     openWechatCard: async function() {
       this.dialog = {
         title: "关注京价保公众号",
@@ -664,7 +680,7 @@ export default {
           }
         ]
       };
-      this.showDialog = true
+      this.showDialog = true;
     },
     tryGoogle: async function() {
       try {
@@ -717,10 +733,13 @@ export default {
           hideNotice: hideNotice,
           taskId: task.id
         },
-        function(response) {
+        (response) => {
           if (!hideNotice) {
             if (response.result == "success") {
-              weui.toast("手动运行成功", 3000);
+              this.$toast.show({
+                  text: '手动运行成功',
+                  time:'3000'
+              })
             } else if (response.result == "pause") {
               weui.alert(response.message, { title: "任务已暂停运行" });
             } else {
@@ -734,7 +753,10 @@ export default {
       saveSetting(`task-${task.id}:settings`, {
         new: false
       });
-      weui.toast("任务启用成功", 1000);
+      this.$toast.show({
+          text: '任务启用成功',
+          time:'1000'
+      })
       setTimeout(() => {
         this.getTaskList();
       }, 250);

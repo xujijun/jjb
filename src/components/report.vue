@@ -61,7 +61,6 @@
 </template>
 
 <script>
-import weui from "weui.js";
 export default {
   name: "report",
   props: ["discount"],
@@ -107,7 +106,10 @@ export default {
       }
       this.loading = false
       this.show = false
-      weui.toast("感谢反馈", 500);
+      this.$toast.show({
+          text: '感谢反馈',
+          time:'500'
+      })
     }
   }
 };

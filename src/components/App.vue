@@ -353,7 +353,6 @@
 <script>
 import * as _ from "lodash";
 import tippy from "tippy.js";
-import weui from "weui.js";
 import Vue from "vue";
 
 import "weui";
@@ -420,26 +419,28 @@ Vue.directive("autoSave", {
         localStorage.setItem(el.name, el.value);
       }
       el.dispatchEvent(autoSaveEvent);
-      weui.toast("设置已保存", 500);
+      vnode.$toast.show({
+          text: '设置已保存',
+          time:'500', //显示的时间
+      })
     }
     revertValue(el, binding);
-    el.addEventListener("change", function(event) {
+    el.addEventListener("change", (event) => {
       if (binding.value && binding.value.notice && el.checked) {
-        weui.confirm(
-          binding.value.notice,
-          function() {
-            saveToLocalStorage(el, binding);
-          },
-          function() {
-            event.preventDefault();
-            setTimeout(() => {
-              revertValue(el, binding);
-            }, 50);
-          },
-          {
-            title: "选项确认"
-          }
-        );
+        vnode.$msgBox.showMsgBox({
+          title: '选项确认',
+          content: binding.value.notice,
+        }).then(async (val) => {
+          saveToLocalStorage(el, binding);
+          console.log('确认')
+        }).catch(() => {
+          event.preventDefault();
+          setTimeout(() => {
+            revertValue(el, binding);
+          }, 50);
+          console.log('取消')
+        });
+
       } else {
         saveToLocalStorage(el, binding);
       }

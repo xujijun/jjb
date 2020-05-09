@@ -1550,35 +1550,41 @@ function getGoldCoin(task) {
     let time = 0;
     weui.toast('京价保运行中', 1000);
     runStatus(task)
-    $("#J_index .setCoin a.btn").each(function () {
-      let that = $(this)
-      if (that.text() == '立即领取') {
-        setTimeout(function () {
-          simulateClick($(that))
-          let uuid = Date.now()
-          observeDOM(document.body, function (observer) {
-            let resultElement = $(".draw-dialog-content-top .draw-dialog-coin-num")
-            if (resultElement && resultElement.text().indexOf('成功') > -1) {
-              if (observer) observer.disconnect();
-              let value = resultElement.text().replace(/[^0-9\.-]+/g, "")
-              return chrome.runtime.sendMessage({
-                task: task,
-                log: true,
-                action: "goldCoinReceived",
-                title: "京价保自动为您领取金币",
-                value: value,
-                reward: "goldCoin",
-                content: `恭喜您领到了${value}个金币`,
-                uuid: uuid
-              }, function (response) {
-                console.log("Response: ", response);
-              });
-            }
-          })
-        }, time)
-        time += 5000;
-      }
-    })
+    if ($(".header-content-right .btn").length > 0 && $(".header-content-right .btn").text().indexOf('可领') > -1) {
+      simulateClick($(".header-content-right .btn"), true)
+
+      setTimeout(() => {
+        $(".coinItem").each(function () {
+          let item = $(this)
+          let getBtn = $(this).find('.coinBtn')
+          if (getBtn.text() == '立即领取') {
+            setTimeout(function () {
+              simulateClick($(getBtn))
+              let uuid = Date.now()
+              observeDOM(item[0], function (observer) {
+                if (getBtn && getBtn.text().indexOf('已领取') > -1) {
+                  if (observer) observer.disconnect();
+                  let value = item.find(".coinNum").text().replace(/[^0-9\.-]+/g, "")
+                  return chrome.runtime.sendMessage({
+                    task: task,
+                    log: true,
+                    action: "goldCoinReceived",
+                    title: "京价保自动为您领取金币",
+                    value: value,
+                    reward: "goldCoin",
+                    content: `恭喜您领到了${value}个金币`,
+                    uuid: uuid
+                  }, function (response) {
+                    console.log("Response: ", response);
+                  });
+                }
+              })
+            }, time)
+            time += 5000;
+          }
+        })
+      }, 1000);
+    }
   }
 }
 

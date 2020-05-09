@@ -3,13 +3,18 @@ $ = window.$ = window.jQuery = require('jquery')
 
 import tippy from 'tippy.js'
 import 'weui';
-import weui from 'weui.js'
 import Vue from 'vue'
 
 import { getLoginState } from './account'
 
 import App from './components/App.vue';
 import VueLazyload from 'vue-lazyload'
+
+import MessageBox from './components/messageBox/messageBox';
+Vue.use(MessageBox);
+
+import Toast from './components/toast/toast';
+Vue.use(Toast);
 
 Vue.use(VueLazyload, {
   preLoad: 1.3,
@@ -119,19 +124,6 @@ $( document ).ready(function() {
 
   $("#wechatDialags .js-close").on("click", function () {
     $("#wechatDialags").hide()
-  })
-
-  $("#clearAccount").on("click", function () {
-    weui.confirm('清除密码将移除本地存储的账号密码；清除后若需继续使用请重新登录并选择让京价保记住密码', function () {
-      localStorage.removeItem('jjb_account')
-      chrome.tabs.create({
-        url: "https://passport.jd.com/uc/login"
-      })
-    }, function () {
-      console.log('取消清除')
-    }, {
-      title: '清除密码确认'
-    });
   })
 
 
