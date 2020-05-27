@@ -356,6 +356,8 @@ const tasks = [
     src: {
       m: 'https://member.jr.jd.com/gcmall/',
     },
+    key: "gcmall",
+    checkin: true,
     title: '领取金融金币',
     description: "领取京东金融各种返金币",
     mode: 'iframe',

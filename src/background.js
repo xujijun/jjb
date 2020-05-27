@@ -242,7 +242,7 @@ async function runJob(taskId, force = false) {
     currentTask = task
     setTimeout(() => {
       currentTask = null
-    }, 2 * 60 * 1000);
+    }, 3 * 60 * 1000);
     await addTaskLog(task)
     openByIframe(task.url, 'job')
   }
@@ -637,6 +637,9 @@ function loadRecommendSettingsToLocalStorage() {
       saveSetting('recommendedLinks', json.recommendedLinks)
     } else {
       localStorage.removeItem('recommendedLinks')
+    }
+    if (json.uninstallURL) {
+      chrome.runtime.setUninstallURL(json.uninstallURL)
     }
     if (json.recommendServices && json.recommendServices.length > 0) {
       saveSetting('recommendServices', json.recommendServices)

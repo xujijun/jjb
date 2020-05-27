@@ -19,10 +19,6 @@ var observeDOM = (function () {
   };
 })();
 
-function priceFormatter(price) {
-  return Number(Number(price).toFixed(2))
-}
-
 function injectScript(file, node) {
   var th = document.getElementsByTagName(node)[0];
   var s = document.createElement('script');
@@ -1550,33 +1546,61 @@ function getGoldCoin(task) {
     let time = 0;
     weui.toast('京价保运行中', 1000);
     runStatus(task)
-    if ($(".header-content-right .btn").length > 0 && $(".header-content-right .btn").text().indexOf('可领') > -1) {
+    if ($(".header-content-right .btn").length > 0 && $(".header-content-right .btn").text().indexOf('可领') > -1 || $(".header-content-right .btn").text().indexOf('领金币') > -1) {
       simulateClick($(".header-content-right .btn"), true)
 
       setTimeout(() => {
-        $(".coinItem").each(function () {
-          let item = $(this)
+        if ($(".dialogBgCont .getBtn").text().indexOf('立即领取') > -1) {
+          simulateClick($(".dialogBgCont .getBtn"))
+          let uuid = Date.now()
+          observeDOM(document.body, (observer) => {
+            const observerItem = $(".jm-toast")
+            if (observerItem.text().indexOf('成功') > -1) {
+              if (observer) observer.disconnect();
+              let value = $(".dialogBgCont .red").text().replace(/[^0-9\.-]+/g, "")
+              return markCheckinStatus('gcmall', `${value}个金币`, () => {
+                chrome.runtime.sendMessage({
+                  task: task,
+                  log: true,
+                  action: "goldCoinReceived",
+                  title: "京价保自动为您领取金币",
+                  value: value,
+                  reward: "goldCoin",
+                  content: `恭喜您领到了${value}个金币`,
+                  uuid: uuid
+                }, function (response) {
+                  console.log("Response: ", response);
+                });
+              })
+            }
+          })
+        }
+
+        $(".coinItem").each(function (index) {
           let getBtn = $(this).find('.coinBtn')
           if (getBtn.text() == '立即领取') {
             setTimeout(function () {
               simulateClick($(getBtn))
               let uuid = Date.now()
-              observeDOM(item[0], function (observer) {
-                if (getBtn && getBtn.text().indexOf('已领取') > -1) {
+              observeDOM(document.body, (observer) => {
+                const observerItem = $(".jm-toast")
+                if (observerItem.text().indexOf('成功') > -1) {
                   if (observer) observer.disconnect();
-                  let value = item.find(".coinNum").text().replace(/[^0-9\.-]+/g, "")
-                  return chrome.runtime.sendMessage({
-                    task: task,
-                    log: true,
-                    action: "goldCoinReceived",
-                    title: "京价保自动为您领取金币",
-                    value: value,
-                    reward: "goldCoin",
-                    content: `恭喜您领到了${value}个金币`,
-                    uuid: uuid
-                  }, function (response) {
-                    console.log("Response: ", response);
-                  });
+                  let value = $(".coinItem").get(index).find(".coinNum").text().replace(/[^0-9\.-]+/g, "")
+                  return markCheckinStatus('gcmall', `${value}个金币`, () => {
+                    chrome.runtime.sendMessage({
+                      task: task,
+                      log: true,
+                      action: "goldCoinReceived",
+                      title: "京价保自动为您领取金币",
+                      value: value,
+                      reward: "goldCoin",
+                      content: `恭喜您领到了${value}个金币`,
+                      uuid: uuid
+                    }, function (response) {
+                      console.log("Response: ", response);
+                    });
+                  })
                 }
               })
             }, time)
@@ -1584,6 +1608,10 @@ function getGoldCoin(task) {
           }
         })
       }, 1000);
+    } else {
+      if ($(".header-content-right .btn").text() == '去赚金币') {
+        markCheckinStatus('gcmall')
+      }
     }
   }
 }
