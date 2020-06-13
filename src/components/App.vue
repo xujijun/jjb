@@ -594,12 +594,11 @@ export default {
     },
     getPromotions: function() {
       let promotions = getSetting("promotions", []);
-      promotions = _.reject(promotions, promotion => {
-        return (
-          DateTime.fromJSDate(new Date(promotion.validDate)) < DateTime.local()
-        );
+      promotions = promotions.filter(promotion => {
+        const isValid = promotion.validDate ? DateTime.fromJSDate(new Date(promotion.validDate)) > DateTime.local() : true
+        const isStarted = promotion.startDate ? DateTime.fromJSDate(new Date(promotion.startDate)) < DateTime.local() : true
+        return isValid && isStarted
       });
-      saveSetting("promotions", promotions);
       return promotions;
     },
     renderMessages: function(messages) {

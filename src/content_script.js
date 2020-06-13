@@ -1926,7 +1926,8 @@ function CheckDom() {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
     injectScriptCode(`
       setTimeout(function () {
-        TouchEmulator();
+        const touchEmulatorRes = TouchEmulator({ force: true });
+        console.log('TouchEmulator', touchEmulatorRes)
       }, 200)
     `, 'body')
   }
