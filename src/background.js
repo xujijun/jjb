@@ -428,6 +428,10 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
     if (batch != 'login-failed') {
       return
     }
+
+    if  (buttonIndex == 1) {
+      return saveSetting("mute_login-failed", true)
+    }
     switch (type) {
       case 'pc':
         if (buttonIndex == 0) {
@@ -800,6 +804,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     case 'loginFailed':
       // 保存状态
       saveLoginState(msg)
+      if (getSetting("mute_login-failed", false)) break;
       let loginErrMsg = (msg.type == 'pc' ? 'PC网页版' : '移动网页版') + "自动登录失败：" + msg.content
       if (msg.notice) {
         sendChromeNotification(new Date().getTime().toString() + "_login-failed_" + msg.type, {
@@ -810,6 +815,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
           buttons: [
             {
               "title": "现在登录"
+            },
+            {
+              "title": "不再提醒"
             }
           ]
         })

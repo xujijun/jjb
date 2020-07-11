@@ -1157,6 +1157,7 @@ function dealLoginFailed(type, errorMsg) {
     content: errorMsg,
     state: "failed"
   }
+
   // 如果是单纯的登录页面，则不发送浏览器提醒
   if (window.innerWidth == 420 || window.location.href == "https://passport.jd.com/uc/login") {
     loginFailedDetail.notice = false
