@@ -85,6 +85,7 @@ $(document).ready(function () {
             }
           });
           chart.scale('value', {
+            min: data.averagePrice ? (data.averagePrice / 3) : 0,
             nice: true,
           });
           chart.line().position('timestamp*value').shape('hv').color('key').tooltip({ fields: [ 'key', 'value', 'timestamp' ], callback: (key, value, timestamp) => {
