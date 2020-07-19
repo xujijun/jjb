@@ -393,7 +393,7 @@ async function dealProduct(product, orderInfo, setting) {
   let orderCountDom = product.find('.price-count .count').text() ? product.find('.price-count .count') : product.find('.item-name .count')
   let order_quantity =  Number(orderCountDom.text().trim().replace(/[^0-9\.-]+/g, ""))
 
-  let order_pro_logs = product.find('.show-detail').text() ? product.find('.show-detail td') : product.next().next().find('.item-jb')
+  let order_pro_logs = product.find('.show-detail').text() ? product.find('.show-detail p') : product.next().next().find('.item-jb')
 
   let product_img = product.find('a img').attr('src') ? product.find('a img').attr('src') : product.find('.img img').attr('src')
 
