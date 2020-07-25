@@ -43,7 +43,7 @@ Microsoft Edge 版本：
 
 ## 界面截图
 
-![主界面](https://jjbcdn.zaoshu.so/jjb-popup.2.5.8.1.png)
+![主界面](https://jjbcdn.zaoshu.so/website/jjb_popup@2x-squashed.jpg)
 
 
 ## 重要提示
@@ -52,7 +52,7 @@ Microsoft Edge 版本：
 
 2. 当前仓库是插件源代码，无法直接安装，如需安装请自行参考 [#如何开发](https://github.com/sunoj/jjb#%E5%A6%82%E4%BD%95%E5%BC%80%E5%8F%91) 编译。
 
-3. 京价保绝对不会在任何情况下强行劫持任何网页的访问，如果发现类似问题请善用 Google 搜索并使用二分法停用插件排除，同时考虑运营商劫持的可能性。或者，为了防止京价保的影响亦可直接卸载京价保。故不再回复类似的 Issue。详情参考：[#安全提示](https://github.com/sunoj/jjb#%E5%AE%89%E5%85%A8%E6%8F%90%E7%A4%BA)
+3. 京价保绝对不会在任何情况下强行劫持任何网页的访问，如果发现类似问题请善用 Google 搜索并使用二分法停用插件排除，同时考虑运营商劫持的可能性。详情参考：[#安全提示](https://github.com/sunoj/jjb#%E5%AE%89%E5%85%A8%E6%8F%90%E7%A4%BA)
 
 
 ## 如何开发
@@ -101,11 +101,7 @@ Microsoft Edge 版本：
 
 ## 系统支持
 
-目前京价保对 Windows 和 Mac 平台的 Chrome 有较好的支持。
-
-据用户反应，部分 Chromium 内核的国产浏览器可能有兼容问题（例如搜狗浏览器）。
-
-Ubuntu 有明确的兼容问题，由于作者不拥有任何 Ubuntu 设备，因此暂时无法解决。
+目前京价保对 Windows 和 Mac 平台的 Chrome/Microsoft Edge/Firefox 有较好的支持，对其他操作系统和浏览器的支持情况不确定。
 
 ## 获取信息
 
