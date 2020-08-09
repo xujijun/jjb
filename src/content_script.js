@@ -674,6 +674,55 @@ function getCommonUseCoupon(task) {
   }
 }
 
+// 32：购物车降价
+function priceCutNotice(task) {
+  if (task.frequency != 'never') {
+    let time = 0;
+    weui.toast('京价保运行中', 1000);
+    runStatus(task)
+    $(".cart-item-list .item-item").each(function () {
+      let item = $(this)
+      if (item.find('.pro-tiny-tip').text().indexOf("降价") > -1) {
+        let priceCut = item.find('.pro-tiny-tip').text().trim()
+        let productName = item.find('.p-name').text().trim()
+        let productPrice = item.find('.p-price strong').text().trim()
+        let productImg = item.find('.p-img img').attr("src")
+        console.log(productName, priceCut)
+        let productKey = item.attr("id")
+        let lastPriceCut = localStorage.getItem(productKey)
+
+        if (lastPriceCut && lastPriceCut == priceCut) return
+
+        localStorage.setItem(productKey, priceCut)
+
+        setTimeout(function () {
+          setTimeout(function () {
+            chrome.runtime.sendMessage({
+              action: "notice",
+              type: "priceCut",
+              task: task,
+              log: true,
+              title: "发现购物车商品降价",
+              content: {
+                product: {
+                  img: productImg,
+                  name: productName,
+                  sku: item.attr("skuId")
+                },
+                priceCut,
+                newPrice: productPrice
+              },
+            }, function (response) {
+              console.log("Response: ", response);
+            });
+          }, 1500)
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
 // 21：领取话费券
 function getTelephoneCoupon(task) {
   if (task.frequency != 'never') {
@@ -1829,6 +1878,10 @@ function triggerTask(task) {
     // 31: 白条优惠券抽奖
     case '31':
       rightsCenterWhite(task)
+      break;
+    // 32: 购物车降价
+    case '32':
+      priceCutNotice(task)
       break;
     default:
       break;
