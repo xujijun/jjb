@@ -51,7 +51,7 @@
             <span class="merchant" v-if="discount.merchant">
               <img v-lazy="discount.merchant.icon" :alt="discount.merchant.name">
             </span>
-            <a :href="`${discount.goodLink}`" target="_blank">{{discount.title}}</a>
+            <a @click="openUrl(discount.goodLink, discount.id)">{{discount.title}}</a>
             <span class="discount_price">{{discount.price}}</span>
             <report :discount="discount"></report>
           </div>
@@ -222,6 +222,13 @@ export default {
       } else {
         $state.complete();
       }
+    },
+    openUrl: async function (url, id) {
+      localStorage.setItem("clickDiscountId", id);
+      chrome.tabs.create({
+        url: url,
+        active: !(window.event.ctrlKey || window.event.metaKey)
+      });
     },
     search: async function() {
       this.getDiscounts(this.condition);
@@ -419,7 +426,7 @@ export default {
 }
 .discount-list {
   overflow-y: auto;
-  height: 465px;
+  height: calc(100vh - 140px);
   margin-top: 0;
 }
 
@@ -457,6 +464,7 @@ export default {
 .discount .description {
   display: flex;
   padding: 15px 5px;
+  overflow: hidden;
 }
 
 .discount .discount-photo {
@@ -477,7 +485,6 @@ export default {
   display: inline-block;
   font-size: 13px;
   color: #666;
-  width: 340px;
   padding-left: 10px;
   max-height: 75px;
   overflow: hidden;

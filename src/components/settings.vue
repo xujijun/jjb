@@ -526,7 +526,7 @@
             data-tippy-content="打赏开发者"
           >打赏开发者</a>
         </span>
-        <span class="el-tag el-tag--danger">
+        <span class="el-tag el-tag--danger" style="margin-left: 3px;">
           <a
             href="#"
             class="switch-paymethod"
@@ -894,7 +894,6 @@ export default {
     // 任务列表
     getTaskList: async function() {
       this.taskList = getTasks();
-      console.log(this.taskList)
     },
     retryTask: function(task, hideNotice = false) {
       chrome.runtime.sendMessage(
@@ -948,7 +947,10 @@ export default {
 <style  scoped>
 .settings_box {
   overflow: hidden;
-  height: 510px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: calc(100vh - 92px);
 }
 
 .settings .page__desc {
@@ -963,7 +965,6 @@ export default {
 }
 .settings .task-list {
   margin-top: 5px;
-  height: 425px;
   overflow-y: auto;
 }
 
@@ -990,10 +991,6 @@ export default {
 
 .settings .task-list .weui-cells {
   margin-top: 0;
-}
-
-.tasks {
-  height: 420px;
 }
 
 .enabled-task {

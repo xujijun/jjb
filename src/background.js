@@ -453,6 +453,22 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
   }
 })
 
+chrome.contextMenus.create({
+  title: "作为独立窗口打开",
+  contexts: ["browser_action"],
+  onclick: () => {
+    chrome.windows.create({
+      url: chrome.runtime.getURL("popup.html"),
+      width: 800,
+      height: 620,
+      top: 0,
+      type: "popup",
+      state: 'normal'
+    }, function (win) {
+      chrome.windows.update(win.id, { focused: true });
+    });
+  }
+});
 
 function resetIcon() {
   chrome.browserAction.getBadgeText({}, function (text){
@@ -479,7 +495,10 @@ function updateIcon() {
   switch (loginState.class) {
     case 'alive':
       resetIcon();
-      chrome.contextMenus.removeAll();
+      try {
+        chrome.contextMenus.remove("login-notice");
+      } catch (error) {
+      }
       break;
     case 'failed':
       chrome.browserAction.setBadgeBackgroundColor({
@@ -497,8 +516,12 @@ function updateIcon() {
           "38": "static/image/offline38x.png"
         }
       });
-      chrome.contextMenus.removeAll();
+      try {
+        chrome.contextMenus.remove("login-notice");
+      } catch (error) {
+      }
       chrome.contextMenus.create({
+        id: "login-notice",
         title: "账号登录失效，点击登录",
         contexts: ["browser_action"],
         onclick: function() {
@@ -521,8 +544,12 @@ function updateIcon() {
             "38": "static/image/partial-offline38x.png"
           }
         });
-        chrome.contextMenus.removeAll();
+        try {
+          chrome.contextMenus.remove("login-notice");
+        } catch (error) {
+        }
         chrome.contextMenus.create({
+          id: "login-notice",
           title: "登录部分失效，点击登录",
           contexts: ["browser_action"],
           onclick: function() {

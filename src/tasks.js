@@ -193,6 +193,7 @@ const tasks = [
     },
     deprecated: true
   },
+  // 已失效
   {
     id: '5',
     src: {
@@ -210,7 +211,8 @@ const tasks = [
       weekly: 32,
       daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '14', // 已失效

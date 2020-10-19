@@ -1,458 +1,467 @@
 <template>
   <div>
-    <settings
-      :login-state="loginState"
-      @show-login="showLoginState = true"
-      @update-order-link="updateDisableOrderLink"
-    ></settings>
-    <div class="contents">
-      <div class="weui-tab">
+    <div class="main-app">
+      <settings
+        :login-state="loginState"
+        @show-login="showLoginState = true"
+        @update-order-link="updateDisableOrderLink"
+      ></settings>
+      <div class="contents">
         <div class="weui-navbar">
-          <div
-            :class="
-              `weui-navbar__item ${
-                contentType == 'orders' ? 'weui-bar__item_on' : ''
-              }`
-            "
-            @click="switchContentType('orders')"
-          >
-            最近订单
-            <a
-              href="https://order.jd.com/center/list.action"
-              target="_blank"
-              data-tippy-placement="top-start"
-              class="tippy"
-              data-tippy-content="打开京东订单列表"
+            <div
+              :class="
+                `weui-navbar__item ${
+                  contentType == 'orders' ? 'weui-bar__item_on' : ''
+                }`
+              "
+              @click="switchContentType('orders')"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                style="margin-bottom: -1px"
+            <div class="nav-item">
+              最近订单
+              <a
+                href="https://order.jd.com/center/list.action"
+                target="_blank"
+                data-tippy-placement="top-start"
+                class="tippy"
+                data-tippy-content="打开京东订单列表"
               >
-                <path
-                  fill="#fff"
-                  stroke="#888"
-                  d="M1.5 4.518h5.982V10.5H1.5z"
-                ></path>
-                <path
-                  d="M5.765 1H11v5.39L9.427 7.937l-1.31-1.31L5.393 9.35l-2.69-2.688 2.81-2.808L4.2 2.544z"
-                  fill="#888"
-                ></path>
-                <path
-                  d="M9.995 2.004l.022 4.885L8.2 5.07 5.32 7.95 4.09 6.723l2.882-2.88-1.85-1.852z"
-                  fill="#fff"
-                ></path>
-              </svg>
-            </a>
-          </div>
-          <div
-            :class="
-              `weui-navbar__item ${
-                contentType == 'messages' ? 'weui-bar__item_on' : ''
-              }`
-            "
-            @click="switchContentType('messages')"
-          >
-            最近通知
-            <span class="weui-badge" v-if="unreadCount > 0">{{
-              unreadCount
-            }}</span>
-          </div>
-          <div
-            :class="
-              `weui-navbar__item zaoshu-tab ${
-                contentType == 'discounts' ? 'weui-bar__item_on' : ''
-              }`
-            "
-            @click="switchContentType('discounts')"
-          >
-            <img
-              src="../../static/image/zaoshu.png"
-              alt=""
-              class="zaoshu-icon"
-            />
-            枣树集惠
-            <span
-              class="weui-badge weui-badge_dot new-discounts"
-              v-if="newDiscounts"
-            ></span>
-          </div>
-        </div>
-        <div class="weui-tab__panel">
-          <div
-            id="orders"
-            v-if="contentType == 'orders'"
-            class="weui-cells contents-box orders"
-          >
-            <ul v-if="orders && orders.length > 0">
-              <li
-                v-for="order in orders"
-                :key="order.id"
-                v-show="
-                  (order.promotionInfo &&
-                    hiddenPromotionIds.indexOf(order.id) < 0) ||
-                    (order.goods && order.goods.length > 0)
-                "
-              >
-                <div class="order_time">
-                  <span v-show="order.displayTime"
-                    >下单时间： {{ order.displayTime }}</span
-                  >
-                  <span v-show="order.promotionInfo">{{
-                    order.promotionInfo
-                  }}</span>
-                  <span
-                    v-if="order.promotionInfo"
-                    v-tippy
-                    title="不感兴趣"
-                    class="dismiss"
-                    @click="dismiss(order)"
-                    >&times;</span
-                  >
-                  <span
-                    v-else
-                    v-show="order.id"
-                    v-tippy
-                    :title="
-                      hiddenOrderIds.indexOf(order.id) > -1
-                        ? '显示订单'
-                        : '隐藏订单'
-                    "
-                    :class="
-                      hiddenOrderIds.indexOf(order.id) > -1
-                        ? 'show-order'
-                        : 'hide-order'
-                    "
-                    @click="toggleOrder(order)"
-                  ></span>
-                </div>
-                <div class="weui-cell promotion" v-if="order.promotionInfo">
-                  <div class="weui-cell__bd">
-                    <div class="good_title">
-                      <img
-                        v-if="order.img"
-                        :src="`https:${order.img}`"
-                        @error.once="backup_picture($event)"
-                        class="promotion_title backup_picture"
-                        :alt="order.title"
-                      />
-                      <a :href="`${order.link}`" target="_blank">{{
-                        order.title
-                      }}</a>
-                      <p class="description">{{ order.description }}</p>
-                    </div>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <span class="promotion_price">{{ order.priceInfo }}</span>
-                    <a
-                      :href="`${order.link}`"
-                      target="_blank"
-                      class="buy-btn weui-btn weui-btn_mini weui-btn_primary"
-                      >{{ order.buttonText }}</a
-                    >
-                  </div>
-                </div>
-                <div
-                  v-for="(good, index) in order.goods"
-                  :key="index"
-                  :class="`order-good ${good.suspended}`"
-                  v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  style="margin-bottom: -1px"
                 >
-                  <div
-                    class="weui-cell good"
-                    v-if="good && good.order_price > 0"
-                  >
+                  <path
+                    fill="#fff"
+                    stroke="#888"
+                    d="M1.5 4.518h5.982V10.5H1.5z"
+                  ></path>
+                  <path
+                    d="M5.765 1H11v5.39L9.427 7.937l-1.31-1.31L5.393 9.35l-2.69-2.688 2.81-2.808L4.2 2.544z"
+                    fill="#888"
+                  ></path>
+                  <path
+                    d="M9.995 2.004l.022 4.885L8.2 5.07 5.32 7.95 4.09 6.723l2.882-2.88-1.85-1.852z"
+                    fill="#fff"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+            </div>
+            <div
+              :class="
+                `weui-navbar__item ${
+                  contentType == 'messages' ? 'weui-bar__item_on' : ''
+                }`
+              "
+              @click="switchContentType('messages')"
+            >
+            <div class="nav-item">
+              最近通知
+              <span class="weui-badge" v-if="unreadCount > 0">{{
+                unreadCount
+              }}</span>
+            </div>
+            </div>
+            <div
+              :class="
+                `weui-navbar__item zaoshu-tab ${
+                  contentType == 'discounts' ? 'weui-bar__item_on' : ''
+                }`
+              "
+              @click="switchContentType('discounts')"
+            >
+            <div class="nav-item">
+              <img
+                src="../../static/image/zaoshu.png"
+                alt=""
+                class="zaoshu-icon"
+              />
+              枣树集惠
+              <span
+                class="weui-badge weui-badge_dot new-discounts"
+                v-if="newDiscounts"
+              ></span>
+            </div>
+            </div>
+          </div>
+        <div class="weui-tab">
+          <div class="weui-tab__panel">
+            <div
+              id="orders"
+              v-show="contentType == 'orders'"
+              class="weui-cells contents-box orders"
+            >
+              <ul v-if="orders && orders.length > 0">
+                <li
+                  v-for="order in orders"
+                  :key="order.id"
+                  v-show="
+                    (order.promotionInfo &&
+                      hiddenPromotionIds.indexOf(order.id) < 0) ||
+                      (order.goods && order.goods.length > 0)
+                  "
+                >
+                  <div class="order_time">
+                    <span v-show="order.displayTime"
+                      >下单时间： {{ order.displayTime }}</span
+                    >
+                    <span v-show="order.promotionInfo">{{
+                      order.promotionInfo
+                    }}</span>
+                    <span
+                      v-if="order.promotionInfo"
+                      v-tippy
+                      title="不感兴趣"
+                      class="dismiss"
+                      @click="dismiss(order)"
+                      >&times;</span
+                    >
+                    <span
+                      v-else
+                      v-show="order.id"
+                      v-tippy
+                      :title="
+                        hiddenOrderIds.indexOf(order.id) > -1
+                          ? '显示订单'
+                          : '隐藏订单'
+                      "
+                      :class="
+                        hiddenOrderIds.indexOf(order.id) > -1
+                          ? 'show-order'
+                          : 'hide-order'
+                      "
+                      @click="toggleOrder(order)"
+                    ></span>
+                  </div>
+                  <div class="weui-cell promotion" v-if="order.promotionInfo">
                     <div class="weui-cell__bd">
                       <div class="good_title">
-                        <div class="good_img">
-                          <img
-                            v-if="good.img"
-                            :src="`https:${good.img}`"
-                            @error.once="backup_picture($event)"
-                            class="backup_picture"
-                            :alt="good.name"
-                          />
-                          <div class="monitoring">
-                            <span
-                              v-if="good.suspended"
-                              @click="toggleSuspend(order, good, index)"
-                              class="resume"
-                              v-tippy
-                              title="恢复价保"
-                            ></span>
-                            <span
-                              v-else
-                              class="suspend"
-                              @click="toggleSuspend(order, good, index)"
-                              v-tippy
-                              title="停止价保"
-                            ></span>
-                          </div>
-                        </div>
-                        <p v-if="good.sku">
-                          <a
-                            v-if="!disableOrderLink"
-                            :href="`https://jjb.zaoshu.so/good/${good.sku}`"
-                            target="_blank"
-                            >{{ good.name }}</a
-                          >
-                          <a v-else>{{ good.name }}</a>
-                          <span class="count" v-if="good.quantity"
-                            >&times; {{ good.quantity }}</span
-                          >
-                        </p>
+                        <img
+                          v-if="order.img"
+                          :src="`https:${order.img}`"
+                          @error.once="backup_picture($event)"
+                          class="promotion_title backup_picture"
+                          :alt="order.title"
+                        />
+                        <a :href="`${order.link}`" target="_blank">{{
+                          order.title
+                        }}</a>
+                        <p class="description">{{ order.description }}</p>
                       </div>
                     </div>
                     <div class="weui-cell__ft">
-                      <span class="order_price">￥{{ good.order_price }}</span>
-                      <div class="sku_price" v-if="skuPriceList[good.sku]">
-                        <span
-                          class="new_price down"
-                          v-if="good.order_price > skuPriceList[good.sku].price"
-                          >￥{{ skuPriceList[good.sku].price }}</span
-                        >
-                        <span
-                          class="new_price up"
-                          v-else-if="
-                            good.order_price < skuPriceList[good.sku].price
-                          "
-                          >￥{{ skuPriceList[good.sku].price }}</span
-                        >
-                        <span class="new_price" v-else
-                          >￥{{ skuPriceList[good.sku].price }}</span
-                        >
-                      </div>
+                      <span class="promotion_price">{{ order.priceInfo }}</span>
+                      <a
+                        :href="`${order.link}`"
+                        target="_blank"
+                        class="buy-btn weui-btn weui-btn_mini weui-btn_primary"
+                        >{{ order.buttonText }}</a
+                      >
                     </div>
                   </div>
-                  <p
-                    :class="`log ${log.status}`"
-                    v-for="(log, index) in good.logs"
+                  <div
+                    v-for="(good, index) in order.goods"
                     :key="index"
+                    :class="`order-good ${good.suspended}`"
+                    v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true"
                   >
-                    {{ log.message }}
-                  </p>
-                </div>
-              </li>
-              <p class="text-tips">
-                <a
-                  href="https://blog.jjb.im/price-protection-policy.html"
-                  target="_block"
-                  v-tippy
-                  title="点击了解京东价格保护政策"
-                  >只显示在价保有效期内且下单金额大于0的订单</a
-                >
-              </p>
-            </ul>
-            <div class="no_order" v-else>
-              <div v-if="loadingOrder">
-                <h4>正在加载最近订单</h4>
-              </div>
-              <div v-else>
-                <h4>暂时还没有监控到订单</h4>
-                <p class="tips">只显示尚在价保有效期的订单</p>
-              </div>
-            </div>
-          </div>
-          <div
-            id="messages"
-            v-if="contentType == 'messages'"
-            class="weui-cells contents-box messages"
-          >
-            <div class="messages-top">
-              <div class="messages-header message-type">
-                <div role="radiogroup" class="el-radio-group">
-                  <label
-                    role="radio"
-                    tabindex="-1"
-                    class="el-radio-button el-radio-button--mini is-active"
-                  >
-                    <input
-                      type="radio"
-                      v-model="selectedTab"
-                      tabindex="-1"
-                      class="el-radio-button__orig-radio"
-                      value="checkin_notice"
-                    />
-                    <span class="el-radio-button__inner">签到记录</span>
-                  </label>
-                  <label
-                    role="radio"
-                    aria-disabled="true"
-                    tabindex="-1"
-                    class="el-radio-button el-radio-button--mini"
-                  >
-                    <input
-                      type="radio"
-                      v-model="selectedTab"
-                      tabindex="-1"
-                      class="el-radio-button__orig-radio"
-                      value="priceProtectionNotice"
-                    />
-                    <span class="el-radio-button__inner">价保记录</span>
-                  </label>
-                  <label
-                    role="radio"
-                    aria-disabled="true"
-                    tabindex="-1"
-                    class="el-radio-button el-radio-button--mini"
-                  >
-                    <input
-                      type="radio"
-                      v-model="selectedTab"
-                      tabindex="-1"
-                      class="el-radio-button__orig-radio"
-                      value="coupon"
-                    />
-                    <div class="el-radio-button__inner">领券记录</div>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="message-items" v-if="messages && messages.length > 0">
-              <li v-for="(message, index) in messages" :key="index">
-                <div
-                  :class="`weui-panel__bd message-item type-${message.type}`"
-                  v-show="
-                    !selectedTab ||
-                      selectedTab == message.type ||
-                      (selectedTab == 'priceProtectionNotice' &&
-                        message.type == 'notice')
-                  "
-                >
-                  <div class="weui-media-box weui-media-box_text">
-                    <h4 class="weui-media-box__title message">
-                      <i
-                        :class="
-                          `${message.type} ${message.batch} ${message.unit}`
-                        "
-                      ></i>
-                      {{ message.title }}
-                    </h4>
-                    <div class="coupon-box" v-if="message.coupon">
-                      <p>
-                        <span class="price">{{message.coupon.price}}</span>
-                      </p>
-                      <a
-                        v-if="message.coupon.batch == 'baitiao'"
-                        href="https://vip.jr.jd.com/coupon/myCoupons?default=IOU"
-                        target="_blank"
-                      >{{message.coupon.name}}</a>
-                      <a
-                        v-else-if="message.coupon.batch"
-                        :href="`https://search.jd.com/Search?coupon_batch=${message.coupon.batch}`"
-                        target="_blank"
-                      >{{message.coupon.name}}</a>
-                      <a
-                        v-else
-                        href="https://jjb.zaoshu.so/event/jdc?e=0&p=AyIPZRprFDJWWA1FBCVbV0IUWVALHFRBEwQAQB1AWQkrW1N8UGM3WyZ1VmxSCHMIE1dEbytsKxkOfARUG1IJAhMbVR5KFQsZBFUQWhAyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1cTXxUBFwBQG1McMhU3F18ES1kiN2UrayUCEjdVKwRRX08%3D&t=W1dCFFlQCxxUQRMEAEAdQFkJ"
-                        target="_blank"
-                      >{{message.coupon.name}}</a>
-                    </div>
-                    <div class="product-box" v-else-if="message.content.priceCut">
-                      <div class="good_title">
-                        <div class="good_img">
-                          <img
-                            v-if="message.content.product"
-                            :src="`https:${message.content.product.img}`"
-                            @error.once="backup_picture($event)"
-                            class="backup_picture"
-                            :alt="message.content.product.name"
-                          />
+                    <div
+                      class="weui-cell good"
+                      v-if="good && good.order_price > 0"
+                    >
+                      <div class="weui-cell__bd">
+                        <div class="good_title">
+                          <div class="good_img">
+                            <img
+                              v-if="good.img"
+                              :src="`https:${good.img}`"
+                              @error.once="backup_picture($event)"
+                              class="backup_picture"
+                              :alt="good.name"
+                            />
+                            <div class="monitoring">
+                              <span
+                                v-if="good.suspended"
+                                @click="toggleSuspend(order, good, index)"
+                                class="resume"
+                                v-tippy
+                                title="恢复价保"
+                              ></span>
+                              <span
+                                v-else
+                                class="suspend"
+                                @click="toggleSuspend(order, good, index)"
+                                v-tippy
+                                title="停止价保"
+                              ></span>
+                            </div>
+                          </div>
+                          <p v-if="good.sku">
+                            <a
+                              v-if="!disableOrderLink"
+                              :href="`https://jjb.zaoshu.so/good/${good.sku}`"
+                              target="_blank"
+                              >{{ good.name }}</a
+                            >
+                            <a v-else>{{ good.name }}</a>
+                            <span class="count" v-if="good.quantity"
+                              >&times; {{ good.quantity }}</span
+                            >
+                          </p>
                         </div>
-                        <p v-if="message.content.product">
-                          <a
-                            v-if="!disableOrderLink"
-                            :href="`https://jjb.zaoshu.so/good/${message.content.product.sku}`"
-                            target="_blank"
-                            >{{ message.content.product.name }}</a>
-                          <a v-else>{{ message.content.product.name }}</a>
+                      </div>
+                      <div class="weui-cell__ft">
+                        <span class="order_price">￥{{ good.order_price }}</span>
+                        <div class="sku_price" v-if="skuPriceList[good.sku]">
+                          <span
+                            class="new_price down"
+                            v-if="good.order_price > skuPriceList[good.sku].price"
+                            >￥{{ skuPriceList[good.sku].price }}</span
+                          >
+                          <span
+                            class="new_price up"
+                            v-else-if="
+                              good.order_price < skuPriceList[good.sku].price
+                            "
+                            >￥{{ skuPriceList[good.sku].price }}</span
+                          >
+                          <span class="new_price" v-else
+                            >￥{{ skuPriceList[good.sku].price }}</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <p
+                      :class="`log ${log.status}`"
+                      v-for="(log, index) in good.logs"
+                      :key="index"
+                    >
+                      {{ log.message }}
+                    </p>
+                  </div>
+                </li>
+                <p class="text-tips">
+                  <a
+                    href="https://blog.jjb.im/price-protection-policy.html"
+                    target="_block"
+                    v-tippy
+                    title="点击了解京东价格保护政策"
+                    >只显示在价保有效期内且下单金额大于0的订单</a
+                  >
+                </p>
+              </ul>
+              <div class="no_order" v-else>
+                <div v-if="loadingOrder">
+                  <h4>正在加载最近订单</h4>
+                </div>
+                <div v-else>
+                  <h4>暂时还没有监控到订单</h4>
+                  <p class="tips">只显示尚在价保有效期的订单</p>
+                </div>
+              </div>
+            </div>
+            <div
+              id="messages"
+              v-show="contentType == 'messages'"
+              class="weui-cells contents-box messages"
+            >
+              <div class="messages-top">
+                <div class="messages-header message-type">
+                  <div role="radiogroup" class="el-radio-group">
+                    <label
+                      role="radio"
+                      tabindex="-1"
+                      class="el-radio-button el-radio-button--mini is-active"
+                    >
+                      <input
+                        type="radio"
+                        v-model="selectedTab"
+                        tabindex="-1"
+                        class="el-radio-button__orig-radio"
+                        value="checkin_notice"
+                      />
+                      <span class="el-radio-button__inner">签到记录</span>
+                    </label>
+                    <label
+                      role="radio"
+                      aria-disabled="true"
+                      tabindex="-1"
+                      class="el-radio-button el-radio-button--mini"
+                    >
+                      <input
+                        type="radio"
+                        v-model="selectedTab"
+                        tabindex="-1"
+                        class="el-radio-button__orig-radio"
+                        value="priceProtectionNotice"
+                      />
+                      <span class="el-radio-button__inner">价保记录</span>
+                    </label>
+                    <label
+                      role="radio"
+                      aria-disabled="true"
+                      tabindex="-1"
+                      class="el-radio-button el-radio-button--mini"
+                    >
+                      <input
+                        type="radio"
+                        v-model="selectedTab"
+                        tabindex="-1"
+                        class="el-radio-button__orig-radio"
+                        value="coupon"
+                      />
+                      <div class="el-radio-button__inner">领券记录</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="message-items" v-if="messages && messages.length > 0">
+                <li v-for="(message, index) in messages" :key="index">
+                  <div
+                    :class="`weui-panel__bd message-item type-${message.type}`"
+                    v-show="
+                      !selectedTab ||
+                        selectedTab == message.type ||
+                        (selectedTab == 'priceProtectionNotice' &&
+                          message.type == 'notice')
+                    "
+                  >
+                    <div class="weui-media-box weui-media-box_text">
+                      <h4 class="weui-media-box__title message">
+                        <i
+                          :class="
+                            `${message.type} ${message.batch} ${message.unit}`
+                          "
+                        ></i>
+                        {{ message.title }}
+                      </h4>
+                      <div class="coupon-box" v-if="message.coupon">
+                        <p>
+                          <span class="price">{{message.coupon.price}}</span>
+                        </p>
+                        <a
+                          v-if="message.coupon.batch == 'baitiao'"
+                          href="https://vip.jr.jd.com/coupon/myCoupons?default=IOU"
+                          target="_blank"
+                        >{{message.coupon.name}}</a>
+                        <a
+                          v-else-if="message.coupon.batch"
+                          :href="`https://search.jd.com/Search?coupon_batch=${message.coupon.batch}`"
+                          target="_blank"
+                        >{{message.coupon.name}}</a>
+                        <a
+                          v-else
+                          href="https://jjb.zaoshu.so/event/jdc?e=0&p=AyIPZRprFDJWWA1FBCVbV0IUWVALHFRBEwQAQB1AWQkrW1N8UGM3WyZ1VmxSCHMIE1dEbytsKxkOfARUG1IJAhMbVR5KFQsZBFUQWhAyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1cTXxUBFwBQG1McMhU3F18ES1kiN2UrayUCEjdVKwRRX08%3D&t=W1dCFFlQCxxUQRMEAEAdQFkJ"
+                          target="_blank"
+                        >{{message.coupon.name}}</a>
+                      </div>
+                      <div class="product-box" v-else-if="message.content.priceCut">
+                        <div class="good_title">
+                          <div class="good_img">
+                            <img
+                              v-if="message.content.product"
+                              :src="`https:${message.content.product.img}`"
+                              @error.once="backup_picture($event)"
+                              class="backup_picture"
+                              :alt="message.content.product.name"
+                            />
+                          </div>
+                          <p v-if="message.content.product">
+                            <a
+                              v-if="!disableOrderLink"
+                              :href="`https://jjb.zaoshu.so/good/${message.content.product.sku}`"
+                              target="_blank"
+                              >{{ message.content.product.name }}</a>
+                            <a v-else>{{ message.content.product.name }}</a>
+                          </p>
+                        </div>
+                        <p>
+                          <span class="price-cut">{{
+                            message.content.priceCut
+                          }}</span>
+                          <span class="new-price"><a href="https://cart.jd.com/" target="_black">当前价格：{{ message.content.newPrice }}</a></span>
                         </p>
                       </div>
-                      <p>
-                        <span class="price-cut">{{
-                          message.content.priceCut
-                        }}</span>
-                        <span class="new-price"><a href="https://cart.jd.com/" target="_black">当前价格：{{ message.content.newPrice }}</a></span>
+                      <p v-else class="weui-media-box__desc">
+                        {{ message.content }}
                       </p>
+                      <ul class="weui-media-box__info">
+                        <li class="weui-media-box__info__meta">
+                          时间: {{ message.time }}
+                        </li>
+                      </ul>
                     </div>
-                    <p v-else class="weui-media-box__desc">
-                      {{ message.content }}
-                    </p>
-                    <ul class="weui-media-box__info">
-                      <li class="weui-media-box__info__meta">
-                        时间: {{ message.time }}
-                      </li>
-                    </ul>
                   </div>
-                </div>
-              </li>
+                </li>
+              </div>
+              <div class="no_message" v-else>暂时还没有未读消息</div>
             </div>
-            <div class="no_message" v-else>暂时还没有未读消息</div>
+            <keep-alive>
+            <discounts v-if="contentType == 'discounts'"/>
+            </keep-alive>
           </div>
-          <discounts v-if="contentType == 'discounts'" />
         </div>
-      </div>
-      <div class="bottom">
-        <div class="weui-tabbar">
-          <a
-            id="pricePro"
-            class="weui-tabbar__item"
-            v-tippy
-            title="打开京东价格保护页面"
-          >
-            <img
-              src="../../static/image/money.png"
-              alt=""
-              class="weui-tabbar__icon"
-            />
-            <p class="weui-tabbar__label">价保页面</p>
-          </a>
-          <a
-            class="showChangelog weui-tabbar__item"
-            @click="showChangelog"
-            v-tippy
-            :title="`当前版本：${currentVersion}，查看京价保最近更新记录`"
-            style="position: relative;"
-          >
-            <img
-              src="../../static/image/update.png"
-              alt=""
-              class="weui-tabbar__icon"
-            />
-            <p class="weui-tabbar__label">
-              最近更新
-              <span
-                class="weui-badge weui-badge_dot"
-                style="position: absolute;top: 0;right: 4em;"
-                v-if="newChangelog"
-              ></span>
-              <span
-                class="weui-badge"
-                style="position: absolute;top: -.4em;right: 2em;"
-                v-if="newVersion"
-                >有新版</span
-              >
-            </p>
-          </a>
-          <a
-            id="openGithub"
-            class="weui-tabbar__item"
-            href="https://github.com/sunoj/jjb"
-            v-tippy
-            title="点击查看本插件的全部代码"
-            target="_blank"
-          >
-            <img
-              src="../../static/image/github.png"
-              alt=""
-              class="weui-tabbar__icon"
-            />
-            <p class="weui-tabbar__label">源代码</p>
-          </a>
+        <div class="bottom">
+            <a
+              id="pricePro"
+              class="weui-tabbar__item"
+              v-tippy
+              title="打开京东价格保护页面"
+            >
+              <img
+                src="../../static/image/money.png"
+                alt=""
+                class="weui-tabbar__icon"
+              />
+              <p class="weui-tabbar__label">价保页面</p>
+            </a>
+            <a
+              class="showChangelog weui-tabbar__item"
+              @click="showChangelog"
+              v-tippy
+              :title="`当前版本：${currentVersion}，查看京价保最近更新记录`"
+              style="position: relative;"
+            >
+              <img
+                src="../../static/image/update.png"
+                alt=""
+                class="weui-tabbar__icon"
+              />
+              <p class="weui-tabbar__label">
+                最近更新
+                <span
+                  class="weui-badge weui-badge_dot"
+                  style="position: absolute;top: 0;right: 4em;"
+                  v-if="newChangelog"
+                ></span>
+                <span
+                  class="weui-badge"
+                  style="position: absolute;top: -.4em;right: 2em;"
+                  v-if="newVersion"
+                  >有新版</span
+                >
+              </p>
+            </a>
+            <a
+              id="openGithub"
+              class="weui-tabbar__item"
+              href="https://github.com/sunoj/jjb"
+              v-tippy
+              title="点击查看本插件的全部代码"
+              target="_blank"
+            >
+              <img
+                src="../../static/image/github.png"
+                alt=""
+                class="weui-tabbar__icon"
+              />
+              <p class="weui-tabbar__label">源代码</p>
+            </a>
         </div>
       </div>
     </div>
+
     <div class="dialogs">
       <guide v-if="showGuide" :login-state="loginState"></guide>
       <login-notice
@@ -469,6 +478,41 @@
         :className="dialog.className"
         :buttons="dialog.buttons"
       ></we-dialog>
+      <!-- 建议反馈 -->
+      <div id="feedbackDialags">
+        <div class="js_dialog" style="opacity: 1;">
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">建议反馈</strong>
+            </div>
+            <span class="js-close">x</span>
+            <iframe id="feedbackIframe" frameborder="0" src=""></iframe>
+            <div class="weui-toast iframe-loading">
+              <i class="weui-loading weui-icon_toast"></i>
+              <p class="weui-toast__content">数据加载中</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 常见问题 -->
+      <div id="faqDialags">
+        <div class="js_dialog" style="opacity: 1;">
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <strong class="weui-dialog__title">常见问题</strong>
+            </div>
+            <span class="js-close">x</span>
+            <iframe id="faqIframe" src="" frameborder="0"></iframe>
+            <div class="weui-toast iframe-loading">
+              <i class="weui-loading weui-icon_toast"></i>
+              <p class="weui-toast__content">数据加载中</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -865,17 +909,15 @@ export default {
 .messages,
 .discounts {
   overflow: hidden;
-  height: 510px;
-  width: 431px;
 }
 
 .contents-box.orders ul {
-  height: 510px;
+  min-height: 510px;
   overflow-y: auto;
 }
 .message-items {
   margin-top: 45px;
-  height: 460px;
+  min-height: 460px;
   overflow-y: auto;
 }
 .order-good.suspended {
@@ -885,14 +927,17 @@ export default {
   background-image: linear-gradient(180deg, #09bb07, #06a90c94);
 }
 
-.messages-header {
+.messages-top{
   display: flex;
+  justify-content: center;
   border-bottom: 1px solid #ebeef5;
+  background: #fafafa;
+}
+
+.messages-header {
   height: 32px;
   padding-top: 6px;
   position: fixed;
-  width: 432px;
-  background: #fafafa;
   z-index: 10;
 }
 

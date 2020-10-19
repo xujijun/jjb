@@ -44,34 +44,6 @@ injectScriptCode(`
   }
 `, 'body')
 
-function escapeSpecialChars(jsonString) {
-  return jsonString.replace(/\\n/g, "\\n").replace(/\\'/g, "\\'").replace(/\\"/g, '\\"').replace(/\\&/g, "\\&").replace(/\\r/g, "\\r").replace(/\\t/g, "\\t").replace(/\\b/g, "\\b").replace(/\\f/g, "\\f");
-}
-
-async function fetchProductPage(sku) {
-  var resp = await fetch('https://item.m.jd.com/product/' + sku + '.html', {
-    cache: 'no-cache'
-  })
-  var page = await resp.text()
-  if ($(page)[0] && $(page)[0].id == 'returnurl') {
-    var url = $(page)[0].value.replace("http://", "https://")
-    var request = new XMLHttpRequest();
-    request.open('GET', url, false);
-    request.send(null);
-
-    if (request.status === 200) {
-      var newData = request.responseText
-      request.abort();
-      return newData
-    } else {
-      request.abort();
-      throw new Error('GET Error')
-    }
-  } else {
-    return page
-  }
-}
-
 function mockClick(element) {
   var dispatchMouseEvent = function (target, var_args) {
     var e = document.createEvent("MouseEvents");
@@ -973,13 +945,7 @@ function priceProtect(task) {
   }
 }
 
-// 从京东热卖自动跳转到商品页面
-function autoGobuy(setting) {
-  if (setting == "checked") {
-    weui.toast('京价保自动跳转', 3000);
-    simulateClick($(".shop_intro .gobuy a"))
-  }
-}
+
 
 // 显示引荐来源
 function showUtmSource() {
@@ -1510,10 +1476,11 @@ function baitiaoLottery(task) {
 function beanCheckin(task) {
   function observerBeanCheckinResult() {
     observeDOM(document.body, function (observer) {
-      let resultElement = $('span:contains("签到成功 恭喜获得")')
-      if (resultElement && resultElement.text().indexOf('恭喜') > -1) {
+      const resultContent = $(".gradBackground").text()
+      let res = resultContent.match(/签到成功.*([0-9]+).*/)
+      if (res) {
         if (observer) observer.disconnect();
-        let value = resultElement.parent().next().text().replace(/[^0-9\.-]+/g, "")
+        let value = res[1]
         markCheckinStatus('bean', value + '京豆', () => {
           chrome.runtime.sendMessage({
             action: "checkin_notice",
@@ -2028,12 +1995,6 @@ function CheckDom() {
   // 领取精选券
   if ($(".coupon_sec_body").length > 0) {
     getTask('2', pickupCoupon)
-  };
-
-  // 自动跳转至商品页面
-  if ($(".shop_intro .gobuy").length > 0) {
-    showUtmSource()
-    getSetting('auto_gobuy', autoGobuy)
   };
 
   // 手机验证码
