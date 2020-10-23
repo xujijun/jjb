@@ -150,5 +150,6 @@ chrome.tabs.getZoomSettings(function (zoomSettings) {
   if (zoomSettings.defaultZoomFactor > 1 && zoomSettings.scope == 'per-origin' && zoomSettings.mode == 'automatic') {
     let zoomPercent = (100 / (zoomSettings.defaultZoomFactor * 100)) * 100;
     document.body.style.zoom = zoomPercent + '%'
+    document.body.style.setProperty("--zoom-factor", zoomSettings.defaultZoomFactor);
   }
 })

@@ -950,7 +950,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: calc(100vh - 92px);
+  height: calc(100vh * var(--zoom-factor) - 92px);
 }
 
 .settings .page__desc {

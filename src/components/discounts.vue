@@ -426,7 +426,7 @@ export default {
 }
 .discount-list {
   overflow-y: auto;
-  height: calc(100vh - 140px);
+  height: calc(100vh * var(--zoom-factor) - 140px);
   margin-top: 0;
 }
 
