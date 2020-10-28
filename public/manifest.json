@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "京价保 - 京东价保助手",
   "short_name": "京价保",
-  "description": "京价保（京价宝）是自动为你申请京东价格保护，自动签到领京豆、钢镚的多功能京东助手",
+  "description": "京价保是一个监控京东商品价格变化，即时提供价保申请信息的浏览器插件",
   "version": "0.1.1",
   "background": {
     "page": "background.html",
@@ -35,6 +35,16 @@
         "*://msitepp-fm.jd.com/*"
       ],
       "all_frames": true
+    },
+    {
+      "run_at": "document_end",
+      "js": [
+        "static/priceChart.js"
+      ],
+      "matches": [
+        "*://item.jd.com/*",
+        "*://re.jd.com/*"
+      ]
     }
   ],
   "icons": {
@@ -43,7 +53,6 @@
     "128": "static/image/128.png"
   },
   "web_accessible_resources": [
-    "static/priceChart.js",
     "static/touch-emulator.js"
   ],
   "permissions": [

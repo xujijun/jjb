@@ -973,30 +973,6 @@ function showUtmSource() {
   })
 }
 
-// 价格历史
-function showPriceChart(disable) {
-  if (disable == "checked") {
-    console.log('价格走势图已禁用')
-  } else {
-    injectScript(chrome.extension.getURL('/static/priceChart.js'), 'body');
-    window.addEventListener("message", function (event) {
-      if (event.source != window)
-        return;
-      if (event.data.type && (event.data.type == "FROM_PAGE") && (event.data.text == "disablePriceChart")) {
-        chrome.runtime.sendMessage({
-          action: "setVariable",
-          key: "disable_pricechart",
-          value: "checked"
-        },
-        function (response) {
-          weui.toast('停用成功', 1000);
-          $(".jjbPriceChart").hide()
-          console.log("disablePriceChart Response: ", response);
-        });
-      }
-    });
-  }
-}
 
 // 剁手保护模式
 function handProtection(setting, priceInfo) {
@@ -1923,16 +1899,13 @@ function CheckDom() {
   }
 
   // 商品页
-  if (window.location.host == 'item.jd.com' || window.location.host == 're.jd.com') {
-    getSetting('disable_pricechart', showPriceChart);
-    if (window.location.host == 'item.jd.com') {
-      setTimeout(() => {
-        let priceInfo = seekPriceInfo('pc');
-        getSetting('hand_protection', (setting) => {
-          handProtection(setting, priceInfo)
-        })
-      }, 1500);
-    }
+  if (window.location.host == 'item.jd.com') {
+    setTimeout(() => {
+      let priceInfo = seekPriceInfo('pc');
+      getSetting('hand_protection', (setting) => {
+        handProtection(setting, priceInfo)
+      })
+    }, 1500);
   }
 
   // 移动商品页
