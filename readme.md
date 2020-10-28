@@ -36,14 +36,12 @@ Microsoft Edge 版本：
 
 * 自动监控最近订单商品的价格变化，在商品降价时自动申请价格保护
 * 自动签到领取京豆
-* 自动领白条券
-* 自动领Plus券
 * 自动领全品类
 * 商品价格走势图
 
 ## 界面截图
 
-![主界面](https://jjbcdn.zaoshu.so/website/jjb_popup@2x-squashed.jpg)
+![主界面](https://i.loli.net/2020/10/28/T4G67vEhPYnm2dI.png)
 
 
 ## 重要提示
