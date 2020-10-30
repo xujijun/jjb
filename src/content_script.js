@@ -473,10 +473,17 @@ async function getAllOrders(mode, setting) {
       let orderElement = $(this)
 
       const validProducts = orderElement.find('.product-item').toArray().filter((product) => {
+        let proResult = $(product).next().next();
+        if ( proResult.find('#overTime').text() && proResult.find('#overTime').text().length > 0 || (proResult.find('.item-jb').text() &&proResult.find('.item-jb').text().indexOf("未开通价保服务") > -1) ) {
+          console.log('排除无效商品', $(product).find(".item-name").text())
+          return false
+        }
         return !$(product).find('.apply').hasClass('disable-apply')
       })
 
       if (validProducts.length < 1) return
+
+      console.log("validProducts", validProducts)
 
       setTimeout(async () => {
         try {
@@ -501,11 +508,16 @@ async function getAllOrders(mode, setting) {
         products.push(product)
       }
       // 排除已经超过价保周期的商品
-      const validProducts = products.filter((p) => {
-        return p.find("#overTime").length < 1
+      const validProducts = products.filter((product) => {
+        if ( product.find('#overTime') && product.find('#overTime').text().length > 0 || (product.find('.show-detail') && product.find('.show-detail').text().indexOf("未开通价保服务") > -1) ) {
+          console.log('排除无效商品', product.find(".p-name").text())
+          return false
+        }
+        return true
       })
 
       if (validProducts.length < 1) return console.log('排除无效订单', orderDom)
+      console.log("validProducts", validProducts)
 
       setTimeout(async () => {
         try {
