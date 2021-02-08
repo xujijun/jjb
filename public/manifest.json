@@ -3,7 +3,7 @@
   "name": "京价保 - 京东价保助手",
   "short_name": "京价保",
   "description": "京价保是一个监控京东商品价格变化，即时提供价保申请信息的浏览器插件",
-  "version": "0.1.1",
+  "version": "1.1.1",
   "background": {
     "page": "background.html",
     "persistent": true
